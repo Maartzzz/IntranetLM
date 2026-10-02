@@ -1,0 +1,224 @@
+<div class="page">
+
+    <div class="page-header">
+
+        <div>
+        <h1>Cursos</h1>
+
+        <p>
+            Gestiona las capacitaciones de la empresa.
+        </p>
+        </div>
+
+        <button
+        mat-flat-button
+        type="button"
+        (click)="openCreateDialog()"
+        >
+        <mat-icon>add</mat-icon>
+
+        Nuevo curso
+        </button>
+
+    </div>
+
+
+    <div class="filters">
+
+        <div class="search-box">
+
+        <mat-icon>search</mat-icon>
+
+        <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Buscar curso..."
+        />
+
+        </div>
+
+
+        <select
+        [(ngModel)]="statusFilter"
+        >
+
+        <option value="ALL">
+            Todos
+        </option>
+
+        <option value="ACTIVE">
+            Activos
+        </option>
+
+        <option value="INACTIVE">
+            Inactivos
+        </option>
+
+        </select>
+
+    </div>
+
+
+    @if (loading) {
+
+        <div class="state">
+        Cargando cursos...
+        </div>
+
+    }
+
+
+    @if (!loading && errorMessage) {
+
+        <div class="state error">
+        {{ errorMessage }}
+        </div>
+
+    }
+
+
+    @if (
+        !loading &&
+        !errorMessage &&
+        filteredCourses.length === 0
+    ) {
+
+        <div class="empty-state">
+
+        <mat-icon>school</mat-icon>
+
+        <h2>No hay cursos</h2>
+
+        <p>
+            No existen cursos que coincidan
+            con los filtros seleccionados.
+        </p>
+
+        </div>
+
+    }
+
+
+    @if (
+        !loading &&
+        filteredCourses.length > 0
+    ) {
+
+        <div class="course-list">
+
+        @for (
+            course of filteredCourses;
+            track course.id
+        ) {
+
+            <article class="course-card">
+
+            <div class="course-main">
+
+                <div class="course-title-row">
+
+                <h2>
+                    {{ course.title }}
+                </h2>
+
+                <span
+                    class="status"
+                    [class.active]="course.active"
+                    [class.inactive]="!course.active"
+                >
+                    {{
+                    course.active
+                        ? 'Activo'
+                        : 'Inactivo'
+                    }}
+                </span>
+
+                </div>
+
+
+                @if (course.description) {
+
+                <p class="description">
+                    {{ course.description }}
+                </p>
+
+                }
+
+
+                <div class="course-meta">
+
+                <span>
+                    <mat-icon>schedule</mat-icon>
+
+                    {{ course.durationMinutes }} min
+                </span>
+
+                <span>
+                    <mat-icon>check_circle</mat-icon>
+
+                    Aprobación:
+                    {{ course.passingScore }}%
+                </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="course-actions">
+
+                <button
+                mat-button
+                type="button"
+                (click)="openDetailDialog(course)"
+                >
+                Ver
+                </button>
+
+                <button
+                mat-button
+                type="button"
+                (click)="openQuestions(course)"
+                >
+                + Preguntas
+                </button>
+
+                <button
+                mat-button
+                type="button"
+                (click)="openMaterials(course.id)"
+                >
+                + Materiales
+                </button>
+
+                <button
+                mat-button
+                type="button"
+                (click)="openEditDialog(course)"
+                >
+                Editar
+                </button>
+
+                <button
+                mat-button
+                type="button"
+                (click)="toggleActive(course)"
+                >
+                {{
+                    course.active
+                    ? 'Desactivar'
+                    : 'Activar'
+                }}
+                </button>
+
+            </div>
+
+            </article>
+
+        }
+
+        </div>
+
+    }
+
+</div>

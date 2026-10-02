@@ -1,0 +1,263 @@
+<h2 mat-dialog-title>
+
+	<div class="title-row">
+
+		<div>
+		{{ material.title }}
+		</div>
+
+		@if (material.required) {
+
+		<span class="required">
+			Obligatorio
+		</span>
+
+		}
+
+	</div>
+
+	</h2>
+
+
+	<div
+	mat-dialog-content
+	class="viewer-content"
+	>
+
+	@if (material.description) {
+
+		<p class="description">
+		{{ material.description }}
+		</p>
+
+	}
+
+
+	@switch (material.type) {
+
+		@case ('VIDEO') {
+
+		<div class="video-container">
+
+		@if (loading) {
+
+		<p>
+			Cargando video...
+		</p>
+
+		}
+
+		@if (errorMessage) {
+
+		<p class="error">
+			{{ errorMessage }}
+		</p>
+
+		}
+
+		@if (contentUrl) {
+
+		<div class="video-container">
+
+			<video
+			controls
+			[src]="contentUrl"
+			>
+			Tu navegador no soporta
+			la reproducción de video.
+			</video>
+
+		</div>
+
+	}
+
+		</div>
+
+		}
+
+		@case ('PDF') {
+
+		@if (loading) {
+
+		<p>
+			Cargando documento...
+		</p>
+
+		}
+
+		@if (errorMessage) {
+
+			<p class="error">
+			{{ errorMessage }}
+			</p>
+
+		}
+
+		@if (contentUrl) {
+
+			<div class="document-container">
+
+			<iframe
+				[src]="contentUrl"
+				title="Documento PDF"
+			></iframe>
+
+			</div>
+
+		}
+
+	}
+
+	@case ('PPTX') {
+
+		<div class="external-container">
+
+			<mat-icon>
+			description
+			</mat-icon>
+
+			<h3>
+			Presentación PowerPoint
+			</h3>
+
+			<p>
+			El archivo está disponible
+			para visualizar o descargar.
+			</p>
+
+			<a
+			[href]="contentUrl"
+			target="_blank"
+			rel="noopener noreferrer"
+			mat-flat-button
+			>
+			Abrir presentación
+			</a>
+
+		</div>
+
+	}	
+
+
+	@case ('DOCUMENT') {
+
+	@if (loading) {
+
+		<p>
+		Cargando documento...
+		</p>
+
+	}
+
+	@if (contentUrl) {
+
+		<div class="external-container">
+
+		<mat-icon>
+			description
+		</mat-icon>
+
+		<h3>
+			Documento
+		</h3>
+
+		<p>
+			Este documento no puede visualizarse
+			directamente en el navegador.
+		</p>
+
+		<a
+			[href]="contentUrl"
+			download
+			mat-flat-button
+		>
+			Descargar documento
+		</a>
+
+		</div>
+
+	}
+
+	}
+
+
+		@case ('URL') {
+
+		<div class="external-container">
+
+			<mat-icon>
+			open_in_new
+			</mat-icon>
+
+			<h3>
+			Material externo
+			</h3>
+
+			<p>
+			Este material se encuentra
+			en una página externa.
+			</p>
+
+			<a
+			[href]="material.url"
+			target="_blank"
+			rel="noopener noreferrer"
+			mat-flat-button
+			>
+			Abrir material
+			<mat-icon>
+				open_in_new
+			</mat-icon>
+			</a>
+
+		</div>
+
+		}
+
+		@case ('YOUTUBE') {
+
+		<div class="external-container">
+
+			<mat-icon>
+			smart_display
+			</mat-icon>
+
+			<h3>
+			Video de YouTube
+			</h3>
+
+			<a
+			[href]="material.url"
+			target="_blank"
+			rel="noopener noreferrer"
+			mat-flat-button
+			>
+			Abrir video
+			<mat-icon>
+				open_in_new
+			</mat-icon>
+			</a>
+
+		</div>
+
+		}
+
+	}
+
+	</div>
+
+
+	<div
+	mat-dialog-actions
+	align="end"
+	>
+
+	<button
+		mat-button
+		type="button"
+		(click)="close()"
+	>
+		Cerrar
+	</button>
+
+</div>

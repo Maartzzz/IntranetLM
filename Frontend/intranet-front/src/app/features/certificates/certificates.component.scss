@@ -1,0 +1,156 @@
+.certificates-page {
+	padding: 24px;
+}
+
+.page-header {
+	margin-bottom: 24px;
+
+	h1 {
+		margin: 0;
+		font-size: 28px;
+		font-weight: 600;
+	}
+
+	p {
+		margin: 6px 0 0;
+		color: #64748b;
+	}
+}
+
+.toolbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+}
+
+.search-box {
+	width: 100%;
+	max-width: 420px;
+
+	input {
+		width: 100%;
+		box-sizing: border-box;
+		padding: 11px 14px;
+		border: 1px solid #cbd5e1;
+		border-radius: 8px;
+		outline: none;
+		font-size: 14px;
+		background: #ffffff;
+
+		&:focus {
+			border-color: #2563eb;
+		}
+
+		&::placeholder {
+			color: #94a3b8;
+		}
+	}
+}
+
+.certificates-table-container {
+	width: 100%;
+	overflow-x: auto;
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+}
+
+.certificates-table {
+	width: 100%;
+	border-collapse: collapse;
+	min-width: 950px;
+
+	th {
+		padding: 14px 16px;
+		text-align: left;
+		font-size: 12px;
+		font-weight: 600;
+		color: #64748b;
+		background: #f8fafc;
+		border-bottom: 1px solid #e2e8f0;
+		white-space: nowrap;
+	}
+
+	td {
+		padding: 14px 16px;
+		font-size: 14px;
+		color: #334155;
+		border-bottom: 1px solid #f1f5f9;
+		vertical-align: middle;
+	}
+
+	tbody tr:last-child td {
+		border-bottom: none;
+	}
+
+	tbody tr:hover {
+		background: #f8fafc;
+	}
+}
+
+.worker-name {
+	font-weight: 500;
+	color: #0f172a;
+}
+
+.score {
+	font-weight: 600;
+	color: #15803d;
+}
+
+.certificate-code {
+	font-family: monospace;
+	font-size: 13px;
+	color: #475569;
+}
+
+.download-button {
+	border: none;
+	border-radius: 6px;
+	padding: 8px 12px;
+	background: #2563eb;
+	color: #ffffff;
+	font-size: 13px;
+	cursor: pointer;
+	white-space: nowrap;
+
+	&:hover {
+		background: #1d4ed8;
+	}
+}
+
+.state-message {
+	padding: 40px 20px;
+	text-align: center;
+	color: #64748b;
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+}
+
+.state-message.error {
+	color: #b91c1c;
+	background: #fef2f2;
+	border-color: #fecaca;
+}
+
+@media (max-width: 768px) {
+	.certificates-page {
+		padding: 16px;
+	}
+
+	.page-header {
+		h1 {
+			font-size: 24px;
+		}
+	}
+
+	.toolbar {
+		margin-bottom: 16px;
+	}
+
+	.search-box {
+		max-width: none;
+	}
+}

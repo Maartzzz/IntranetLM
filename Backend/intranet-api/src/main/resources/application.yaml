@@ -1,0 +1,35 @@
+spring:
+    application:
+        name: intranet-api
+
+    datasource:
+        url: ${DB_URL}
+        username: ${DB_USERNAME}
+        password: ${DB_PASSWORD}
+
+    jpa:
+        hibernate:
+            ddl-auto: validate
+        show-sql: false
+        properties:
+            hibernate:
+                format_sql: false 
+    
+    servlet:
+        multipart:
+            max-file-size: 500MB
+            max-request-size: 500MB
+    
+    flyway:
+        enabled: true
+
+jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION:3600000}
+
+app:
+    upload:
+        dir: ${APP_UPLOAD_DIR:uploads/materials}
+
+        cors:
+            allowed-origin: ${APP_CORS_ALLOWED_ORIGIN:http://localhost:4200}

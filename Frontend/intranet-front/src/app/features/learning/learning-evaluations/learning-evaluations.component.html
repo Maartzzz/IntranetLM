@@ -1,0 +1,257 @@
+<div class="evaluation-page">
+
+    <!-- Cargando -->
+    <div class="state-container" *ngIf="loading">
+        <div class="loader"></div>
+        <p>Cargando evaluación...</p>
+    </div>
+
+    <!-- Error -->
+    <div class="state-container error-state"
+        *ngIf="!loading && errorMessage">
+
+        <div class="error-icon">!</div>
+
+        <h2>No se pudo iniciar la evaluación</h2>
+
+        <p>{{ errorMessage }}</p>
+
+        <button
+        type="button"
+        class="secondary-button"
+        (click)="backToCourse()">
+        Volver al curso
+        </button>
+
+    </div>
+
+    <!-- Evaluación -->
+    <ng-container *ngIf="!loading && evaluation && !result">
+
+        <header class="evaluation-header">
+
+        <div class="header-content">
+
+            <button
+            type="button"
+            class="back-button"
+            (click)="backToCourse()">
+            ← Volver al curso
+            </button>
+
+            <div class="course-info">
+            <span class="eyebrow">EVALUACIÓN</span>
+
+            <h1>{{ evaluation.courseTitle }}</h1>
+
+            <p>
+                Responde todas las preguntas y luego finaliza la evaluación.
+            </p>
+            </div>
+
+            <div class="score-info">
+            <span>Nota mínima</span>
+            <strong>{{ evaluation.passingScore }}%</strong>
+            </div>
+
+        </div>
+
+        </header>
+
+
+        <main class="evaluation-content">
+
+        <!-- Progreso -->
+        <div class="progress-section">
+
+            <div class="progress-labels">
+            <span>
+                Pregunta
+                {{ currentQuestionIndex + 1 }}
+                de
+                {{ evaluation.totalQuestions }}
+            </span>
+
+            <span>
+                {{ ((currentQuestionIndex + 1) / evaluation.totalQuestions * 100) | number:'1.0-0' }}%
+            </span>
+            </div>
+
+            <div class="progress-bar">
+            <div
+                class="progress-value"
+                [style.width.%]="
+                ((currentQuestionIndex + 1) / evaluation.totalQuestions) * 100
+                ">
+            </div>
+            </div>
+
+        </div>
+
+
+        <!-- Pregunta -->
+        <section class="question-card"
+                *ngIf="currentQuestion">
+
+            <div class="question-number">
+            Pregunta {{ currentQuestionIndex + 1 }}
+            </div>
+
+            <h2>
+            {{ currentQuestion.questionText }}
+            </h2>
+
+            <div class="options-list">
+
+            <button
+                type="button"
+                class="option"
+                *ngFor="let option of currentQuestion.options"
+                [class.selected]="currentAnswer === option.id"
+                (click)="selectOption(option.id)">
+
+                <span class="radio"
+                    [class.checked]="currentAnswer === option.id">
+                </span>
+
+                <span class="option-text">
+                {{ option.optionText }}
+                </span>
+
+            </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- Navegación -->
+        <div class="navigation">
+
+            <button
+            type="button"
+            class="secondary-button"
+            [disabled]="isFirstQuestion"
+            (click)="previousQuestion()">
+            ← Anterior
+            </button>
+
+            <span class="question-counter">
+            {{ currentQuestionIndex + 1 }}
+            /
+            {{ evaluation.totalQuestions }}
+            </span>
+
+            <button
+            *ngIf="!isLastQuestion"
+            type="button"
+            class="primary-button"
+            (click)="nextQuestion()">
+            Siguiente →
+            </button>
+
+            <button
+            *ngIf="isLastQuestion"
+            type="button"
+            class="finish-button"
+            [disabled]="submitting"
+            (click)="submitEvaluation()">
+
+            <span *ngIf="!submitting">
+                Finalizar evaluación
+            </span>
+
+            <span *ngIf="submitting">
+                Enviando...
+            </span>
+
+            </button>
+
+        </div>
+
+        </main>
+
+    </ng-container>
+
+
+    <!-- Resultado -->
+    <section
+        class="result-container"
+        *ngIf="!loading && result">
+
+        <div
+        class="result-card"
+        [class.approved]="result.passed"
+        [class.failed]="!result.passed">
+
+        <div class="result-icon">
+            <span *ngIf="result.passed">✓</span>
+            <span *ngIf="!result.passed">!</span>
+        </div>
+
+        <span class="eyebrow">
+            RESULTADO DE LA EVALUACIÓN
+        </span>
+
+        <h1>
+            {{ result.passed ? 'Evaluación aprobada' : 'Evaluación no aprobada' }}
+        </h1>
+
+        <div class="score">
+            {{ result.score | number:'1.0-2' }}%
+        </div>
+
+        <p class="result-description">
+            Respondiste correctamente
+            <strong>{{ result.correctAnswers }}</strong>
+            de
+            <strong>{{ result.totalQuestions }}</strong>
+            preguntas.
+        </p>
+
+        <div class="result-details">
+
+            <div class="detail">
+            <span>Nota obtenida</span>
+            <strong>{{ result.score }}%</strong>
+            </div>
+
+            <div class="detail">
+            <span>Nota mínima</span>
+            <strong>{{ result.passingScore }}%</strong>
+            </div>
+
+            <div class="detail">
+            <span>Preguntas correctas</span>
+            <strong>
+                {{ result.correctAnswers }}/{{ result.totalQuestions }}
+            </strong>
+            </div>
+
+        </div>
+
+        <div class="result-actions">
+
+            @if (result.passed) {
+                <button
+                    type="button"
+                    class="primary-button"
+                    (click)="downloadCertificate()">
+                    Descargar certificado
+                </button>
+            }
+
+            <button
+                type="button"
+                class="secondary-button result-button"
+                (click)="backToCourse()">
+                Volver al curso
+            </button>
+
+        </div>
+
+        </div>
+
+    </section>
+
+</div>

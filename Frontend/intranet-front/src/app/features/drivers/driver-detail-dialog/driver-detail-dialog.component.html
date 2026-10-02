@@ -1,0 +1,120 @@
+<h2 mat-dialog-title>
+    Información del conductor
+</h2>
+
+    <div mat-dialog-content class="dialog-content">
+
+    <section class="section">
+
+        <h3>Datos personales</h3>
+
+        <div class="info-grid">
+
+        <div class="info-item">
+            <span>Nombre</span>
+            <strong>
+            {{ data.firstName }}
+            {{ data.lastName }}
+            </strong>
+        </div>
+
+        <div class="info-item">
+            <span>Usuario</span>
+            <strong>
+            {{ data.username }}
+            </strong>
+        </div>
+
+        <div class="info-item">
+            <span>Documento</span>
+            <strong>
+            {{ data.documentType }}
+            {{ data.documentNumber }}
+            </strong>
+        </div>
+
+        <div class="info-item">
+            <span>Teléfono</span>
+            <strong>
+            {{ data.phone || '-' }}
+            </strong>
+        </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="section">
+
+        <h3>Licencia</h3>
+
+        <div class="info-grid">
+
+        <div class="info-item">
+            <span>Número</span>
+            <strong>
+            {{ data.licenseNumber }}
+            </strong>
+        </div>
+
+        <div class="info-item">
+            <span>Categoría</span>
+            <strong>
+            {{ data.licenseCategory }}
+            </strong>
+        </div>
+
+        <div class="info-item">
+            <span>Fecha de emisión</span>
+            <strong>
+            {{ data.licenseIssueDate }}
+            </strong>
+        </div>
+
+        <div class="info-item">
+            <span>Fecha de vencimiento</span>
+            <strong>
+            {{ data.licenseExpiryDate }}
+            </strong>
+        </div>
+
+        </div>
+
+
+        @if (licenseStatus === 'VALID') {
+
+        <div class="license-status valid">
+            ✓ Licencia vigente
+        </div>
+
+        } @else if (licenseStatus === 'EXPIRING') {
+
+        <div class="license-status expiring">
+            ⚠ Licencia próxima a vencer
+        </div>
+
+        } @else {
+
+        <div class="license-status expired">
+            ✕ Licencia vencida
+        </div>
+
+        }
+
+    </section>
+
+    </div>
+
+
+    <div mat-dialog-actions class="dialog-actions">
+
+    <button
+        mat-button
+        type="button"
+        (click)="close()"
+    >
+        Cerrar
+    </button>
+
+</div>

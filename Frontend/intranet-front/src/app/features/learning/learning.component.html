@@ -1,0 +1,89 @@
+<div class="learning-container">
+
+	<header class="learning-header">
+
+		<h1>
+		Capacitaciones
+		</h1>
+
+		<p>
+		Cursos disponibles para ti
+		</p>
+
+	</header>
+
+
+	@if (loading) {
+
+		<p>
+		Cargando cursos...
+		</p>
+
+	}
+
+
+	@if (errorMessage) {
+
+		<p class="error">
+		{{ errorMessage }}
+		</p>
+
+	}
+
+
+	@if (!loading && !errorMessage) {
+
+		@if (courses.length === 0) {
+
+		<p>
+			No tienes cursos asignados actualmente.
+		</p>
+
+		}
+
+
+		<div class="courses-grid">
+
+		@for (
+			course of courses;
+			track course.id
+		) {
+
+			<article class="course-card">
+
+			<h2>
+				{{ course.title }}
+			</h2>
+
+			@if (course.description) {
+
+				<p>
+				{{ course.description }}
+				</p>
+
+			}
+
+			@if (course.durationMinutes) {
+
+				<span>
+				{{ course.durationMinutes }} minutos
+				</span>
+
+			}
+
+			<button
+				type="button"
+				(click)="openCourse(course.id)"
+			>
+				Comenzar
+			</button>
+
+			</article>
+
+		}
+
+		</div>
+
+	}
+
+</div>

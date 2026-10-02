@@ -1,0 +1,257 @@
+<h2 mat-dialog-title>
+  {{ isEditMode ? 'Editar curso' : 'Nuevo curso' }}
+</h2>
+
+
+<div mat-dialog-content>
+
+  <form
+    [formGroup]="form"
+    class="form"
+  >
+
+    <!-- TÍTULO -->
+
+    <div class="form-field">
+
+      <label for="title">
+        Título
+      </label>
+
+      <input
+        id="title"
+        type="text"
+        formControlName="title"
+        placeholder="Nombre del curso"
+      />
+
+      @if (
+        form.controls.title.touched &&
+        form.controls.title.hasError('required')
+      ) {
+
+        <span class="error">
+          El título es obligatorio.
+        </span>
+
+      }
+
+      @if (
+        form.controls.title.touched &&
+        form.controls.title.hasError('maxlength')
+      ) {
+
+        <span class="error">
+          El título no puede superar
+          los 150 caracteres.
+        </span>
+
+      }
+
+    </div>
+
+
+    <!-- DESCRIPCIÓN -->
+
+    <div class="form-field">
+
+      <label for="description">
+        Descripción
+      </label>
+
+      <textarea
+        id="description"
+        rows="4"
+        formControlName="description"
+        placeholder="Descripción del curso"
+      ></textarea>
+
+    </div>
+
+
+    <!-- DURACIÓN / NOTA -->
+
+    <div class="form-row">
+
+      <div class="form-field">
+
+        <label for="durationMinutes">
+          Duración
+        </label>
+
+        <div class="input-with-suffix">
+
+          <input
+            id="durationMinutes"
+            type="number"
+            formControlName="durationMinutes"
+            min="1"
+          />
+
+          <span>
+            minutos
+          </span>
+
+        </div>
+
+        @if (
+          form.controls.durationMinutes.touched &&
+          form.controls.durationMinutes.invalid
+        ) {
+
+          <span class="error">
+            La duración debe ser mayor a 0.
+          </span>
+
+        }
+
+      </div>
+
+
+      <div class="form-field">
+
+        <label for="passingScore">
+          Nota mínima
+        </label>
+
+        <div class="input-with-suffix">
+
+          <input
+            id="passingScore"
+            type="number"
+            formControlName="passingScore"
+            min="0"
+            max="100"
+          />
+
+          <span>
+            %
+          </span>
+
+        </div>
+
+        @if (
+          form.controls.passingScore.touched &&
+          form.controls.passingScore.invalid
+        ) {
+
+          <span class="error">
+            Debe estar entre 0 y 100.
+          </span>
+
+        }
+
+        <div class="form-field">
+        <label for="evaluationQuestionCount">
+          Preguntas por evaluación
+        </label>
+
+        <input
+          id="evaluationQuestionCount"
+          type="number"
+          formControlName="evaluationQuestionCount"
+          min="1"
+        />
+
+        @if (
+          form.controls.evaluationQuestionCount.touched &&
+          form.controls.evaluationQuestionCount.invalid
+        ) {
+          <span class="field-error">
+            Debe indicar al menos 1 pregunta.
+          </span>
+        }
+      </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- AUDIENCIA -->
+
+    <div class="audience-section">
+
+      <div class="section-title">
+
+        <strong>
+          Dirigido a
+        </strong>
+
+        <span>
+          Selecciona los perfiles que deben realizar este curso.
+        </span>
+
+      </div>
+
+
+      <div class="audience-options">
+
+        @for (
+          role of audienceRoles;
+          track role
+        ) {
+
+          <label class="audience-option">
+
+            <input
+              type="checkbox"
+              [checked]="selectedAudienceRoles.includes(role)"
+              (change)="toggleAudienceRole(role)"
+            />
+
+            <span>
+              {{ getRoleLabel(role) }}
+            </span>
+
+          </label>
+
+        }
+
+      </div>
+
+    </div>
+
+
+    <!-- ESTADO -->
+
+    <label class="checkbox-field">
+
+      <input
+        type="checkbox"
+        formControlName="active"
+      />
+
+      <span>
+        Curso activo
+      </span>
+
+    </label>
+
+  </form>
+
+</div>
+
+
+<div
+  mat-dialog-actions
+  class="dialog-actions"
+>
+
+  <button
+    type="button"
+    mat-button
+    (click)="cancel()"
+  >
+    Cancelar
+  </button>
+
+  <button
+    type="button"
+    mat-flat-button
+    (click)="submit()"
+  >
+    {{ isEditMode ? 'Guardar cambios' : 'Crear curso' }}
+  </button>
+
+</div>

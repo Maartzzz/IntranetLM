@@ -1,0 +1,170 @@
+.full-width {
+  width: 100%;
+}
+
+.active-option {
+  margin: 4px 0 24px;
+}
+
+.options-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+  }
+
+  p {
+    margin: 0;
+    color: #666;
+    font-size: 13px;
+  }
+}
+
+.add-option-button {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.option-field {
+  flex: 1;
+}
+
+.correct-button,
+.remove-option-button {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.correct-button {
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 18px;
+
+  &.selected {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
+  }
+}
+
+.remove-option-button {
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  color: #777;
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+.validation-message {
+  margin-top: 8px;
+  color: #b3261e;
+  font-size: 13px;
+}
+
+.error-message {
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #fce8e6;
+  color: #b3261e;
+  font-size: 13px;
+}
+
+.primary-button,
+.secondary-button {
+  padding: 9px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.primary-button {
+  border: none;
+}
+
+.secondary-button {
+  border: 1px solid #ccc;
+  background: #fff;
+}
+
+@media (max-width: 600px) {
+
+  .options-header {
+    flex-direction: column;
+  }
+
+  .add-option-button {
+    width: 100%;
+  }
+
+  .option-row {
+    gap: 6px;
+  }
+
+  .correct-button,
+  .remove-option-button {
+    width: 36px;
+    flex-basis: 36px;
+  }
+}
+
+::ng-deep .mat-mdc-form-field {
+  width: 100%;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  overflow: visible;
+}
+
+::ng-deep .mat-mdc-form-field-flex {
+  padding-top: 4px;
+}
+
+::ng-deep .mat-mdc-form-field-infix {
+  min-height: 56px;
+  padding-top: 12px;
+  padding-bottom: 8px;
+}
+
+::ng-deep .mat-mdc-form-field textarea.mat-mdc-input-element {
+  margin-top: 2px;
+}
+
+.question-field {
+  textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  ::ng-deep .mat-mdc-form-field-infix {
+    padding-top: 12px;
+    padding-bottom: 8px;
+  }
+}

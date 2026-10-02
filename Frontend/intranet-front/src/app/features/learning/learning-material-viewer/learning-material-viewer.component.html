@@ -1,0 +1,178 @@
+<div class="learning-viewer">
+
+    <button
+        type="button"
+        class="back-button"
+        (click)="backToCourse()"
+    >
+        ← Volver al curso
+    </button>
+
+
+    @if (course) {
+
+        <header class="viewer-header">
+
+        <span class="course-name">
+            {{ course.title }}
+        </span>
+
+        @if (material) {
+
+            <h1>
+            {{ material.title }}
+            </h1>
+
+            @if (material.description) {
+
+            <p>
+                {{ material.description }}
+            </p>
+
+            }
+
+        }
+
+        </header>
+
+    }
+
+
+    @if (material) {
+
+        <div class="progress-info">
+
+        <span>
+            Contenido {{ currentIndex + 1 }}
+            de {{ materials.length }}
+        </span>
+
+        <div class="progress-bar">
+
+            <div
+            class="progress-value"
+            [style.width.%]="
+                ((currentIndex + 1) / materials.length) * 100
+            "
+            ></div>
+
+        </div>
+
+        </div>
+
+
+        <main class="viewer-content">
+
+        @if (loading) {
+
+            <div class="loading">
+            Cargando contenido...
+            </div>
+
+        }
+
+
+        @if (errorMessage) {
+
+            <div class="error">
+            {{ errorMessage }}
+            </div>
+
+        }
+
+
+        @if (
+            material.type === 'VIDEO' &&
+            contentUrl &&
+            !loading
+        ) {
+
+            <video
+            #videoPlayer
+            class="video-player"
+            controls
+            [src]="contentUrl"
+            (loadedmetadata)="onVideoLoaded(videoPlayer)"
+            (timeupdate)="onVideoTimeUpdate(videoPlayer)"
+            (ended)="onVideoEnded()"
+            >
+            Tu navegador no soporta
+            la reproducción de video.
+            </video>
+
+        }
+
+
+        @if (
+            material.type === 'PDF' &&
+            contentUrl &&
+            !loading
+        ) {
+
+            <iframe
+            class="pdf-viewer"
+            [src]="contentUrl"
+            title="Documento PDF"
+            ></iframe>
+
+        }
+
+
+        @if (
+            material.type === 'PPTX' ||
+            material.type === 'DOCUMENT' ||
+            material.type === 'URL' ||
+            material.type === 'YOUTUBE'
+        ) {
+
+            <div class="external-content">
+
+            <h2>
+                {{ material.title }}
+            </h2>
+
+            <p>
+                Este contenido se abrirá externamente.
+            </p>
+
+            <a
+                [href]="contentUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Abrir contenido
+            </a>
+
+            </div>
+
+        }
+
+        </main>
+
+
+        <nav class="navigation">
+
+        <button
+            type="button"
+            [disabled]="currentIndex === 0"
+            (click)="previous()"
+        >
+            ← Anterior
+        </button>
+
+
+        <button
+            type="button"
+            [disabled]="
+            currentIndex === materials.length - 1
+            "
+            (click)="next()"
+        >
+            Siguiente →
+        </button>
+
+        </nav>
+
+    }
+
+</div>

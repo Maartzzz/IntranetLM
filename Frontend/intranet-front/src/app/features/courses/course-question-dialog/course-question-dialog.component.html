@@ -1,0 +1,172 @@
+<h2 mat-dialog-title>
+		Preguntas de evaluación
+		</h2>
+
+		<mat-dialog-content>
+
+		<div class="course-name">
+				{{ data.courseTitle }}
+		</div>
+
+		@if (errorMessage) {
+				<div class="error-message">
+				{{ errorMessage }}
+				</div>
+		}
+
+		@if (loading) {
+
+				<div class="loading">
+				Cargando preguntas...
+				</div>
+
+		} @else {
+
+				<section class="section">
+
+				<div class="section-header">
+						<div>
+						<h3>Preguntas asignadas</h3>
+						<p>
+								{{ assignedQuestions.length }}
+								pregunta(s) seleccionada(s)
+						</p>
+						</div>
+				</div>
+
+				@if (assignedQuestions.length === 0) {
+
+						<div class="empty-state">
+						No hay preguntas asignadas a este curso.
+						</div>
+
+				} @else {
+
+						<div class="question-list">
+
+						@for (
+								question of assignedQuestions;
+								track question.id
+						) {
+
+								<div class="question-item assigned">
+
+								<div class="question-info">
+
+										<span class="question-id">
+										#{{ question.id }}
+										</span>
+
+										<span class="question-text">
+										{{ question.questionText }}
+										</span>
+
+								</div>
+
+								<button
+										type="button"
+										class="remove-button"
+										[disabled]="savingQuestionId === question.id"
+										(click)="removeQuestion(question)"
+								>
+										{{
+										savingQuestionId === question.id
+												? '...'
+												: 'Quitar'
+										}}
+								</button>
+
+								</div>
+
+						}
+
+						</div>
+
+				}
+
+				</section>
+
+				<section class="section">
+
+				<div class="section-header">
+						<div>
+						<h3>Preguntas disponibles</h3>
+						<p>
+								Preguntas activas del banco.
+						</p>
+						</div>
+				</div>
+
+				@if (questions.length === 0) {
+
+						<div class="empty-state">
+						No hay preguntas activas disponibles.
+						</div>
+
+				} @else {
+
+						<div class="question-list">
+
+						@for (
+								question of questions;
+								track question.id
+						) {
+
+								@if (!isAssigned(question.id)) {
+
+								<div class="question-item">
+
+										<div class="question-info">
+
+										<span class="question-id">
+												#{{ question.id }}
+										</span>
+
+										<span class="question-text">
+												{{ question.questionText }}
+										</span>
+
+										</div>
+
+										<button
+										type="button"
+										class="add-button"
+										[disabled]="
+												savingQuestionId === question.id
+										"
+										(click)="addQuestion(question)"
+										>
+										{{
+												savingQuestionId === question.id
+												? '...'
+												: 'Agregar'
+										}}
+										</button>
+
+								</div>
+
+								}
+
+						}
+
+						</div>
+
+				}
+
+				</section>
+
+		}
+
+		</mat-dialog-content>
+
+		<mat-dialog-actions align="end">
+
+		<button
+				type="button"
+				class="secondary-button"
+				(click)="close()"
+		>
+				Cerrar
+		</button>
+
+</mat-dialog-actions>

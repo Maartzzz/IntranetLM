@@ -1,0 +1,41 @@
+<header class="header">
+
+    <div class="header-left">
+
+        <button
+            type="button"
+            class="sidebar-toggle"
+            (click)="toggleSidebarMenu()"
+            aria-label="Mostrar u ocultar menú"
+        >
+            ☰
+        </button>
+
+        <div class="header-title">
+            Intranet Logistics Moving
+        </div>
+
+    </div>
+
+    <div class="user-area">
+
+        @if (currentUser) {
+
+            <div class="user-info">
+
+                <span class="user-name">
+                    {{ currentUser.firstName }}
+                    {{ currentUser.lastName }}
+                </span>
+
+                <span class="user-role">
+                    {{ currentUser.role }}
+                </span>
+
+            </div>
+
+        }
+
+    </div>
+
+</header>

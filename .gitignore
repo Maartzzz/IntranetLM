@@ -1,0 +1,30 @@
+# Secretos y variables de entorno
+.env
+.env.*
+!.env.example
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Archivos de Docker locales
+*.log
+
+# Archivos temporales
+*.tmp
+*.bak
+
+# Dependencias y compilaciones
+node_modules/
+dist/
+target/
+
+# Archivos y materiales subidos localmente
+uploads/
+**/uploads/
+
+# Configuración local de editores
+.vscode/
+.idea/Frontend/intranet-front/.git-backup/
+Frontend/intranet-front/.git-backup/

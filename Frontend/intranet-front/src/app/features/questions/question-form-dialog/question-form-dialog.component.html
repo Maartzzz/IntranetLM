@@ -1,0 +1,169 @@
+<h2 mat-dialog-title>
+  {{ isEditing ? 'Editar pregunta' : 'Nueva pregunta' }}
+</h2>
+
+<mat-dialog-content>
+
+  <form [formGroup]="form">
+
+    <mat-form-field appearance="outline" class="full-width question-field">
+      <mat-label>Pregunta</mat-label>
+
+      <textarea
+        matInput
+        rows="4"
+        formControlName="questionText"
+        placeholder="Escribe la pregunta..."
+      ></textarea>
+
+      @if (
+        form.get('questionText')?.touched &&
+        form.get('questionText')?.hasError('required')
+      ) {
+        <mat-error>
+          La pregunta es obligatoria.
+        </mat-error>
+      }
+
+    </mat-form-field>
+
+    <div class="active-option">
+      <mat-checkbox formControlName="active">
+        Pregunta activa
+      </mat-checkbox>
+    </div>
+
+    <div class="options-header">
+
+      <div>
+        <h3>Opciones de respuesta</h3>
+        <p>
+          Selecciona una única respuesta correcta.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="add-option-button"
+        (click)="addOption()"
+      >
+        + Agregar opción
+      </button>
+
+    </div>
+
+    <div
+      formArrayName="options"
+      class="options-list"
+    >
+
+      @for (
+        option of options.controls;
+        track $index;
+        let i = $index
+      ) {
+
+        <div
+          class="option-row"
+          [formGroupName]="i"
+        >
+
+          <button
+            type="button"
+            class="correct-button"
+            [class.selected]="
+              option.get('correct')?.value
+            "
+            (click)="selectCorrectOption(i)"
+            [attr.aria-label]="
+              option.get('correct')?.value
+                ? 'Respuesta correcta'
+                : 'Marcar como correcta'
+            "
+          >
+            {{
+              option.get('correct')?.value
+                ? '✓'
+                : '○'
+            }}
+          </button>
+
+          <mat-form-field
+            appearance="outline"
+            class="option-field"
+          >
+
+            <mat-label>
+              Opción {{ i + 1 }}
+            </mat-label>
+
+            <input
+              matInput
+              formControlName="optionText"
+              placeholder="Escribe la opción..."
+            />
+
+            @if (
+              option.get('optionText')?.touched &&
+              option.get('optionText')?.hasError('required')
+            ) {
+              <mat-error>
+                La opción es obligatoria.
+              </mat-error>
+            }
+
+          </mat-form-field>
+
+          <button
+            type="button"
+            class="remove-option-button"
+            (click)="removeOption(i)"
+            [disabled]="options.length <= 2"
+            aria-label="Eliminar opción"
+          >
+            ×
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+    @if (!hasCorrectOption()) {
+      <div class="validation-message">
+        Selecciona una respuesta correcta.
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="error-message">
+        {{ errorMessage }}
+      </div>
+    }
+
+  </form>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+
+  <button
+    type="button"
+    class="secondary-button"
+    (click)="cancel()"
+    [disabled]="saving"
+  >
+    Cancelar
+  </button>
+
+  <button
+    type="button"
+    class="primary-button"
+    (click)="save()"
+    [disabled]="saving"
+  >
+    {{ saving ? 'Guardando...' : 'Guardar' }}
+  </button>
+
+</mat-dialog-actions>

@@ -1,0 +1,76 @@
+:host {
+    display: block;
+}
+
+.dialog-content {
+    padding: 0 24px;
+}
+
+.section {
+    margin-bottom: 24px;
+}
+
+.section h3 {
+    margin: 0 0 14px;
+
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-item span {
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+.info-item strong {
+    font-size: 14px;
+}
+
+.license-status {
+    margin-top: 20px;
+    padding: 12px;
+
+    border-radius: 6px;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.valid {
+    background: #eef8f0;
+}
+
+.expiring {
+    background: #fff7e6;
+}
+
+.expired {
+    background: #fdeeee;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    padding: 16px 24px 20px;
+}
+
+@media (max-width: 600px) {
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+}

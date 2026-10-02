@@ -1,0 +1,378 @@
+<h2 mat-dialog-title>
+    Detalle del curso
+    </h2>
+
+    <div
+    mat-dialog-content
+    class="dialog-content"
+    >
+
+    <div class="course-header">
+
+        <div class="course-icon">
+        📚
+        </div>
+
+        <div class="course-title">
+
+        <h3>
+            {{ data.title }}
+        </h3>
+
+        @if (data.active) {
+
+            <span class="status active">
+            Activo
+            </span>
+
+        } @else {
+
+            <span class="status inactive">
+            Inactivo
+            </span>
+
+        }
+
+        </div>
+
+    </div>
+
+
+    <section class="section">
+
+        <h4>
+        Descripción
+        </h4>
+
+        <p class="description">
+
+        @if (data.description) {
+
+            {{ data.description }}
+
+        } @else {
+
+            Sin descripción registrada.
+
+        }
+
+        </p>
+
+    </section>
+
+
+    <section class="section">
+
+        <h4>
+        Información del curso
+        </h4>
+
+        <div class="info-grid">
+
+        <div class="info-item">
+
+            <span>
+            Duración
+            </span>
+
+            <strong>
+            {{ data.durationMinutes }} minutos
+            </strong>
+
+        </div>
+
+
+        <div class="info-item">
+
+            <span>
+            Nota mínima
+            </span>
+
+            <strong>
+            {{ data.passingScore }}%
+            </strong>
+
+        </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="section">
+
+        <h4>
+        Registro
+        </h4>
+
+        <div class="metadata">
+
+        <div class="metadata-item">
+
+            <span>
+            Fecha de creación
+            </span>
+
+            <strong>
+            {{ data.createdAt | date:'dd/MM/yyyy HH:mm' }}
+            </strong>
+
+        </div>
+
+
+        <div class="metadata-item">
+
+            <span>
+            Última actualización
+            </span>
+
+            <strong>
+            {{ data.updatedAt | date:'dd/MM/yyyy HH:mm' }}
+            </strong>
+
+        </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="section">
+
+        <app-course-audience
+            [courseId]="data.id">
+        </app-course-audience>
+
+    </section>
+
+
+    <section class="section">
+
+        <h4>
+            Contenido
+        </h4>
+
+        <app-materials
+            [courseId]="data.id">
+        </app-materials>
+
+    </section>
+
+    <section class="section">
+
+        <h4>
+            Evaluación
+        </h4>
+
+        <div class="info-grid">
+
+            <div class="info-item">
+
+                <span>
+                    Preguntas por intento
+                </span>
+
+                <strong>
+                    {{ data.evaluationQuestionCount }}
+                </strong>
+
+            </div>
+
+            <div class="info-item">
+
+                <span>
+                    Nota mínima
+                </span>
+
+                <strong>
+                    {{ data.passingScore }}%
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="section">
+
+    <div class="section-header">
+
+        <h4>
+            Preguntas de evaluación
+        </h4>
+
+        <div class="section-actions">
+
+            <button
+                type="button"
+                class="secondary-button"
+                (click)="importQuestions()"
+            >
+                Importar Excel
+            </button>
+
+            <button
+                type="button"
+                class="primary-button"
+                (click)="addQuestion()"
+            >
+                + Añadir pregunta
+            </button>
+
+        </div>
+
+    </div>
+
+        @if (loadingQuestions) {
+
+            <p class="evaluation-state">
+                Cargando preguntas...
+            </p>
+
+        } @else if (questions.length === 0) {
+
+            <p class="evaluation-state">
+                No hay preguntas asociadas a este curso.
+            </p>
+
+        } @else {
+
+            <div class="questions-list">
+
+                @for (question of questions; track question.id) {
+
+                    <div class="question-item">
+
+                        <strong>
+                            {{ question.questionText }}
+                        </strong>
+
+                    </div>
+
+                }
+
+            </div>
+
+        }
+
+    </section>
+
+    <section class="section">
+
+        <h4>
+            Evaluaciones completadas
+        </h4>
+
+        @if (loadingEvaluations) {
+
+            <p class="evaluation-state">
+                Cargando evaluaciones...
+            </p>
+
+        } @else if (evaluationAttempts.length === 0) {
+
+            <p class="evaluation-state">
+                No hay evaluaciones completadas para este curso.
+            </p>
+
+        } @else {
+
+            <div class="evaluations-table-container">
+
+                <table class="evaluations-table">
+
+                    <thead>
+                        <tr>
+                            <th>Trabajador</th>
+                            <th>Documento</th>
+                            <th>Fecha</th>
+                            <th>Preguntas</th>
+                            <th>Correctas</th>
+                            <th>Nota</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @for (
+                            attempt of evaluationAttempts;
+                            track attempt.attemptId
+                        ) {
+
+                            <tr>
+
+                                <td>
+                                    <strong>
+                                        {{ attempt.fullName }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ attempt.documentType }}:
+                                    {{ attempt.documentNumber }}
+                                </td>
+
+                                <td>
+                                    {{ attempt.completedAt | date:'dd/MM/yyyy HH:mm' }}
+                                </td>
+
+                                <td>
+                                    {{ attempt.totalQuestions }}
+                                </td>
+
+                                <td>
+                                    {{ attempt.correctAnswers }}
+                                </td>
+
+                                <td>
+                                    {{ attempt.score }}%
+                                </td>
+
+                                <td>
+
+                                    @if (attempt.passed) {
+
+                                        <span class="evaluation-status passed">
+                                            Aprobado
+                                        </span>
+
+                                    } @else {
+
+                                        <span class="evaluation-status failed">
+                                            Desaprobado
+                                        </span>
+
+                                    }
+
+                                </td>
+
+                            </tr>
+
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        }
+
+    </section>
+
+    <div
+    mat-dialog-actions
+    class="dialog-actions"
+    >
+
+    <button
+        type="button"
+        mat-button
+        (click)="close()"
+    >
+        Cerrar
+    </button>
+
+</div>

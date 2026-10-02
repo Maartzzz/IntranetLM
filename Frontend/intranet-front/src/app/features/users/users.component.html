@@ -1,0 +1,201 @@
+<section class="users-page">
+
+    <div class="page-header">
+
+        <div>
+        <h1>Usuarios</h1>
+        <p>Administración de usuarios de la intranet</p>
+        </div>
+
+        <button class="control-btn" type="button" (click)="openCreateDialog()">
+        + Nuevo usuario
+        </button>
+
+    </div>
+
+    <div class="filters">
+
+    <div class="search-field">
+
+        <label for="search">
+        Buscar
+        </label>
+
+        <input
+        id="search"
+        type="text"
+        placeholder="Usuario, nombre, apellido o documento..."
+        [(ngModel)]="searchTerm"
+        />
+
+    </div>
+
+
+    <div class="filter-field">
+
+        <label for="role">
+        Rol
+        </label>
+
+        <select
+        id="role"
+        [(ngModel)]="selectedRole"
+        >
+
+        <option value="ALL">
+            Todos
+        </option>
+
+        <option value="ADMIN">
+            Administrador
+        </option>
+
+        <option value="SUPERVISOR">
+            Supervisor
+        </option>
+
+        <option value="CHOFER">
+            Conductor
+        </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="filter-field">
+
+        <label for="status">
+        Estado
+        </label>
+
+        <select
+        id="status"
+        [(ngModel)]="selectedStatus"
+        >
+
+        <option value="ALL">
+            Todos
+        </option>
+
+        <option value="ACTIVE">
+            Activos
+        </option>
+
+        <option value="INACTIVE">
+            Inactivos
+        </option>
+
+        </select>
+
+    </div>
+
+</div>
+
+
+    @if (loading) {
+
+        <p>Cargando usuarios...</p>
+
+    }
+
+
+    @if (errorMessage) {
+
+        <p class="error">
+        {{ errorMessage }}
+        </p>
+
+    }
+
+
+    @if (!loading && !errorMessage) {
+
+        <div class="table-container">
+
+        <table>
+
+            <thead>
+
+            <tr>
+                <th>Usuario</th>
+                <th>Nombre</th>
+                <th>Documento</th>
+                <th>Teléfono</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+            @for (user of filteredUsers; track user.username) {
+
+                <tr>
+
+                <td>
+                    {{ user.username }}
+                </td>
+
+                <td>
+                    {{ user.firstName }}
+                    {{ user.lastName }}
+                </td>
+
+                <td>
+                    {{ user.documentType }}
+                    {{ user.documentNumber }}
+                </td>
+
+                <td>
+                    {{ user.phone || '-' }}
+                </td>
+
+                <td>
+                    {{ user.role }}
+                </td>
+
+                <td>
+
+                    @if (user.active) {
+                    <span class="active">
+                        Activo
+                    </span>
+                    } @else {
+                    <span class="inactive">
+                        Inactivo
+                    </span>
+                    }
+
+                </td>
+
+                <td>
+                    <button class = "active-btn" type="button" (click)="toggleActive(user)">
+                        {{ user.active ? 'Desactivar' : 'Activar' }}
+                    </button>
+
+                    <button class = "edit-btn" type="button" (click)="openEditDialog(user)">
+                        Editar
+                    </button>
+                </td>
+
+                </tr>
+
+            }
+
+            </tbody>
+
+        <p class="results-count">
+        {{ filteredUsers.length }}
+        usuario(s) encontrado(s)
+        </p>
+
+        </table>
+
+        </div>
+
+    }
+
+</section>

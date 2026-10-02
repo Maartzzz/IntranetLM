@@ -1,0 +1,228 @@
+<h2 mat-dialog-title>
+	{{ isEditMode ? 'Editar material' : 'Nuevo material' }}
+	</h2>
+
+	<div mat-dialog-content>
+
+	<form
+		[formGroup]="form"
+		class="form"
+	>
+
+		<div class="form-field">
+
+		<label for="title">
+			Título
+		</label>
+
+		<input
+			id="title"
+			type="text"
+			formControlName="title"
+			placeholder="Nombre del material"
+		/>
+
+		@if (
+			form.controls.title.touched &&
+			form.controls.title.hasError('required')
+		) {
+
+			<span class="error">
+			El título es obligatorio.
+			</span>
+
+		}
+
+		@if (
+			form.controls.title.touched &&
+			form.controls.title.hasError('maxlength')
+		) {
+
+			<span class="error">
+			El título no puede superar
+			los 150 caracteres.
+			</span>
+
+		}
+
+		</div>
+
+
+		<div class="form-field">
+
+		<label for="description">
+			Descripción
+		</label>
+
+		<textarea
+			id="description"
+			rows="3"
+			formControlName="description"
+			placeholder="Descripción del material"
+		></textarea>
+
+		</div>
+
+
+		<div class="form-field">
+
+		<label for="type">
+			Tipo de material
+		</label>
+
+		<select
+			id="type"
+			formControlName="type"
+		>
+
+			@for (
+			type of materialTypes;
+			track type
+			) {
+
+			<option [value]="type">
+				{{ getTypeLabel(type) }}
+			</option>
+
+			}
+
+		</select>
+
+		</div>
+
+
+		@if (
+		form.controls.type.value === 'YOUTUBE' ||
+		form.controls.type.value === 'URL'
+		) {
+
+		<div class="form-field">
+
+			<label for="url">
+			URL
+			</label>
+
+			<input
+			id="url"
+			type="url"
+			formControlName="url"
+			placeholder="https://..."
+			/>
+
+			@if (
+			form.controls.url.touched &&
+			form.controls.url.hasError('required')
+			) {
+
+			<span class="error">
+				La URL es obligatoria.
+			</span>
+
+			}
+
+		</div>
+
+		}
+
+		@if (
+		form.controls.type.value === 'VIDEO' ||
+		form.controls.type.value === 'PDF' ||
+		form.controls.type.value === 'PPTX' ||
+		form.controls.type.value === 'DOCUMENT'
+		) {
+
+		<div class="form-field">
+
+			<label for="file">
+			Archivo
+			</label>
+
+			<input
+			id="file"
+			type="file"
+			(change)="onFileSelected($event)"
+			/>
+
+			@if (selectedFile) {
+
+			<span class="file-name">
+				Archivo seleccionado:
+				{{ selectedFile.name }}
+			</span>
+
+			}
+
+			@if (
+			isEditMode &&
+			!selectedFile &&
+			form.controls.url.value
+			) {
+
+			<span class="current-file">
+				Archivo actual:
+				{{ getCurrentFileName() }}
+			</span>
+
+			}
+
+		</div>
+
+		}
+
+
+		<div class="checkbox-field">
+
+		<input
+			id="required"
+			type="checkbox"
+			formControlName="required"
+		/>
+
+		<label for="required">
+			Material obligatorio
+		</label>
+
+		</div>
+
+
+		<div class="checkbox-field">
+
+		<input
+			id="active"
+			type="checkbox"
+			formControlName="active"
+		/>
+
+		<label for="active">
+			Material activo
+		</label>
+
+		</div>
+
+	</form>
+
+	</div>
+
+
+	<div
+	mat-dialog-actions
+	class="dialog-actions"
+	>
+
+	<button
+		type="button"
+		mat-button
+		(click)="cancel()"
+	>
+		Cancelar
+	</button>
+
+	<button
+		type="button"
+		mat-flat-button
+		(click)="submit()"
+	>
+		{{ isEditMode ? 'Guardar cambios' : 'Crear material' }}
+	</button>
+
+</div>

@@ -1,0 +1,245 @@
+<div class="learning-course-container">
+
+	<button
+		type="button"
+		class="back-button"
+		(click)="goBack()"
+	>
+		← Mis cursos
+	</button>
+
+
+	@if (loading) {
+
+		<p class="loading">
+		Cargando curso...
+		</p>
+
+	}
+
+
+	@if (errorMessage) {
+
+		<p class="error">
+		{{ errorMessage }}
+		</p>
+
+	}
+
+
+	@if (course && !loading) {
+
+		<header class="course-header">
+
+		<span class="course-label">
+			Curso de capacitación
+		</span>
+
+		<h1>
+			{{ course.title }}
+		</h1>
+
+		@if (course.description) {
+
+			<p class="description">
+			{{ course.description }}
+			</p>
+
+		}
+
+		<div class="course-info">
+
+			@if (course.durationMinutes) {
+
+			<span>
+				⏱ {{ course.durationMinutes }} minutos
+			</span>
+
+			}
+
+			<span>
+			📚 {{ materials.length }} contenidos
+			</span>
+
+		</div>
+
+		</header>
+
+		<section class="course-progress">
+
+			<div class="progress-header">
+
+				<span>Progreso del curso</span>
+
+				<strong>
+				{{ courseProgress }}%
+				</strong>
+
+			</div>
+
+			<div class="progress-bar">
+
+				<div
+				class="progress-value"
+				[style.width.%]="courseProgress"
+				></div>
+
+			</div>
+
+			@if (canTakeEvaluation) {
+
+			<div class="evaluation-ready">
+
+				<div class="progress-complete">
+				✓ Has completado todos los contenidos obligatorios.
+				</div>
+
+				<button
+				type="button"
+				class="evaluation-button"
+				(click)="startEvaluation()">
+
+				Iniciar evaluación →
+
+				</button>
+
+			</div>
+
+			} @else {
+
+			<p class="progress-pending">
+				Completa todos los contenidos obligatorios para habilitar la evaluación.
+			</p>
+
+			}
+
+			</section>
+
+		<section class="content-section">
+
+		<h2>
+			Contenido del curso
+		</h2>
+
+		@if (materials.length === 0) {
+
+			<p class="empty">
+			Este curso todavía no tiene contenidos disponibles.
+			</p>
+
+		}
+
+
+		<div class="materials-list">
+
+			@for (
+			material of materials;
+			track material.id;
+			let i = $index
+			) {
+
+			<article class="material-item">
+
+				<div class="material-number">
+				{{ (i + 1).toString().padStart(2, '0') }}
+				</div>
+
+
+				<div class="material-info">
+
+				<h3>
+					{{ material.title }}
+				</h3>
+
+				@if (material.description) {
+
+					<p>
+					{{ material.description }}
+					</p>
+
+				}
+
+				<span class="material-type">
+					{{ material.type }}
+				</span>
+
+				<div class="material-progress">
+
+					<div class="material-progress-header">
+
+						<span>
+						Progreso
+						</span>
+
+						<strong>
+						{{ getMaterialProgress(material.id) }}%
+						</strong>
+
+					</div>
+
+					<div class="material-progress-bar">
+
+						<div
+						class="material-progress-value"
+						[style.width.%]="getMaterialProgress(material.id)"
+						></div>
+
+					</div>
+
+					</div>
+
+					@if (isMaterialCompleted(material.id)) {
+
+					<span class="material-status completed">
+						✓ Completado
+					</span>
+
+					} @else if (getMaterialProgress(material.id) > 0) {
+
+					<span class="material-status in-progress">
+						En progreso
+					</span>
+
+					} @else {
+
+					<span class="material-status not-started">
+						No iniciado
+					</span>
+
+					}
+
+				</div>
+
+
+				@if (material.required) {
+
+				<span class="required">
+					Obligatorio
+				</span>
+
+				}
+
+				<button
+				class="button"
+				(click)="openMaterial(material)"
+				>  
+				@if (isMaterialCompleted(material.id)) {
+					Revisar material
+				} @else if (getMaterialProgress(material.id) > 0) {
+					Continuar
+				} @else {
+					Ver material
+				}
+				</button>
+
+			</article>
+
+			}
+
+		</div>
+
+		</section>
+
+	}
+
+</div>

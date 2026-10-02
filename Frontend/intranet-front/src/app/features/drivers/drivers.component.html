@@ -1,0 +1,190 @@
+<div class="page-header">
+
+    <div>
+        <h1>Conductores</h1>
+
+        <p>
+        Administración de conductores y licencias
+        </p>
+    </div>
+
+    <button type="button"
+        (click)="openCreateDialog()">
+        + Nuevo conductor
+    </button>
+
+    </div>
+
+
+    <div class="filters">
+
+    <div class="search-field">
+
+        <label for="search">
+        Buscar
+        </label>
+
+        <input
+        id="search"
+        type="text"
+        placeholder="Usuario, nombre, documento o licencia..."
+        [(ngModel)]="searchTerm"
+        />
+
+    </div>
+
+    <div class="filter-field">
+
+        <label for="status">
+        Estado
+        </label>
+
+        <select
+        id="status"
+        [(ngModel)]="selectedStatus"
+        >
+
+        <option value="ALL">
+            Todos
+        </option>
+
+        <option value="ACTIVE">
+            Activos
+        </option>
+
+        <option value="INACTIVE">
+            Inactivos
+        </option>
+
+        </select>
+
+    </div>
+
+    </div>
+
+
+    @if (errorMessage) {
+
+    <div class="error-message">
+        {{ errorMessage }}
+    </div>
+
+    }
+
+    <div class="table-container">
+
+    <table>
+
+        <thead>
+
+        <tr>
+
+            <th>Conductor</th>
+            <th>Documento</th>
+            <th>Teléfono</th>
+            <th>Licencia</th>
+            <th>Categoría</th>
+            <th>Vencimiento</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        @for (
+            driver of filteredDrivers;
+            track driver.username
+        ) {
+
+            <tr>
+
+            <td>
+                <strong>
+                {{ driver.firstName }}
+                {{ driver.lastName }}
+                </strong>
+
+                <small>
+                {{ driver.username }}
+                </small>
+            </td>
+
+            <td>
+                {{ driver.documentType }}
+                {{ driver.documentNumber }}
+            </td>
+
+            <td>
+                {{ driver.phone || '-' }}
+            </td>
+
+            <td>
+                {{ driver.licenseNumber }}
+            </td>
+
+            <td>
+                {{ driver.licenseCategory }}
+            </td>
+
+            <td>
+                {{ driver.licenseExpiryDate }}
+            </td>
+
+            <td>
+
+                @if (driver.active) {
+
+                <span class="active">
+                    Activo
+                </span>
+
+                } @else {
+
+                <span class="inactive">
+                    Inactivo
+                </span>
+
+                }
+
+            </td>
+
+            <td>
+
+                <button type="button" (click)="openDetailDialog(driver)">
+                Ver
+                </button>
+
+            </td>
+
+            </tr>
+
+        } @empty {
+
+            <tr>
+
+            <td
+                colspan="8"
+                class="empty"
+            >
+                No se encontraron conductores.
+            </td>
+
+            </tr>
+
+        }
+
+        </tbody>
+
+        
+
+    <p class="results-count">
+    {{ filteredDrivers.length }}
+    conductor(es) encontrado(s)
+    </p>
+
+    </table>
+
+</div>

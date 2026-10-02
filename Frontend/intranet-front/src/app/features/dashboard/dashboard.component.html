@@ -1,0 +1,217 @@
+<div class="dashboard-page">
+
+	<div class="page-header">
+		<div>
+		<h1>Dashboard</h1>
+		<p>Resumen general de la capacitación.</p>
+		</div>
+	</div>
+
+	@if (loading) {
+
+		<div class="state-message">
+		Cargando información...
+		</div>
+
+	} @else if (errorMessage) {
+
+		<div class="state-message error">
+		{{ errorMessage }}
+		</div>
+
+	} @else if (dashboard) {
+
+		<div class="stats-grid">
+
+		<div class="stat-card">
+			<div class="stat-icon">👥</div>
+
+			<div class="stat-content">
+			<span class="stat-label">
+				Usuarios activos
+			</span>
+
+			<strong class="stat-value">
+				{{ dashboard.totalUsers }}
+			</strong>
+			</div>
+		</div>
+
+
+		<div class="stat-card">
+			<div class="stat-icon">🚚</div>
+
+			<div class="stat-content">
+			<span class="stat-label">
+				Choferes
+			</span>
+
+			<strong class="stat-value">
+				{{ dashboard.totalDrivers }}
+			</strong>
+			</div>
+		</div>
+
+
+		<div class="stat-card">
+			<div class="stat-icon">📚</div>
+
+			<div class="stat-content">
+			<span class="stat-label">
+				Cursos activos
+			</span>
+
+			<strong class="stat-value">
+				{{ dashboard.activeCourses }}
+			</strong>
+			</div>
+		</div>
+
+
+		<div class="stat-card">
+			<div class="stat-icon">🏆</div>
+
+			<div class="stat-content">
+			<span class="stat-label">
+				Certificados
+			</span>
+
+			<strong class="stat-value">
+				{{ dashboard.certificates }}
+			</strong>
+			</div>
+		</div>
+
+
+		<div class="stat-card">
+			<div class="stat-icon">📝</div>
+
+			<div class="stat-content">
+			<span class="stat-label">
+				Evaluaciones completadas
+			</span>
+
+			<strong class="stat-value">
+				{{ dashboard.completedEvaluations }}
+			</strong>
+			</div>
+		</div>
+
+
+		<div class="stat-card">
+			<div class="stat-icon">📊</div>
+
+			<div class="stat-content">
+			<span class="stat-label">
+				Tasa de aprobación
+			</span>
+
+			<strong class="stat-value">
+				{{ dashboard.approvalRate | number: '1.0-2' }}%
+			</strong>
+			</div>
+		</div>
+
+		</div>
+
+		<section class="recent-section">
+
+		<div class="section-header">
+			<div>
+			<h2>Últimas evaluaciones</h2>
+			<p>Evaluaciones completadas recientemente.</p>
+			</div>
+		</div>
+
+		@if (dashboard.recentEvaluations.length === 0) {
+
+			<div class="state-message">
+			No hay evaluaciones completadas.
+			</div>
+
+		} @else {
+
+			<div class="recent-table-container">
+
+			<table class="recent-table">
+
+				<thead>
+				<tr>
+					<th>Trabajador</th>
+					<th>Documento</th>
+					<th>Curso</th>
+					<th>Fecha</th>
+					<th>Nota</th>
+					<th>Resultado</th>
+				</tr>
+				</thead>
+
+				<tbody>
+
+				@for (
+					evaluation of dashboard.recentEvaluations;
+					track evaluation.attemptId
+				) {
+
+					<tr>
+
+					<td>
+						<strong>
+						{{ evaluation.fullName }}
+						</strong>
+					</td>
+
+					<td>
+						{{ evaluation.documentType }}:
+						{{ evaluation.documentNumber }}
+					</td>
+
+					<td>
+						{{ evaluation.courseTitle }}
+					</td>
+
+					<td>
+						{{ evaluation.completedAt | date:'dd/MM/yyyy HH:mm' }}
+					</td>
+
+					<td>
+						<span class="evaluation-score">
+						{{ evaluation.score }}%
+						</span>
+					</td>
+
+					<td>
+
+						@if (evaluation.passed) {
+
+						<span class="evaluation-status passed">
+							Aprobado
+						</span>
+
+						} @else {
+
+						<span class="evaluation-status failed">
+							Desaprobado
+						</span>
+
+						}
+
+					</td>
+
+					</tr>
+
+				}
+
+				</tbody>
+
+			</table>
+
+			</div>
+
+		}
+
+		</section>
+
+	}
+
+</div>

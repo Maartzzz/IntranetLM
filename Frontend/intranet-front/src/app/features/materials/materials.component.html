@@ -1,0 +1,184 @@
+<div class="materials-page">
+
+	<div class="page-header">
+
+		<div>
+		<h1>Materiales</h1>
+
+		<p>
+			Materiales disponibles para este curso.
+		</p>
+		</div>
+
+		<button
+		mat-flat-button
+		type="button"
+		(click)="openCreateDialog()"
+		>
+		<mat-icon>add</mat-icon>
+		Nuevo material
+		</button>
+
+	</div>
+
+
+	@if (loading) {
+
+		<div class="state">
+		Cargando materiales...
+		</div>
+
+	}
+
+
+	@if (!loading && errorMessage) {
+
+		<div class="state error">
+		{{ errorMessage }}
+		</div>
+
+	}
+
+
+	@if (!loading && !errorMessage && materials.length === 0) {
+
+		<div class="empty-state">
+
+		<mat-icon>
+			folder_open
+		</mat-icon>
+
+		<h2>
+			No hay materiales
+		</h2>
+
+		<p>
+			Este curso todavía no tiene materiales registrados.
+		</p>
+
+		<button
+			mat-flat-button
+			type="button"
+			(click)="openCreateDialog()"
+		>
+			<mat-icon>add</mat-icon>
+			Agregar material
+		</button>
+
+		</div>
+
+	}
+
+
+	@if (!loading && !errorMessage && materials.length > 0) {
+
+		<div class="materials-list">
+
+		@for (
+			material of materials;
+			track material.id
+		) {
+
+			<div
+			class="material-card"
+			[class.inactive]="!material.active"
+			>
+
+			<div class="material-icon">
+
+				<mat-icon>
+				{{ getMaterialIcon(material.type) }}
+				</mat-icon>
+
+			</div>
+
+
+			<div class="material-content">
+
+				<div class="material-title-row">
+
+				<h2>
+					{{ material.title }}
+				</h2>
+
+				@if (material.required) {
+
+					<span class="required">
+					Obligatorio
+					</span>
+
+				}
+
+				@if (!material.active) {
+
+					<span class="inactive-label">
+					Inactivo
+					</span>
+
+				}
+
+				</div>
+
+
+				@if (material.description) {
+
+				<p>
+					{{ material.description }}
+				</p>
+
+				}
+
+
+				<span class="material-type">
+				{{ getMaterialTypeLabel(material.type) }}
+				</span>
+
+			</div>
+
+
+			<div class="material-actions">
+
+				<button
+				mat-icon-button
+				type="button"
+				aria-label="Ver material"
+				(click)="viewMaterial(material)"
+				>
+				<mat-icon>
+					visibility
+				</mat-icon>
+				</button>
+
+				<button
+				mat-icon-button
+				type="button"
+				aria-label="Editar material"
+				(click)="editMaterial(material)"
+				>
+				<mat-icon>
+					edit
+				</mat-icon>
+				</button>
+
+				<button
+				mat-icon-button
+				type="button"
+				aria-label="Eliminar material"
+				(click)="deleteMaterial(material)"
+				>
+				<mat-icon>
+					delete
+				</mat-icon>
+				</button>
+
+			</div>
+
+			</div>
+
+		}
+
+		</div>
+
+	}
+
+</div>

@@ -1,0 +1,117 @@
+<div class="audience">
+
+    <div class="audience-header">
+
+        <div>
+        <h4>Dirigido a</h4>
+
+        <p>
+            Perfiles que deben realizar este curso.
+        </p>
+        </div>
+
+    </div>
+
+
+    @if (loading) {
+
+        <div class="state">
+        Cargando audiencia...
+        </div>
+
+    }
+
+
+    @if (!loading && errorMessage) {
+
+        <div class="state error">
+        {{ errorMessage }}
+        </div>
+
+    }
+
+
+    @if (
+        !loading &&
+        !errorMessage &&
+        audiences.length === 0
+    ) {
+
+        <div class="empty">
+        Este curso todavía no tiene
+        perfiles asignados.
+        </div>
+
+    }
+
+
+    @if (audiences.length > 0) {
+
+        <div class="audience-list">
+
+        @for (
+            audience of audiences;
+            track audience.id
+        ) {
+
+            <div class="audience-item">
+
+            <span>
+                {{ getRoleLabel(audience.role) }}
+            </span>
+
+            <button
+                type="button"
+                (click)="removeAudience(audience)"
+            >
+                ×
+            </button>
+
+            </div>
+
+        }
+
+        </div>
+
+    }
+
+
+    @if (availableRolesToAdd.length > 0) {
+
+        <div class="add-audience">
+
+        <select
+            [(ngModel)]="selectedRole"
+        >
+
+            <option value="">
+            Seleccionar perfil
+            </option>
+
+            @for (
+            role of availableRolesToAdd;
+            track role
+            ) {
+
+            <option [value]="role">
+                {{ getRoleLabel(role) }}
+            </option>
+
+            }
+
+        </select>
+
+
+        <button
+            type="button"
+            (click)="addAudience()"
+            [disabled]="!selectedRole"
+        >
+            Agregar
+        </button>
+
+        </div>
+
+    }
+
+</div>

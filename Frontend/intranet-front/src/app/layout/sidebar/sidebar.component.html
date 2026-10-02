@@ -1,0 +1,94 @@
+<aside class="sidebar">
+
+    <div class="logo">
+        <span class="logo-title">INTRANET</span>
+        <span class="logo-subtitle">LMoving</span>
+    </div>
+
+    <nav class="navigation">
+
+        <!-- Dashboard -->
+        @if (isAdmin() || isSupervisor())
+        {<a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        >
+        <span>Dashboard</span>
+        </a>}
+        
+        <!-- Administración -->
+        @if (isAdmin()) {
+
+        <a
+            routerLink="/users"
+            routerLinkActive="active"
+        >
+            <span>Usuarios</span>
+        </a>
+
+        }
+
+
+        <!-- Administración / Supervisión -->
+        @if (isAdmin() || isSupervisor()) {
+
+        <a
+            routerLink="/drivers"
+            routerLinkActive="active"
+        >
+            <span>Conductores</span>
+        </a>
+
+        }
+
+
+        <!-- Driver -->
+        @if (isAdmin() || isSupervisor()) {
+
+        <a
+            routerLink="/courses"
+            routerLinkActive="active"
+        >
+            <span>Cursos</span>
+        </a>
+
+        <a
+            routerLink="/questions"
+            routerLinkActive="active"
+        >
+            <span>Banco de Preguntas</span>
+        </a>
+
+        <a
+            routerLink="/certificates"
+            routerLinkActive="active"
+        >
+            <span>Certificados</span>
+        </a>
+
+        }
+
+        <a
+            routerLink="/learning"
+            routerLinkActive="active"
+        >
+            <span>Aprendizaje</span>
+        </a>
+
+    </nav>
+
+
+    <div class="sidebar-footer">
+
+        <button
+        type="button"
+        class="logout-button"
+        (click)="logout()"
+        >
+        Cerrar sesión
+        </button>
+
+    </div>
+
+</aside>

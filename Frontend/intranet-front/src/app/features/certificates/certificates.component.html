@@ -1,0 +1,118 @@
+<div class="certificates-page">
+
+	<div class="page-header">
+		<div>
+			<h1>Certificados</h1>
+			<p>Consulta los certificados de aprobación emitidos.</p>
+		</div>
+	</div>
+
+	<div class="toolbar">
+
+		<div class="search-box">
+			<input
+				type="text"
+				[(ngModel)]="searchTerm"
+				(ngModelChange)="filterCertificates()"
+				placeholder="Buscar por trabajador, documento, curso o código..."
+			/>
+		</div>
+
+	</div>
+
+	@if (loading) {
+
+		<div class="state-message">
+			Cargando certificados...
+		</div>
+
+	} @else if (errorMessage) {
+
+		<div class="state-message error">
+			{{ errorMessage }}
+		</div>
+
+	} @else if (filteredCertificates.length === 0) {
+
+		<div class="state-message">
+			No se encontraron certificados.
+		</div>
+
+	} @else {
+
+		<div class="certificates-table-container">
+
+			<table class="certificates-table">
+
+				<thead>
+					<tr>
+						<th>Trabajador</th>
+						<th>Documento</th>
+						<th>Curso</th>
+						<th>Fecha de aprobación</th>
+						<th>Calificación</th>
+						<th>Código</th>
+						<th>Acción</th>
+					</tr>
+				</thead>
+
+				<tbody>
+
+					@for (certificate of filteredCertificates; track certificate.attemptId) {
+
+						<tr>
+
+							<td>
+								<div class="worker-name">
+									{{ certificate.fullName }}
+								</div>
+							</td>
+
+							<td>
+								{{ certificate.documentType }}:
+								{{ certificate.documentNumber }}
+							</td>
+
+							<td>
+								{{ certificate.courseTitle }}
+							</td>
+
+							<td>
+								{{ certificate.completedAt | date:'dd/MM/yyyy' }}
+							</td>
+
+							<td>
+								<span class="score">
+									{{ certificate.score }}
+								</span>
+							</td>
+
+							<td>
+								<span class="certificate-code">
+									{{ certificate.certificateCode }}
+								</span>
+							</td>
+
+							<td>
+								<button
+									type="button"
+									class="download-button"
+									(click)="downloadCertificate(certificate)"
+								>
+									Descargar
+								</button>
+							</td>
+
+						</tr>
+
+					}
+
+				</tbody>
+
+			</table>
+
+		</div>
+
+	}
+
+</div>

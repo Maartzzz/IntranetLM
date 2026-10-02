@@ -1,0 +1,140 @@
+<div class="questions-page">
+
+	<div class="page-header">
+		<div>
+		<h1>Banco de preguntas</h1>
+		<p>
+			Administra las preguntas utilizadas en las evaluaciones.
+		</p>
+		</div>
+
+		<button
+		type="button"
+		class="primary-button"
+		(click)="newQuestion()"
+		>
+		+ Nueva pregunta
+		</button>
+	</div>
+
+	@if (loading) {
+		<div class="loading">
+		Cargando preguntas...
+		</div>
+	}
+
+	@if (errorMessage) {
+		<div class="error-message">
+		{{ errorMessage }}
+		</div>
+	}
+
+	@if (!loading && !errorMessage) {
+
+		@if (questions.length === 0) {
+
+		<div class="empty-state">
+			<h3>No hay preguntas registradas</h3>
+			<p>
+			Crea la primera pregunta para comenzar a configurar
+			las evaluaciones.
+			</p>
+		</div>
+
+		} @else {
+
+		<div class="questions-list">
+
+			@for (question of questions; track question.id) {
+
+			<div class="question-card">
+
+				<div class="question-content">
+
+				<div class="question-header">
+
+					<span class="question-id">
+					#{{ question.id }}
+					</span>
+
+					<span
+					class="status"
+					[class.active]="question.active"
+					[class.inactive]="!question.active"
+					>
+					{{ question.active ? 'Activa' : 'Inactiva' }}
+					</span>
+
+				</div>
+
+				<h3>
+					{{ question.questionText }}
+				</h3>
+
+				<div class="options">
+
+					@for (
+					option of question.options;
+					track option.id
+					) {
+
+					<div
+						class="option"
+						[class.correct]="option.correct"
+					>
+
+						<span class="option-marker">
+						{{ option.correct ? '✓' : '○' }}
+						</span>
+
+						<span>
+						{{ option.optionText }}
+						</span>
+
+					</div>
+
+					}
+
+				</div>
+
+				</div>
+
+				<div class="question-actions">
+
+				<button
+				type="button"
+				class="warning-button"
+				(click)="editQuestion(question)"
+				>
+				Editar
+				</button>
+
+				<button
+				type="button"
+				class="secondary-button"
+				(click)="toggleActive(question)"
+				>
+				{{ question.active ? 'Desactivar' : 'Activar' }}
+				</button>
+
+				<button
+				type="button"
+				class="danger-button"
+				(click)="deleteQuestion(question)"
+				>
+				Eliminar
+				</button>
+
+				</div>
+
+			</div>
+
+			}
+
+		</div>
+
+		}
+
+	}
+
+</div>

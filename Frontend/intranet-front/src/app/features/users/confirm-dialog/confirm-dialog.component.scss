@@ -1,0 +1,31 @@
+:host {
+    display: block;
+}
+
+.dialog-content {
+    padding: 0 24px;
+}
+
+.dialog-content p {
+    margin: 0;
+
+    font-size: 15px;
+    line-height: 1.5;
+
+    color: #555;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 16px 24px 20px;
+}
+
+h2 {
+    padding: 0 24px;
+    font-size: 30px;
+}

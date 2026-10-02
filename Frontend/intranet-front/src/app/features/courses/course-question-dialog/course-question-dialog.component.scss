@@ -1,0 +1,151 @@
+.course-name {
+	margin-bottom: 20px;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.section {
+	margin-bottom: 28px;
+}
+
+.section-header {
+	margin-bottom: 12px;
+
+	h3 {
+		margin: 0 0 4px;
+		font-size: 16px;
+	}
+
+	p {
+		margin: 0;
+		color: #666;
+		font-size: 13px;
+	}
+}
+
+.question-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.question-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+
+	padding: 12px 14px;
+
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+
+	background: #fff;
+}
+
+.question-info {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+
+	min-width: 0;
+}
+
+.question-id {
+	flex: 0 0 auto;
+
+	font-size: 12px;
+	color: #777;
+}
+
+.question-text {
+	min-width: 0;
+
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.assigned {
+	background: #f7faf7;
+}
+
+.add-button,
+.remove-button,
+.secondary-button {
+	flex: 0 0 auto;
+
+	padding: 8px 12px;
+
+	border-radius: 6px;
+
+	cursor: pointer;
+
+	white-space: nowrap;
+}
+
+.add-button {
+	border: 1px solid #ccc;
+	background: #fff;
+}
+
+.remove-button {
+	border: 1px solid #d32f2f;
+	background: #fff;
+	color: #d32f2f;
+}
+
+.secondary-button {
+	border: 1px solid #ccc;
+	background: #fff;
+}
+
+button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.empty-state {
+	padding: 20px;
+
+	border: 1px dashed #ccc;
+	border-radius: 8px;
+
+	text-align: center;
+
+	color: #777;
+	font-size: 14px;
+}
+
+.loading {
+	padding: 30px;
+	text-align: center;
+}
+
+.error-message {
+	margin-bottom: 16px;
+	padding: 10px 12px;
+
+	border-radius: 6px;
+
+	background: #fce8e6;
+	color: #b3261e;
+
+	font-size: 13px;
+}
+
+@media (max-width: 600px) {
+
+	.question-item {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.question-info {
+		width: 100%;
+	}
+
+	.add-button,
+	.remove-button {
+		width: 100%;
+	}
+}
