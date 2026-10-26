@@ -23,6 +23,25 @@ spring:
     flyway:
         enabled: true
 
+
+    mail:
+        host: ${MAIL_HOST:logisticsmoving.net}
+        port: ${MAIL_PORT:465}
+        username: ${MAIL_USERNAME:operaciones1@logisticsmoving.net}
+        password: ${MAIL_PASSWORD:eOd8NocF4aco}
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    ssl:
+                        enable: true
+                    starttls:
+                        enable: false
+                    connectiontimeout: 10000
+                    timeout: 10000
+                    writetimeout: 10000
+
+
 jwt:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION:3600000}
@@ -33,3 +52,5 @@ app:
 
         cors:
             allowed-origin: ${APP_CORS_ALLOWED_ORIGIN:http://localhost:4200}
+    communication:
+        recipient: ${COMMUNICATION_RECIPIENT:sistemas1@logisticsmoving.net}

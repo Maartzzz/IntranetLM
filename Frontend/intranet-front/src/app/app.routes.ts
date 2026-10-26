@@ -13,6 +13,7 @@ import { LearningMaterialViewerComponent } from './features/learning/learning-ma
 import { LearningEvaluationComponent } from './features/learning/learning-evaluations/learning-evaluations.component';
 import { QuestionsComponent } from './features/questions/questions.component';
 import { CertificatesComponent } from './features/certificates/certificates.component';
+import { CommunicationComponent } from './features/communication/communication.component';
 
 export const routes: Routes = [
     {
@@ -71,6 +72,10 @@ export const routes: Routes = [
         {
             path: 'certificates',
             component: CertificatesComponent
+        },
+        {
+            path: 'communication',
+            component: CommunicationComponent
         }]
     },
     {

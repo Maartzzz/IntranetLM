@@ -1,3 +1,4 @@
+
 <aside class="sidebar">
 
     <div class="logo">
@@ -7,86 +8,102 @@
 
     <nav class="navigation">
 
-        <!-- Dashboard -->
-        @if (isAdmin() || isSupervisor())
-        {<a
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        >
-        <span>Dashboard</span>
-        </a>}
-        
-        <!-- Administración -->
-        @if (isAdmin()) {
+        <!-- Sección principal: Aprendizaje -->
+        <div class="nav-section">
 
-        <a
-            routerLink="/users"
-            routerLinkActive="active"
-        >
-            <span>Usuarios</span>
-        </a>
+            <button
+                type="button"
+                class="nav-section-button"
+                (click)="toggleAprendizaje()"
+                [attr.aria-expanded]="aprendizajeExpanded"
+            >
+                <span>Aprendizaje</span>
+                <span class="nav-arrow">
+                    {{ aprendizajeExpanded ? '−' : '+' }}
+                </span>
+            </button>
 
-        }
+            @if (aprendizajeExpanded) {
 
+                <div class="nav-submenu">
 
-        <!-- Administración / Supervisión -->
-        @if (isAdmin() || isSupervisor()) {
+                    <!-- Dashboard -->
+                    @if (isAdmin() || isSupervisor()) {
+                        <a
+                            routerLink="/dashboard"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                        >
+                            <span>Dashboard</span>
+                        </a>
+                    }
 
-        <a
-            routerLink="/drivers"
-            routerLinkActive="active"
-        >
-            <span>Conductores</span>
-        </a>
+                    <!-- Administración -->
+                    @if (isAdmin()) {
+                        <a
+                            routerLink="/users"
+                            routerLinkActive="active"
+                        >
+                            <span>Usuarios</span>
+                        </a>
+                    }
 
-        }
+                    <!-- Administración / Supervisión -->
+                    @if (isAdmin() || isSupervisor()) {
+                        <a
+                            routerLink="/drivers"
+                            routerLinkActive="active"
+                        >
+                            <span>Conductores</span>
+                        </a>
+                    }
 
+                    @if (isAdmin() || isSupervisor()) {
+                        <a
+                            routerLink="/courses"
+                            routerLinkActive="active"
+                        >
+                            <span>Cursos</span>
+                        </a>
 
-        <!-- Driver -->
-        @if (isAdmin() || isSupervisor()) {
+                        <a
+                            routerLink="/questions"
+                            routerLinkActive="active"
+                        >
+                            <span>Banco de Preguntas</span>
+                        </a>
 
-        <a
-            routerLink="/courses"
-            routerLinkActive="active"
-        >
-            <span>Cursos</span>
-        </a>
+                        <a
+                            routerLink="/certificates"
+                            routerLinkActive="active"
+                        >
+                            <span>Certificados</span>
+                        </a>
+                    }
 
-        <a
-            routerLink="/questions"
-            routerLinkActive="active"
-        >
-            <span>Banco de Preguntas</span>
-        </a>
+                </div>
+            }
 
-        <a
-            routerLink="/certificates"
-            routerLinkActive="active"
-        >
-            <span>Certificados</span>
-        </a>
+            <!-- Disponible para todos los usuarios autenticados -->
+                <a
+                        routerLink="/communication"
+                        routerLinkActive="active"
+                >
+                        <span>Sugerencias y Quejas</span>
+                </a>
 
-        }
-
-        <a
-            routerLink="/learning"
-            routerLinkActive="active"
-        >
-            <span>Aprendizaje</span>
-        </a>
+        </div>
 
     </nav>
-
 
     <div class="sidebar-footer">
 
         <button
-        type="button"
-        class="logout-button"
-        (click)="logout()"
+            type="button"
+            class="logout-button"
+            (click)="logout()"
         >
-        Cerrar sesión
+            Cerrar sesión
         </button>
 
     </div>

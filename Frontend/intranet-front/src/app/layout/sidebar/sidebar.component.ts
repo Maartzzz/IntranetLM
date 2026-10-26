@@ -47,4 +47,11 @@ export class SidebarComponent {
     return this.currentUser?.role === 'SUPERVISOR';
   }
 
+  
+  aprendizajeExpanded = true;
+
+  toggleAprendizaje(): void {
+      this.aprendizajeExpanded = !this.aprendizajeExpanded;
+  }
+
 }
