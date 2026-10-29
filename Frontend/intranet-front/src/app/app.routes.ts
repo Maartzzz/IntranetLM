@@ -14,6 +14,11 @@ import { LearningEvaluationComponent } from './features/learning/learning-evalua
 import { QuestionsComponent } from './features/questions/questions.component';
 import { CertificatesComponent } from './features/certificates/certificates.component';
 import { CommunicationComponent } from './features/communication/communication.component';
+import { CicLibraryComponent } from './features/cic/cic-library/cic-library.component';
+import { CicCategoryComponent } from './features/cic/cic-category/cic-category.component';
+import { adminGuard } from './core/guards/admin.guard';
+import { CicAdminComponent } from './features/cic/cic-admin/cic-admin.component';
+import { EvaluationsComponent } from './features/evaluations/evaluations.component';
 
 export const routes: Routes = [
     {
@@ -74,8 +79,25 @@ export const routes: Routes = [
             component: CertificatesComponent
         },
         {
+            path: 'my-evaluations',
+            component: EvaluationsComponent
+        },
+        {
             path: 'communication',
             component: CommunicationComponent
+        },
+        {
+            path: 'cic',
+            component: CicCategoryComponent
+        },
+        {
+            path: 'cic/category/:id',
+            component: CicLibraryComponent
+        },
+        {
+            path: 'cic/admin',
+            component: CicAdminComponent,
+            canActivate: [adminGuard]
         }]
     },
     {

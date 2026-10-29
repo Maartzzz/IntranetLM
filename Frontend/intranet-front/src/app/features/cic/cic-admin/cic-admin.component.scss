@@ -1,0 +1,239 @@
+:host {
+  display: block;
+}
+
+.admin-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  color: #202938;
+}
+
+.back-button {
+  margin-bottom: 20px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #285da8;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.page-header {
+  margin-bottom: 28px;
+}
+
+.page-header h1 {
+  margin: 6px 0;
+  font-size: clamp(26px, 3vw, 34px);
+}
+
+.page-header p,
+.hint {
+  color: #697586;
+  line-height: 1.6;
+}
+
+.eyebrow {
+  color: #3867a8;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #dfe5ec;
+}
+
+.tabs button {
+  padding: 12px 18px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #697586;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tabs button.active {
+  border-bottom-color: #285da8;
+  color: #285da8;
+}
+
+.panel {
+  padding: 24px;
+  border: 1px solid #e0e5ec;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.panel h2 {
+  margin: 0 0 20px;
+  font-size: 20px;
+}
+
+.admin-form {
+  display: grid;
+  gap: 10px;
+  max-width: 650px;
+}
+
+.admin-form label,
+.panel > label {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-form input,
+.admin-form textarea,
+.admin-form select,
+.panel > select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #d7dde5;
+  border-radius: 8px;
+  background: #fff;
+  color: #202938;
+  font: inherit;
+}
+
+.admin-form textarea {
+  resize: vertical;
+}
+
+.primary-button,
+.document-actions button,
+.category-actions button,
+.form-actions button:not(.primary-button) {
+  padding: 10px 14px;
+  border: 1px solid #d7dde5;
+  border-radius: 8px;
+  background: #fff;
+  color: #285da8;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-button {
+  justify-self: start;
+  margin-top: 8px;
+  border-color: #285da8;
+  background: #285da8;
+  color: white;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-actions,
+.document-actions,
+.category-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.panel hr {
+  margin: 28px 0;
+  border: 0;
+  border-top: 1px solid #e0e5ec;
+}
+
+.document-list,
+.category-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.document-row,
+.category-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid #e0e5ec;
+  border-radius: 10px;
+}
+
+.document-info,
+.category-row > div:first-child {
+  min-width: 0;
+}
+
+.document-info h3,
+.category-row h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.document-info p,
+.category-row p {
+  margin: 4px 0;
+  color: #697586;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #edf0f4;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status[data-status='PUBLICADO'] {
+  background: #e3f5e8;
+  color: #187443;
+}
+
+.status[data-status='ARCHIVADO'] {
+  background: #fbe9e7;
+  color: #a12b21;
+}
+
+.success-message {
+  margin-bottom: 16px;
+  color: #187443;
+}
+
+.error-message {
+  margin-bottom: 16px;
+  color: #b42318;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+}
+
+@media (max-width: 700px) {
+  .admin-page {
+    padding: 24px 16px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .document-row,
+  .category-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

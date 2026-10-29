@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { CurrentUser } from '../../core/models/auth.models';
@@ -13,6 +13,8 @@ import { CurrentUser } from '../../core/models/auth.models';
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
+
+  @Input() collapsed = false;
 
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -52,6 +54,12 @@ export class SidebarComponent {
 
   toggleAprendizaje(): void {
       this.aprendizajeExpanded = !this.aprendizajeExpanded;
+  }
+
+  configuracionExpanded = true;
+
+  toggleConfiguracion(): void {
+    this.configuracionExpanded = !this.configuracionExpanded;
   }
 
 }

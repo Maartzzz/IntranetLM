@@ -86,7 +86,26 @@
 
 			</div>
 
-			@if (canTakeEvaluation) {
+			@if (pendingEvaluation) {
+
+			<div class="evaluation-ready">
+
+				<div class="progress-complete">
+				Tienes una evaluación pendiente. Puedes continuar donde la dejaste.
+				</div>
+
+				<button
+				type="button"
+				class="evaluation-button"
+				(click)="continueEvaluation()">
+
+				Continuar evaluación →
+
+				</button>
+
+			</div>
+
+			} @else if (canTakeEvaluation) {
 
 			<div class="evaluation-ready">
 

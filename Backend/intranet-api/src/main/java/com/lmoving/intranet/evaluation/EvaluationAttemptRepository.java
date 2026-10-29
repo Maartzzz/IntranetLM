@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EvaluationAttemptRepository extends JpaRepository<EvaluationAttempt, Long> {
 
@@ -35,4 +36,19 @@ public interface EvaluationAttemptRepository extends JpaRepository<EvaluationAtt
             @Param("courseId") Long courseId
     );
 
+    long countByRound_IdAndCompletedAtIsNotNull(Long roundId);
+
+    boolean existsByRound_IdAndCompletedAtIsNull(Long roundId);
+
+    boolean existsByRound_IdAndPassedTrueAndCompletedAtIsNotNull(
+        Long roundId
+    );
+
+    Optional<EvaluationAttempt>
+    findFirstByRound_IdAndCompletedAtIsNotNullOrderByCompletedAtDesc(Long roundId);
+    
+    List<EvaluationAttempt> findByCompletedAtIsNullOrderByStartedAtAsc();
+
+    List<EvaluationAttempt>
+    findByUsername_UsernameOrderByStartedAtDesc(String username);
 }

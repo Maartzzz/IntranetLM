@@ -1,0 +1,97 @@
+<section class="cic-page">
+
+  <button
+    type="button"
+    class="back-button"
+    (click)="volverACategorias()"
+  >
+    <span aria-hidden="true">←</span>
+    Volver a categorías
+  </button>
+
+  <header class="cic-header" *ngIf="categoria">
+    <p class="eyebrow">CENTRO DE INFORMACIÓN CORPORATIVA</p>
+
+    <h1>{{ categoria.nombre }}</h1>
+
+	<div class="admin-actions" *ngIf="esAdmin && categoria">
+		<button
+			type="button"
+			class="admin-button"
+			(click)="agregarDocumento()"
+		>
+			+ Agregar documento
+		</button>
+	</div>
+
+    <p class="subtitle">
+      Consulta y descarga los documentos disponibles en esta categoría.
+    </p>
+  </header>
+
+  <div class="filters" *ngIf="!cargando && categoria">
+    <input
+      type="search"
+      [(ngModel)]="busqueda"
+      placeholder="Buscar documentos..."
+      aria-label="Buscar documentos"
+    />
+  </div>
+
+  <p class="message" *ngIf="cargando">
+    Cargando documentos...
+  </p>
+
+  <p class="error" *ngIf="error">
+    {{ error }}
+  </p>
+
+  <div class="document-grid" *ngIf="!cargando && !error">
+
+    <article
+      class="document-card"
+      *ngFor="let documento of documentosFiltrados"
+    >
+      <div class="document-icon" aria-hidden="true">
+        <span>DOC</span>
+      </div>
+
+      <div class="document-content">
+        <h2>{{ documento.titulo }}</h2>
+
+        <p class="description">
+          {{ documento.descripcion || 'Sin descripción disponible.' }}
+        </p>
+
+        <p class="file-name">
+          {{ documento.nombreArchivo }}
+        </p>
+
+        <p class="published-date" *ngIf="documento.publicadoEn">
+          Publicado: {{ documento.publicadoEn | date:'dd/MM/yyyy' }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="download-button"
+        (click)="descargar(documento)"
+      >
+        Descargar
+      </button>
+    </article>
+
+  </div>
+
+  <div
+    class="empty-state"
+    *ngIf="!cargando && !error && documentosFiltrados.length === 0"
+  >
+    <h2>No hay documentos para mostrar</h2>
+    <p>
+      Esta categoría todavía no tiene documentos publicados
+      o no hay coincidencias con tu búsqueda.
+    </p>
+  </div>
+
+</section>

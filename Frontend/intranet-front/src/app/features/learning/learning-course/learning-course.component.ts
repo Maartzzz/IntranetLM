@@ -29,6 +29,8 @@ import {
   CourseMaterial,
   CourseMaterialProgress
 } from '../../../core/models/course-materials.models';
+import { EvaluationService } from '../../../core/services/evaluation.service';
+import { PendingEvaluation } from '../../../core/models/evaluation.models';
 
 @Component({
   selector: 'app-learning-course',
@@ -53,6 +55,11 @@ export class LearningCourseComponent
 
   private readonly materialService =
     inject(CourseMaterialService);
+
+  private readonly evaluationService = 
+    inject(EvaluationService);
+
+pendingEvaluation: PendingEvaluation | null = null;
 
   course: Course | null = null;
 
@@ -84,7 +91,7 @@ export class LearningCourseComponent
 
     this.loadCourse(courseId);
     this.loadMaterials(courseId);
-
+    this.loadPendingEvaluation(courseId);
   }
 
   private loadCourse(courseId: number): void {
@@ -308,6 +315,33 @@ export class LearningCourseComponent
       this.course.id,
       'evaluation'
     ]);
+  }
+
+  private loadPendingEvaluation(courseId: number): void {
+    this.evaluationService.getPendingEvaluations().subscribe({
+      next: evaluations => {
+        this.pendingEvaluation =
+          evaluations.find(evaluation => evaluation.courseId === courseId) ?? null;
+      },
+      error: error => {
+        console.error('Error consultando evaluaciones pendientes:', error);
+      }
+    });
+  }
+
+continueEvaluation(): void {
+    if (!this.course || !this.pendingEvaluation) {
+      return;
+    }
+
+    this.router.navigate(
+      ['/learning/courses', this.course.id, 'evaluation'],
+      {
+        queryParams: {
+          attemptId: this.pendingEvaluation.attemptId
+        }
+      }
+    );
   }
   
 }

@@ -1,0 +1,209 @@
+:host {
+  display: block;
+}
+
+.cic-page {
+  max-width: 1200px;
+  padding: 32px 24px;
+  color: var(--text-color, #202938);
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  color: #285da8;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  text-decoration: underline;
+}
+
+.back-button:focus-visible {
+  outline: 2px solid #285da8;
+  outline-offset: 3px;
+}
+
+.cic-header {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin-bottom: 8px;
+  color: #3867a8;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.cic-header h1 {
+  margin: 0;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 700;
+}
+
+.subtitle {
+  margin-top: 10px;
+  color: #697586;
+  line-height: 1.6;
+}
+
+.filters {
+  margin-bottom: 24px;
+}
+
+.filters input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d7dde5;
+  border-radius: 8px;
+  background: white;
+  color: #202938;
+  font: inherit;
+}
+
+.filters input:focus-visible {
+  outline: 2px solid #285da8;
+  outline-offset: 2px;
+}
+
+.document-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.document-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid #e0e5ec;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 8px rgb(20 35 55 / 4%);
+}
+
+.document-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 10px;
+  background: #edf3fc;
+  color: #315d9b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.document-content {
+  width: 100%;
+}
+
+.document-content h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.description,
+.file-name,
+.published-date {
+  color: #697586;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.file-name {
+  margin-bottom: 4px;
+}
+
+.published-date {
+  margin-top: 8px;
+}
+
+.download-button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: auto;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #285da8;
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.download-button:hover {
+  background: #204b88;
+}
+
+.download-button:focus-visible {
+  outline: 2px solid #285da8;
+  outline-offset: 2px;
+}
+
+.message,
+.empty-state {
+  padding: 32px 16px;
+  color: #697586;
+  text-align: center;
+}
+
+.empty-state h2 {
+  color: #202938;
+  font-size: 20px;
+}
+
+.error {
+  color: #b42318;
+}
+
+@media (max-width: 650px) {
+  .cic-page {
+    padding: 24px 16px;
+  }
+
+  .document-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 20px 0;
+}
+
+.admin-button {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #285da8;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-button:hover {
+  background: #204b88;
+}
+
+.admin-button:focus-visible {
+  outline: 2px solid #285da8;
+  outline-offset: 3px;
+}

@@ -11,7 +11,7 @@ import { MatButton } from '@angular/material/button';
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [FormsModule, MatButton],
+  imports: [FormsModule],
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss'
 })

@@ -1,0 +1,198 @@
+<div class="evaluations-page">
+  <header class="page-header">
+	<div>
+	  <h1>Mis evaluaciones</h1>
+	  <p>Consulta tus evaluaciones pendientes y revisa tus resultados.</p>
+	</div>
+
+	<button
+	  type="button"
+	  class="btn-refresh"
+	  (click)="loadEvaluations()"
+	  [disabled]="loading">
+	  <span class="refresh-icon">↻</span>
+	  Actualizar
+	</button>
+  </header>
+
+  @if (loading) {
+	<div class="state-message">
+	  <span class="loader"></span>
+	  <p>Cargando tus evaluaciones...</p>
+	</div>
+  } @else if (errorMessage) {
+	<div class="state-message error-message">
+	  <p>{{ errorMessage }}</p>
+	  <button type="button" class="btn-primary" (click)="loadEvaluations()">
+		Reintentar
+	  </button>
+	</div>
+  } @else {
+	<section class="evaluation-section">
+		<div class="section-header">
+			<div>
+			<h2>Cursos disponibles</h2>
+			<p>Inicia la evaluación de un curso asignado.</p>
+			</div>
+			<span class="count-badge">{{ courses.length }}</span>
+		</div>
+
+		@if (loadingCourses) {
+			<p>Cargando cursos disponibles...</p>
+		} @else if (courseErrorMessage) {
+			<p class="error-message">{{ courseErrorMessage }}</p>
+		} @else if (courses.length === 0) {
+			<div class="empty-state">
+			<h3>No tienes cursos asignados</h3>
+			<p>Cuando tengas cursos asignados, aparecerán aquí.</p>
+			</div>
+		} @else {
+			<div class="evaluation-list">
+			@for (course of courses; track course.id) {
+				<article class="evaluation-card">
+				<div class="evaluation-info">
+					<h3>{{ course.title }}</h3>
+					<p>{{ course.description }}</p>
+					<p>Nota mínima: {{ course.passingScore }}%</p>
+				</div>
+
+				<button
+					type="button"
+					class="btn-primary"
+					(click)="startEvaluation(course.id)">
+					Iniciar evaluación →
+				</button>
+				</article>
+			}
+			</div>
+		}
+		</section>
+	<section class="evaluation-section">
+	  <div class="section-header">
+		<div>
+		  <h2>Evaluaciones pendientes</h2>
+		  <p>Continúa las evaluaciones que dejaste sin finalizar.</p>
+		</div>
+
+		<span class="count-badge pending-count">
+		  {{ pendingEvaluations.length }}
+		</span>
+	  </div>
+
+	  @if (pendingEvaluations.length > 0) {
+		<div class="evaluation-list">
+		  @for (evaluation of pendingEvaluations; track evaluation.attemptId) {
+			<article class="evaluation-card">
+			  <div class="card-icon pending-icon">◷</div>
+
+			  <div class="evaluation-info">
+				<h3>{{ evaluation.courseTitle }}</h3>
+				<p class="evaluation-date">
+				  Iniciada el {{ evaluation.startedAt | date:'dd/MM/yyyy HH:mm' }}
+				</p>
+				<span class="status status-pending">Pendiente</span>
+			  </div>
+
+			  <button
+				type="button"
+				class="btn-primary"
+				(click)="continueEvaluation(evaluation)">
+				Continuar evaluación
+				<span aria-hidden="true">→</span>
+			  </button>
+			</article>
+		  }
+		</div>
+	  } @else {
+		<div class="empty-state">
+		  <span class="empty-icon">✓</span>
+		  <h3>No tienes evaluaciones pendientes</h3>
+		  <p>Cuando tengas una evaluación en curso, aparecerá aquí.</p>
+		</div>
+	  }
+	</section>
+
+	<section class="evaluation-section history-section">
+	  <div class="section-header">
+		<div>
+		  <h2>Historial de evaluaciones</h2>
+		  <p>Consulta tus resultados y certificados disponibles.</p>
+		</div>
+
+		<span class="count-badge">
+		  {{ completedEvaluations.length }}
+		</span>
+	  </div>
+
+	  @if (completedEvaluations.length > 0) {
+		<div class="table-container">
+		  <table>
+			<thead>
+			  <tr>
+				<th>Curso</th>
+				<th>Fecha de finalización</th>
+				<th>Resultado</th>
+				<th>Puntaje</th>
+				<th>Estado</th>
+				<th>Certificado</th>
+			  </tr>
+			</thead>
+
+			<tbody>
+			  @for (evaluation of completedEvaluations; track evaluation.attemptId) {
+				<tr>
+				  <td class="course-cell">
+					{{ evaluation.courseTitle }}
+				  </td>
+
+				  <td>
+					{{ evaluation.completedAt | date:'dd/MM/yyyy HH:mm' }}
+				  </td>
+
+				  <td>
+					@if (evaluation.score !== null) {
+					  <strong>{{ evaluation.score | number:'1.0-2' }}%</strong>
+					} @else {
+					  <span>—</span>
+					}
+				  </td>
+
+				  <td>
+					{{ evaluation.passingScore }}%
+				  </td>
+
+				  <td>
+					@if (evaluation.passed === true) {
+					  <span class="status status-approved">Aprobada</span>
+					} @else {
+					  <span class="status status-failed">Desaprobada</span>
+					}
+				  </td>
+
+				  <td>
+					@if (evaluation.passed === true) {
+					  <button
+						type="button"
+						class="btn-certificate"
+						(click)="downloadCertificate(evaluation)">
+						Certificado
+					  </button>
+					} @else {
+					  <span class="unavailable">No disponible</span>
+					}
+				  </td>
+				</tr>
+			  }
+			</tbody>
+		  </table>
+		</div>
+	  } @else {
+		<div class="empty-state">
+		  <span class="empty-icon">▤</span>
+		  <h3>Aún no tienes evaluaciones finalizadas</h3>
+		  <p>Cuando completes una evaluación, tus resultados aparecerán aquí.</p>
+		</div>
+	  }
+	</section>
+  }
+</div>

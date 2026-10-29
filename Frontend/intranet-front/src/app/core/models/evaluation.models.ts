@@ -54,3 +54,47 @@ export interface EvaluationAttempt {
     passingScore: number;
     passed: boolean;
 }
+
+
+export interface PendingEvaluation {
+    attemptId: number;
+    courseId: number;
+    courseTitle: string;
+    username: string;
+    fullName: string;
+    documentType: string;
+    documentNumber: string;
+    roundNumber: number;
+    startedAt: string;
+}
+
+export interface EvaluationAnswerProgressRequest {
+    questionId: number;
+    selectedOptionId: number | null;
+}
+
+export interface EvaluationSavedAnswer {
+    questionId: number;
+    selectedOptionId: number | null;
+}
+
+export interface EvaluationResumeResponse {
+    attemptId: number;
+    courseId: number;
+    courseTitle: string;
+    passingScore: number;
+    totalQuestions: number;
+    questions: EvaluationQuestion[];
+    savedAnswers: EvaluationSavedAnswer[];
+}
+
+export interface MyEvaluationResponse {
+    attemptId: number;
+    courseId: number;
+    courseTitle: string;
+    startedAt: string;
+    completedAt: string | null;
+    score: number | null;
+    passingScore: number;
+    passed: boolean | null;
+}

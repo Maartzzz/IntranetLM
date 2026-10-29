@@ -1,0 +1,67 @@
+<section class="cic-page">
+  <header class="cic-header">
+    <p class="eyebrow">INTRANET CORPORATIVA</p>
+
+    <h1>Centro de Información Corporativa</h1>
+
+    <p class="subtitle">
+      Accede a los documentos, procedimientos, políticas y formatos
+      de nuestra empresa.
+    </p>
+  </header>
+
+  <div class="admin-actions" *ngIf="esAdmin">
+        <button
+            type="button"
+            class="admin-button"
+            (click)="irAAdministrarCategorias()"
+        >
+            + Agregar categoría
+        </button>
+    </div>
+
+  <p class="message" *ngIf="cargando">
+    Cargando categorías...
+  </p>
+
+  <div class="error-message" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <div
+    class="category-grid"
+    *ngIf="!cargando && !error"
+  >
+    <button
+      type="button"
+      class="category-card"
+      *ngFor="let categoria of categorias; trackBy: trackById"
+      (click)="abrirCategoria(categoria)"
+    >
+      <div class="category-image-placeholder">
+        <span class="placeholder-label">CIC</span>
+      </div>
+
+      <div class="category-content">
+        <h2>{{ categoria.nombre }}</h2>
+
+        <p>
+          {{ obtenerDescripcion(categoria.nombre) }}
+        </p>
+
+        <span class="category-link">
+          Ver documentos
+          <span aria-hidden="true">→</span>
+        </span>
+      </div>
+    </button>
+  </div>
+
+  <div
+    class="empty-state"
+    *ngIf="!cargando && !error && categorias.length === 0"
+  >
+    <h2>No hay categorías disponibles</h2>
+    <p>Las categorías activas aparecerán aquí.</p>
+  </div>
+</section>

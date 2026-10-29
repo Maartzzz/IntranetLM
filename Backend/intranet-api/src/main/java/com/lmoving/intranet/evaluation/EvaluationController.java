@@ -1,9 +1,15 @@
 package com.lmoving.intranet.evaluation;
 
+import com.lmoving.intranet.courses.dto.CourseResponse;
+import com.lmoving.intranet.evaluation.dto.EvaluationAnswerProgressRequest;
 import com.lmoving.intranet.evaluation.dto.EvaluationAttemptResponse;
 import com.lmoving.intranet.evaluation.dto.EvaluationResultResponse;
+import com.lmoving.intranet.evaluation.dto.EvaluationResumeResponse;
 import com.lmoving.intranet.evaluation.dto.EvaluationStartResponse;
 import com.lmoving.intranet.evaluation.dto.EvaluationSubmitRequest;
+import com.lmoving.intranet.evaluation.dto.ExhaustedEvaluationResponse;
+import com.lmoving.intranet.evaluation.dto.MyEvaluationResponse;
+import com.lmoving.intranet.evaluation.dto.PendingEvaluationResponse;
 
 import jakarta.validation.Valid;
 
@@ -73,6 +79,91 @@ public class EvaluationController {
     
         return ResponseEntity.ok(
                 evaluationService.getCompletedAttemptsByCourse(courseId)
+        );
+    }
+
+    
+    @PostMapping("/courses/{courseId}/users/{username}/rehabilitate")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<Void> rehabilitateEvaluation(
+            @PathVariable Long courseId,
+            @PathVariable String username,
+            Principal principal
+    ) {
+        evaluationService.rehabilitateEvaluation(
+            courseId,
+            username,
+            principal.getName()
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/exhausted")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<List<ExhaustedEvaluationResponse>>
+    getExhaustedEvaluations() {
+        return ResponseEntity.ok(
+                evaluationService.getExhaustedEvaluations()
+        );
+    }
+
+    
+    @GetMapping("/pending")
+    public ResponseEntity<List<PendingEvaluationResponse>> getPendingEvaluations(
+            Principal principal
+    ) {
+        return ResponseEntity.ok(
+                evaluationService.getPendingEvaluations(
+                        principal.getName()
+                )
+        );
+    }
+
+    @GetMapping("/attempts/{attemptId}/resume")
+    public ResponseEntity<EvaluationResumeResponse> resumeEvaluation(
+            @PathVariable Long attemptId,
+            Principal principal
+    ) {
+        return ResponseEntity.ok(
+                evaluationService.resumeEvaluation(
+                        attemptId,
+                        principal.getName()
+                )
+        );
+    }
+    
+    @PutMapping("/attempts/{attemptId}/answers")
+    public ResponseEntity<Void> saveAnswerProgress(
+            @PathVariable Long attemptId,
+            @RequestBody EvaluationAnswerProgressRequest request,
+            Principal principal
+    ) {
+        evaluationService.saveAnswerProgress(
+                attemptId,
+                principal.getName(),
+                request
+        );
+    
+        return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/mine")
+    public ResponseEntity<List<MyEvaluationResponse>> getMyEvaluations(
+            Principal principal
+    ) {
+        return ResponseEntity.ok(
+                evaluationService.getMyEvaluations(
+                        principal.getName()
+                )
+        );
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<List<CourseResponse>> getAvailableEvaluationCourses(
+            Principal principal) {
+        return ResponseEntity.ok(
+                evaluationService.getAvailableEvaluationCourses(principal.getName())
         );
     }
 }
