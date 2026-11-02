@@ -19,6 +19,11 @@ import { CicCategoryComponent } from './features/cic/cic-category/cic-category.c
 import { adminGuard } from './core/guards/admin.guard';
 import { CicAdminComponent } from './features/cic/cic-admin/cic-admin.component';
 import { EvaluationsComponent } from './features/evaluations/evaluations.component';
+import { OperationsHomeComponent } from './features/operations/operations-home.component';
+import { ClientsComponent } from './features/clients/clients.component';
+import { CargoTypesComponent } from './features/cargo-types/cargo-types.component';
+import { OperationDetailComponent } from './features/operations/operation-detail/operation-detail.component';
+import { RequirementCatalogComponent } from './features/operations/requirement-catalog/requirement-catalog.component';
 
 export const routes: Routes = [
     {
@@ -85,6 +90,26 @@ export const routes: Routes = [
         {
             path: 'communication',
             component: CommunicationComponent
+        },
+        {
+            path: 'operations',
+            component: OperationsHomeComponent
+        },
+        {
+            path: 'operations/:id',
+            component: OperationDetailComponent
+        },
+        {
+        path: 'requirement-catalog',
+        component: RequirementCatalogComponent
+        },
+        {
+            path: 'clients',
+            component: ClientsComponent
+        },
+        {
+            path: 'cargo-types',
+            component: CargoTypesComponent
         },
         {
             path: 'cic',

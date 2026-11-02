@@ -1,0 +1,141 @@
+<section class="operations-page">
+  <header class="page-header">
+    <div>
+      <div class="eyebrow">GESTIÓN LOGÍSTICA</div>
+      <h1>Operaciones</h1>
+      <p>Organiza y supervisa las operaciones según su estado.</p>
+    </div>
+    <button class="primary-button" type="button" (click)="openCreate()">
+      <span aria-hidden="true">＋</span> Nueva operación
+    </button>
+  </header>
+
+  <section class="board-toolbar" aria-label="Herramientas del tablero">
+    <label class="search-field" for="operation-search">
+      <span aria-hidden="true">⌕</span>
+      <input
+        id="operation-search"
+        type="search"
+        [(ngModel)]="searchTerm"
+        placeholder="Buscar por operación, cliente, referencia o ruta..."
+      >
+    </label>
+    <div class="toolbar-summary">
+      <span>{{ filteredOperations.length }} operaciones</span>
+      <button type="button" class="refresh-button" (click)="load()" [disabled]="loading || updatingOperationId !== null">
+        ↻ Actualizar
+      </button>
+    </div>
+  </section>
+
+  @if (loading) {
+    <div class="board-feedback">Cargando operaciones y estados...</div>
+  }
+
+  @if (errorMessage) {
+    <div class="message error-message" role="alert">{{ errorMessage }}</div>
+  }
+
+  @if (successMessage) {
+    <div class="message success-message" role="status">{{ successMessage }}</div>
+  }
+
+  @if (!loading && !errorMessage) {
+    @if (statuses.length === 0) {
+      <div class="board-feedback">
+        No hay estados activos configurados para el proceso OPERACION.
+      </div>
+    } @else {
+      <div class="kanban-board">
+        @for (status of statuses; track trackStatus($index, status)) {
+          <section class="kanban-column">
+            <header class="column-header">
+              <div class="column-title">
+                <span class="status-dot" [style.backgroundColor]="status.color || '#64748b'"></span>
+                <h2>{{ status.name }}</h2>
+              </div>
+              <span class="column-count">{{ countForStatus(status.id) }}</span>
+            </header>
+
+            <div
+              class="column-content"
+              cdkDropList
+              [id]="dropListId(status.id)"
+              [cdkDropListData]="operationsForStatus(status.id)"
+              [cdkDropListConnectedTo]="dropListIds"
+              (cdkDropListDropped)="onDrop($event, status)"
+              [class.drop-disabled]="updatingOperationId !== null"
+            >
+              @for (operation of operationsForStatus(status.id); track trackOperation($index, operation)) {
+                <article
+                  class="operation-card"
+                  cdkDrag
+                  [cdkDragData]="operation"
+                  [cdkDragDisabled]="updatingOperationId !== null"
+                  [routerLink]="['/operations', operation.id]"
+                  [class.card-updating]="updatingOperationId === operation.id"
+                >
+                  <div class="card-topline">
+                    <span class="operation-number">{{ operation.operationNumber }}</span>
+                    @if (operation.container) {
+                      <span class="cargo-type-tag">Contenedor</span>
+                    } @else {
+                      <span class="cargo-type-tag">Carga suelta</span>
+                    }
+                  </div>
+
+                  <h3>{{ operation.clientName }}</h3>
+
+                  <div class="cargo-description">
+                    {{ operation.cargoTypeName }}
+                    @if (operation.quantity !== null) {
+                      <span> · {{ operation.quantity }} unidades</span>
+                    }
+                  </div>
+
+                  <div class="route-box">
+                    <span>{{ operation.origin || 'Origen pendiente' }}</span>
+                    <span class="route-arrow">→</span>
+                    <span>{{ operation.destination || 'Destino pendiente' }}</span>
+                  </div>
+
+                  <div class="card-details">
+                    <span>Fecha estimada</span>
+                    <strong>{{ operation.estimatedDate || 'Por definir' }}</strong>
+                  </div>
+
+                  @if (operation.reference || operation.customerOrderNumber) {
+                    <div class="card-reference">
+                      @if (operation.reference) {
+                        <span>Ref. {{ operation.reference }}</span>
+                      }
+                      @if (operation.customerOrderNumber) {
+                        <span>O/S {{ operation.customerOrderNumber }}</span>
+                      }
+                    </div>
+                  }
+
+                  <footer class="card-footer">
+                    <span>Ver detalle ↗</span>
+                    <button type="button" class="edit-button" (click)="openEdit(operation, $event)">Editar</button>
+                  </footer>
+
+                  <div class="drag-hint" aria-hidden="true">⠿ Arrastrar para cambiar estado</div>
+                  <div class="drag-placeholder" *cdkDragPlaceholder></div>
+                </article>
+              } @empty {
+                <div class="column-empty">
+                  @if (searchTerm.trim()) {
+                    No hay coincidencias.
+                  } @else {
+                    Suelta aquí una operación.
+                  }
+                </div>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    }
+  }
+</section>

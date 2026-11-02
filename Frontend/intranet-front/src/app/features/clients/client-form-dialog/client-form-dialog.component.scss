@@ -1,0 +1,30 @@
+.dialog-content {
+  padding: 0 24px 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.error-message {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #fff0f0;
+  color: #a32323;
+  font-size: 13px;
+}

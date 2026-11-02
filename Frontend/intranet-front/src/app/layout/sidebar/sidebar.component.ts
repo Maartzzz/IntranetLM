@@ -49,11 +49,25 @@ export class SidebarComponent {
     return this.currentUser?.role === 'SUPERVISOR';
   }
 
+  isOperations(): boolean {
+    return this.currentUser?.role === 'OPERACIONES';
+  }
+
+  canAccessOperations(): boolean {
+    return this.isAdmin() || this.isSupervisor() || this.isOperations();
+  }
+
   
   aprendizajeExpanded = true;
 
   toggleAprendizaje(): void {
       this.aprendizajeExpanded = !this.aprendizajeExpanded;
+  }
+
+  operacionesExpanded = true;
+
+  toggleOperaciones(): void {
+    this.operacionesExpanded = !this.operacionesExpanded;
   }
 
   configuracionExpanded = true;

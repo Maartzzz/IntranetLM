@@ -1,0 +1,76 @@
+<section class="detail-page">
+  <a class="back-link" routerLink="/operations">← Volver a operaciones</a>
+  @if (loading) { <p class="feedback">Cargando operación...</p> }
+  @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
+  @if (!loading && operation) {
+    <header class="detail-header"><div><span class="eyebrow">{{ operation.operationNumber }}</span><h1>{{ operation.clientName }}</h1><p>Detalle de la operación y seguimiento de requisitos.</p></div>
+      <span class="status-pill" [style.backgroundColor]="operation.statusColor || '#64748B'">{{ operation.statusName || 'Sin estado' }}</span>
+    </header>
+    <section class="info-card"><div class="section-heading"><h2>Información general</h2></div>
+      <div class="info-grid">
+        <div><label>Tipo de carga</label><strong>{{ operation.cargoTypeName }} · {{ operation.container ? 'Contenedor (FCL)' : 'Carga suelta (LCL)' }}</strong></div>
+        <div><label>Referencia</label><strong>{{ operation.reference || '—' }}</strong></div>
+        <div><label>O/S del cliente</label><strong>{{ operation.customerOrderNumber || '—' }}</strong></div>
+        <div><label>Cantidad estimada</label><strong>{{ operation.quantity ?? '—' }}</strong></div>
+        <div><label>Origen</label><strong>{{ operation.origin || 'Pendiente' }}</strong></div>
+        <div><label>Destino</label><strong>{{ operation.destination || 'Pendiente' }}</strong></div>
+        <div><label>Fecha estimada</label><strong>{{ operation.estimatedDate || 'Por definir' }}</strong></div>
+        <div><label>Última actualización</label><strong>{{ operation.updatedAt | date:'dd/MM/yyyy HH:mm' }}</strong></div>
+      </div>
+      @if (operation.observation) { <div class="observation"><label>Observaciones</label><p>{{ operation.observation }}</p></div> }
+    </section>
+
+    <section class="requirements-section">
+      <div class="progress-summary">
+
+        <div class="progress-header">
+          <div>
+            <strong>Progreso de requisitos</strong>
+            <span>{{ completedRequirements }} de {{ requirements.length }} completados</span>
+          </div>
+
+          <strong>{{ progressPercentage }}%</strong>
+        </div>
+
+        <div class="progress-track">
+          <div
+            class="progress-value"
+            [style.width.%]="progressPercentage">
+          </div>
+        </div>
+
+        <div class="progress-stats">
+          <span class="stat-pending">
+            {{ pendingRequirements }} pendientes
+          </span>
+
+          <span class="stat-progress">
+            {{ inProgressRequirements }} en seguimiento
+          </span>
+
+          <span class="stat-completed">
+            {{ completedRequirements }} completados
+          </span>
+
+          <span class="stat-blocked">
+            {{ blockedRequirements }} bloqueados
+          </span>
+        </div>
+
+      </div>
+      <header class="section-heading"><div><h2>Requisitos</h2><p>Seguimiento independiente de los requisitos de esta operación.</p></div>
+      <button class="primary-button" type="button" (click)="addRequirement()">+ Agregar requisito</button>
+    </header>
+      @if (requirementError) { <div class="error-message">{{ requirementError }}</div> }
+      <div class="requirements-grid">
+        @for (item of requirements; track item.id) {
+          <article class="requirement-card"><div class="requirement-top"><h3>{{ item.requirementName }}</h3><span class="status-pill" [style.backgroundColor]="item.statusColor || '#64748B'">{{ item.statusName }}</span></div>
+            <p><label>Responsable externo</label><strong>{{ item.externalResponsible || 'No indicado' }}</strong></p>
+            @if (item.comment) { <p class="comment">{{ item.comment }}</p> }
+            <footer><small>Registrado: {{ item.registeredAt | date:'dd/MM/yyyy HH:mm' }}</small><button class="text-button" type="button" (click)="editRequirement(item)">Editar</button></footer>
+          </article>
+        } @empty { @if (!requirementError) { <div class="empty-state">Aún no hay requisitos registrados para esta operación.</div> } }
+      </div>
+    </section>
+  }
+</section>

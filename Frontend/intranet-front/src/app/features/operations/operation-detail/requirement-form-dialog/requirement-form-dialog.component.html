@@ -1,0 +1,116 @@
+
+<h2 mat-dialog-title>
+  {{ isEditMode ? 'Editar requisito' : 'Agregar requisito' }}
+</h2>
+
+<div class="dialog-content">
+  @if (errorMessage) {
+    <div class="error-message">{{ errorMessage }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+
+    <mat-radio-group
+      class="source-options"
+      [value]="source"
+      (change)="source = $event.value">
+
+      <mat-radio-button value="catalog">
+        Desde catálogo
+      </mat-radio-button>
+
+      <mat-radio-button value="custom">
+        Personalizado
+      </mat-radio-button>
+    </mat-radio-group>
+
+    @if (source === 'catalog') {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Requisito</mat-label>
+
+        <mat-select formControlName="requirementCatalogId">
+          <mat-option [value]="0" disabled>
+            Selecciona un requisito
+          </mat-option>
+
+          @for (item of catalog; track item.id) {
+            <mat-option [value]="item.id">
+              {{ item.name }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (catalog.length === 0) {
+        <p class="hint">
+          No hay requisitos activos en el catálogo.
+          Puedes registrar uno personalizado.
+        </p>
+      }
+    } @else {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre del requisito</mat-label>
+        <input
+          matInput
+          formControlName="customName"
+          maxlength="120">
+      </mat-form-field>
+    }
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Estado del requisito</mat-label>
+
+      <mat-select formControlName="statusId">
+        @for (status of statuses; track status.id) {
+          <mat-option [value]="status.id">
+            {{ status.name }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Responsable externo</mat-label>
+      <input
+        matInput
+        formControlName="externalResponsible"
+        maxlength="150"
+        placeholder="Cliente, agente, almacén, etc.">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Comentario</mat-label>
+      <textarea
+        matInput
+        rows="4"
+        formControlName="comment"
+        maxlength="10000">
+      </textarea>
+    </mat-form-field>
+
+    @if (!isEditMode) {
+      <p class="hint">
+        El estado inicial será Pendiente. Puedes modificarlo si es necesario.
+      </p>
+    }
+
+    <div class="actions">
+      <button
+        mat-button
+        type="button"
+        (click)="cancel()"
+        [disabled]="isSaving">
+        Cancelar
+      </button>
+
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="isSaving">
+        {{ isSaving ? 'Guardando...' : 'Guardar requisito' }}
+      </button>
+    </div>
+
+  </form>
+</div>

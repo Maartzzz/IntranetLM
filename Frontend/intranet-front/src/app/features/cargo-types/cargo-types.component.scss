@@ -1,0 +1,32 @@
+.cargo-types-page { padding: 24px; color: #263445; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+.page-header h1 { margin: 0 0 6px; font-size: 26px; font-weight: 650; }
+.page-header p { margin: 0; color: #718096; }
+.primary-button { border: 0; border-radius: 8px; padding: 11px 16px; background: #1e5b91; color: white; font-weight: 600; cursor: pointer; }
+.filters { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; margin-bottom: 24px; }
+.search-field { flex: 1 1 280px; }
+.filter-field { flex: 0 1 190px; }
+.search-field label, .filter-field label { display: block; margin-bottom: 7px; color: #526174; font-size: 13px; font-weight: 600; }
+.search-field input, .filter-field select { box-sizing: border-box; width: 100%; min-height: 42px; border: 1px solid #d7dee7; border-radius: 7px; padding: 9px 11px; background: white; color: #263445; }
+.cargo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(245px, 1fr)); gap: 16px; }
+.cargo-card { display: flex; flex-direction: column; min-height: 220px; padding: 18px; border: 1px solid #e1e7ee; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(25, 45, 70, .04); }
+.inactive-card { background: #fafbfc; }
+.card-topline { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.kind-badge, .status { display: inline-flex; align-items: center; border-radius: 20px; padding: 5px 9px; font-size: 11px; font-weight: 650; }
+.kind-badge { color: #6a5420; background: #f8f0d9; }
+.container-badge { color: #245b80; background: #e7f1f8; }
+.status.active { color: #24734b; background: #e7f5ed; }
+.status.inactive { color: #747d88; background: #edf0f3; }
+.card-content { flex: 1; padding: 22px 0 18px; }
+.cargo-icon { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 12px; border-radius: 10px; background: #edf3f8; color: #285d83; font-size: 25px; }
+.card-content h2 { margin: 0 0 7px; font-size: 18px; font-weight: 650; }
+.card-content p { margin: 0; color: #778394; font-size: 13px; line-height: 1.45; }
+.card-actions { display: flex; gap: 14px; padding-top: 12px; border-top: 1px solid #edf0f3; }
+.text-button { padding: 0; border: 0; background: transparent; color: #285f8d; font-size: 13px; font-weight: 600; cursor: pointer; }
+.text-button.deactivate { color: #a14b4b; }
+.text-button.activate { color: #28764e; }
+.results-count { margin: 18px 0 0; color: #7a8795; font-size: 12px; }
+.feedback { color: #718096; }
+.error-message { margin: 12px 0; padding: 12px; border-radius: 8px; background: #fff0f0; color: #a33b3b; }
+.empty-state { grid-column: 1 / -1; padding: 36px 16px; border: 1px dashed #d5dde6; border-radius: 10px; color: #778394; text-align: center; }
+@media (max-width: 600px) { .cargo-types-page { padding: 16px; } .page-header { flex-direction: column; } }

@@ -24,7 +24,7 @@
     </a>
 
     <!-- Configuración -->
-     @if (isAdmin()) {
+     @if (isAdmin() || isSupervisor() || isOperations()) {
     <div class="nav-section">
     <button
         type="button"
@@ -63,6 +63,24 @@
             </a>
         }
 
+        @if (canAccessOperations()) {
+            <a routerLink="/clients" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 20h18 M5 20V7l7-4 7 4v13 M9 20v-6h6v6 M9 9h.01 M15 9h.01"/>
+            </svg>
+            <span>Clientes</span>
+            </a>
+        }
+
+        @if (canAccessOperations()) {
+            <a routerLink="/cargo-types" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 7h18v13H3z M3 7l3-4h12l3 4 M8 11h8 M8 15h5"/>
+            </svg>
+            <span>Tipos de carga</span>
+            </a>
+        }
+
         @if (isAdmin() || isSupervisor()) {
             <a routerLink="/drivers" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -73,6 +91,15 @@
             </svg>
             <span>Conductores</span>
             </a>
+        }
+
+        @if (isAdmin() || isSupervisor()) {
+          <a routerLink="/requirement-catalog" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5"/>
+            </svg>
+            <span>Catálogo de requisitos</span>
+          </a>
         }
 
         </div>
@@ -159,6 +186,38 @@
     }
     </div>
 
+
+    <!-- Operaciones: sección independiente dentro del mismo layout -->
+    @if (canAccessOperations()) {
+      <div class="nav-section">
+        <button
+          type="button"
+          class="nav-section-button"
+          (click)="toggleOperaciones()"
+          [attr.aria-expanded]="operacionesExpanded">
+
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7h11v11H3z M14 11h4l3 4v3h-7z M7 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4 M18 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
+          </svg>
+
+          <span>Operaciones</span>
+          <span class="nav-arrow">
+            {{ operacionesExpanded ? '−' : '+' }}
+          </span>
+        </button>
+
+        @if (operacionesExpanded) {
+          <div class="nav-submenu">
+            <a routerLink="/operations" routerLinkActive="active">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5"/>
+              </svg>
+              <span>Operaciones</span>
+            </a>
+          </div>
+        }
+      </div>
+    }
 
     <a routerLink="/communication" routerLinkActive="active">
       <svg viewBox="0 0 24 24" aria-hidden="true">
