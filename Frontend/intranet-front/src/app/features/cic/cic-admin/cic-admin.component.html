@@ -1,0 +1,246 @@
+<section class="admin-page">
+
+  <button class="back-button" type="button" (click)="volverAlCic()">
+    ← Volver al CIC
+  </button>
+
+  <header class="page-header">
+    <p class="eyebrow">ADMINISTRACIÓN</p>
+    <h1>Centro de Información Corporativa</h1>
+    <p>Gestiona categorías, documentos y publicaciones.</p>
+  </header>
+
+  <nav class="tabs">
+    <button
+      type="button"
+      [class.active]="seccion === 'documentos'"
+      (click)="seleccionarSeccion('documentos')"
+    >
+      Documentos
+    </button>
+
+    <button
+      type="button"
+      [class.active]="seccion === 'categorias'"
+      (click)="seleccionarSeccion('categorias')"
+    >
+      Categorías
+    </button>
+  </nav>
+
+  <p class="success-message" *ngIf="mensaje">{{ mensaje }}</p>
+  <p class="error-message" *ngIf="error">{{ error }}</p>
+
+  <!-- Administración de documentos -->
+  <section *ngIf="seccion === 'documentos'" class="panel">
+
+    <h2>Agregar documento</h2>
+
+    <form (ngSubmit)="subirDocumento()" class="admin-form">
+
+      <label for="tituloDocumento">Título</label>
+      <input
+        id="tituloDocumento"
+        name="tituloDocumento"
+        [(ngModel)]="tituloDocumento"
+        required
+        maxlength="200"
+      />
+
+      <label for="descripcionDocumento">Descripción</label>
+      <textarea
+        id="descripcionDocumento"
+        name="descripcionDocumento"
+        [(ngModel)]="descripcionDocumento"
+        rows="3"
+      ></textarea>
+
+      <label for="categoriaDocumento">Categoría</label>
+      <select
+        id="categoriaDocumento"
+        name="categoriaDocumento"
+        [(ngModel)]="categoriaDocumentoId"
+        required
+      >
+        <option [ngValue]="null">Selecciona una categoría</option>
+        <option
+          *ngFor="let categoria of categorias"
+          [ngValue]="categoria.id"
+          [disabled]="!categoria.activa"
+        >
+          {{ categoria.nombre }}{{ !categoria.activa ? ' (Inactiva)' : '' }}
+        </option>
+      </select>
+
+      <label for="archivoDocumento">Archivo</label>
+      <input
+        id="archivoDocumento"
+        type="file"
+        name="archivoDocumento"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+        (change)="seleccionarArchivo($event)"
+        required
+      />
+
+      <p class="hint">
+        Formatos permitidos: PDF, Word, Excel y PowerPoint.
+      </p>
+
+      <button
+        type="submit"
+        class="primary-button"
+        [disabled]="guardando"
+      >
+        {{ guardando ? 'Guardando...' : 'Subir documento' }}
+      </button>
+    </form>
+
+    <hr />
+
+    <h2>Documentos registrados</h2>
+
+    <label for="filtroCategoria">Filtrar por categoría</label>
+    <select
+      id="filtroCategoria"
+      [(ngModel)]="categoriaFiltro"
+      name="filtroCategoria"
+    >
+      <option [ngValue]="null">Todas las categorías</option>
+      <option *ngFor="let categoria of categorias" [ngValue]="categoria.id">
+        {{ categoria.nombre }}
+      </option>
+    </select>
+
+    <p *ngIf="cargando">Cargando documentos...</p>
+
+    <div class="document-list" *ngIf="!cargando">
+      <article
+        class="document-row"
+        *ngFor="let documento of documentosFiltrados"
+      >
+        <div class="document-info">
+          <h3>{{ documento.titulo }}</h3>
+          <p>{{ documento.categoriaNombre }}</p>
+          <p class="file-name">{{ documento.nombreArchivo }}</p>
+          <span class="status" [attr.data-status]="documento.estado">
+            {{ documento.estado }}
+          </span>
+        </div>
+
+        <div class="document-actions">
+          <button
+            type="button"
+            *ngIf="documento.estado !== 'PUBLICADO'"
+            (click)="cambiarEstadoDocumento(documento, 'PUBLICADO')"
+          >
+            Publicar
+          </button>
+
+          <button
+            type="button"
+            *ngIf="documento.estado === 'PUBLICADO'"
+            (click)="cambiarEstadoDocumento(documento, 'BORRADOR')"
+          >
+            Retirar publicación
+          </button>
+
+          <button
+            type="button"
+            *ngIf="documento.estado !== 'ARCHIVADO'"
+            (click)="cambiarEstadoDocumento(documento, 'ARCHIVADO')"
+          >
+            Archivar
+          </button>
+
+          <button
+            type="button"
+            *ngIf="documento.estado === 'ARCHIVADO'"
+            (click)="cambiarEstadoDocumento(documento, 'BORRADOR')"
+          >
+            Restaurar como borrador
+          </button>
+        </div>
+      </article>
+
+      <p *ngIf="documentosFiltrados.length === 0">
+        No hay documentos para mostrar.
+      </p>
+    </div>
+  </section>
+
+  <!-- Administración de categorías -->
+  <section *ngIf="seccion === 'categorias'" class="panel">
+
+    <h2>
+      {{ categoriaEditandoId === null ? 'Agregar categoría' : 'Editar categoría' }}
+    </h2>
+
+    <form (ngSubmit)="guardarCategoria()" class="admin-form">
+
+      <label for="nombreCategoria">Nombre</label>
+      <input
+        id="nombreCategoria"
+        name="nombreCategoria"
+        [(ngModel)]="nombreCategoria"
+        required
+        maxlength="100"
+      />
+
+      <label for="descripcionCategoria">Descripción</label>
+      <textarea
+        id="descripcionCategoria"
+        name="descripcionCategoria"
+        [(ngModel)]="descripcionCategoria"
+        maxlength="300"
+        rows="3"
+      ></textarea>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="primary-button"
+          [disabled]="guardando"
+        >
+          {{ guardando ? 'Guardando...' :
+             categoriaEditandoId === null ? 'Crear categoría' : 'Guardar cambios' }}
+        </button>
+
+        <button
+          type="button"
+          *ngIf="categoriaEditandoId !== null"
+          (click)="limpiarFormularioCategoria()"
+        >
+          Cancelar edición
+        </button>
+      </div>
+    </form>
+
+    <hr />
+
+    <h2>Categorías registradas</h2>
+
+    <div class="category-list">
+      <article class="category-row" *ngFor="let categoria of categorias">
+        <div>
+          <h3>{{ categoria.nombre }}</h3>
+          <p>{{ categoria.descripcion || 'Sin descripción' }}</p>
+          <span>{{ categoria.activa ? 'Activa' : 'Inactiva' }}</span>
+        </div>
+
+        <div class="category-actions">
+          <button type="button" (click)="editarCategoria(categoria)">
+            Editar
+          </button>
+
+          <button
+            type="button"
+            (click)="cambiarEstadoCategoria(categoria)"
+          >
+            {{ categoria.activa ? 'Desactivar' : 'Activar' }}
+          </button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</section>

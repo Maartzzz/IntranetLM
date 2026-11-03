@@ -1,0 +1,124 @@
+<div class="communication-page">
+
+  <header class="page-header">
+    <div>
+      <h1>Sugerencias y/o Quejas</h1>
+      <p>
+        Tu opinión nos ayuda a mejorar. Completa el formulario
+        para enviar tu comunicación a la administración.
+      </p>
+    </div>
+  </header>
+
+  <section class="communication-card">
+
+    <div class="card-heading">
+      <h2>Nueva comunicación</h2>
+      <p>Los campos marcados con * son obligatorios.</p>
+    </div>
+
+    <form #communicationForm="ngForm" (ngSubmit)="submit()">
+
+      <div class="form-group">
+        <label for="type">Tipo de comunicación *</label>
+
+        <select
+          id="type"
+          name="type"
+          [(ngModel)]="type"
+          required
+          [disabled]="sending"
+        >
+          <option value="SUGERENCIA">Sugerencia</option>
+          <option value="QUEJA">Queja</option>
+          <option value="OTRO">Otro</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="subject">Asunto *</label>
+
+        <input
+          id="subject"
+          name="subject"
+          type="text"
+          [(ngModel)]="subject"
+          maxlength="150"
+          placeholder="Escribe el asunto de tu comunicación"
+          required
+          [disabled]="sending"
+        />
+
+        <span class="field-hint">
+          Máximo 150 caracteres.
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Descripción *</label>
+
+        <textarea
+          id="description"
+          name="description"
+          [(ngModel)]="description"
+          maxlength="10000"
+          rows="6"
+          placeholder="Describe tu sugerencia o queja con el mayor detalle posible..."
+          required
+          [disabled]="sending"
+        ></textarea>
+
+        <span class="field-hint">
+          Máximo 10000 caracteres.
+        </span>
+      </div>
+
+      <div class="identity-notice">
+        <span class="notice-icon" aria-hidden="true">i</span>
+        <p>
+          La comunicación se enviará con tu identidad registrada
+          en la intranet. No necesitas ingresar tus datos personales.
+        </p>
+      </div>
+
+      @if (successMessage) {
+        <div class="feedback success" role="status">
+          <strong>Comunicación enviada</strong>
+          <p>{{ successMessage }}</p>
+          @if (communicationId !== null) {
+            <p>Número de referencia: #{{ communicationId }}</p>
+          }
+        </div>
+      }
+
+      @if (errorMessage) {
+        <div class="feedback error" role="alert">
+          <strong>No se pudo completar el envío</strong>
+          <p>{{ errorMessage }}</p>
+          @if (communicationId !== null) {
+            <p>
+              Conserva el número #{{ communicationId }} para consultar
+              el estado de tu comunicación.
+            </p>
+          }
+        </div>
+      }
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="submit-button"
+          [disabled]="sending || !communicationForm.valid"
+        >
+          @if (sending) {
+            Enviando...
+          } @else {
+            Enviar comunicación
+          }
+        </button>
+      </div>
+
+    </form>
+  </section>
+
+</div>

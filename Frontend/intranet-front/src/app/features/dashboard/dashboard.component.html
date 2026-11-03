@@ -211,6 +211,105 @@
 		}
 
 		</section>
+	
+		@if (canManageEvaluations) {
+		<section class="recent-section exhausted-section">
+
+			<div class="section-header">
+			<div>
+				<h2>Evaluaciones agotadas</h2>
+				<p>
+				Trabajadores que agotaron sus tres intentos
+				sin aprobar la evaluación.
+				</p>
+			</div>
+
+			<button
+				type="button"
+				class="refresh-button"
+				(click)="loadExhaustedEvaluations()"
+				[disabled]="exhaustedLoading">
+				Actualizar
+			</button>
+			</div>
+
+			@if (exhaustedLoading) {
+			<div class="state-message">
+				Cargando evaluaciones agotadas...
+			</div>
+			} @else if (exhaustedErrorMessage) {
+			<div class="state-message error">
+				{{ exhaustedErrorMessage }}
+			</div>
+			} @else if (exhaustedEvaluations.length === 0) {
+			<div class="state-message">
+				No hay evaluaciones agotadas pendientes de rehabilitación.
+			</div>
+			} @else {
+			<div class="recent-table-container">
+				<table class="recent-table">
+				<thead>
+					<tr>
+					<th>Trabajador</th>
+					<th>Documento</th>
+					<th>Curso</th>
+					<th>Ronda</th>
+					<th>Intentos</th>
+					<th>Último intento</th>
+					<th>Acción</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					@for (
+					evaluation of exhaustedEvaluations;
+					track evaluation.courseId + '-' + evaluation.username
+					) {
+					<tr>
+						<td>
+						<strong>{{ evaluation.fullName }}</strong>
+						</td>
+
+						<td>
+						{{ evaluation.documentType }}:
+						{{ evaluation.documentNumber }}
+						</td>
+
+						<td>{{ evaluation.courseTitle }}</td>
+
+						<td>{{ evaluation.roundNumber }}</td>
+
+						<td>
+						<span class="evaluation-status failed">
+							{{ evaluation.completedAttempts }} de 3
+						</span>
+						</td>
+
+						<td>
+						{{ evaluation.lastAttemptAt | date:'dd/MM/yyyy HH:mm' }}
+						</td>
+						<td>
+							<button
+								type="button"
+								class="refresh-button"
+								[disabled]="rehabilitatingKey === (evaluation.courseId + '-' + evaluation.username)"
+								(click)="rehabilitateEvaluation(evaluation)">
+								{{
+								rehabilitatingKey === (evaluation.courseId + '-' + evaluation.username)
+									? 'Rehabilitando...'
+									: 'Rehabilitar'
+								}}
+							</button>
+						</td>
+					</tr>
+					}
+				</tbody>
+				</table>
+			</div>
+			}
+		</section>
+
+		}
 
 	}
 

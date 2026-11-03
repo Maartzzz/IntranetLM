@@ -35,6 +35,18 @@ public class EvaluationAttempt {
     @Column(name = "passed")
     private Boolean passed;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "round_id")
+    private EvaluationRound round;
+
+    public EvaluationRound getRound() {
+        return round;
+    }
+
+    public void setRound(EvaluationRound round) {
+        this.round = round;
+    }
+
     @PrePersist
     protected void onCreate() {
         if (startedAt == null) {

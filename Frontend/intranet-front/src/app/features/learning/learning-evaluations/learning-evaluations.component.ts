@@ -8,7 +8,8 @@ import {
   EvaluationStartResponse,
   EvaluationQuestion,
   EvaluationSubmitRequest,
-  EvaluationResultResponse
+  EvaluationResultResponse,
+  EvaluationResumeResponse
 } from '../../../core/models/evaluation.models';
 import { CertificateService } from '../../../core/services/certificate.service';
 
@@ -55,7 +56,16 @@ export class LearningEvaluationComponent implements OnInit {
       }
 
       this.courseId = courseId;
-      this.startEvaluation();
+
+      const attemptId = Number(
+        this.route.snapshot.queryParamMap.get('attemptId')
+      );
+
+      if (attemptId) {
+        this.resumeEvaluation(attemptId);
+      } else {
+        this.startEvaluation();
+      }
     });
   }
 
@@ -90,6 +100,40 @@ export class LearningEvaluationComponent implements OnInit {
       });
   }
 
+  resumeEvaluation(attemptId: number): void {
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.evaluationService.resumeEvaluation(attemptId).subscribe({
+      next: (response: EvaluationResumeResponse) => {
+        this.evaluation = response;
+
+        this.selectedAnswers = {};
+
+        response.questions.forEach(question => {
+          this.selectedAnswers[question.questionId] = null;
+        });
+
+        response.savedAnswers.forEach(answer => {
+          this.selectedAnswers[answer.questionId] =
+            answer.selectedOptionId;
+        });
+
+        this.currentQuestionIndex = 0;
+        this.loading = false;
+      },
+      error: error => {
+        console.error('Error al recuperar evaluación:', error);
+
+        this.errorMessage =
+          error?.error?.message ??
+          'No se pudo recuperar la evaluación pendiente.';
+
+        this.loading = false;
+      }
+    });
+  }
+
   get currentQuestion(): EvaluationQuestion | null {
     if (!this.evaluation) {
       return null;
@@ -122,13 +166,28 @@ export class LearningEvaluationComponent implements OnInit {
   }
 
   selectOption(optionId: number): void {
-    if (!this.currentQuestion) {
+    if (!this.currentQuestion || !this.evaluation) {
       return;
     }
 
-    this.selectedAnswers[
-      this.currentQuestion.questionId
-    ] = optionId;
+    const questionId = this.currentQuestion.questionId;
+
+    this.selectedAnswers[questionId] = optionId;
+
+    this.evaluationService.saveAnswerProgress(
+      this.evaluation.attemptId,
+      {
+        questionId,
+        selectedOptionId: optionId
+      }
+    ).subscribe({
+      error: error => {
+        console.error('Error al guardar respuesta:', error);
+
+        this.errorMessage =
+          'No se pudo guardar la respuesta. Verifica tu conexión.';
+      }
+    });
   }
 
   previousQuestion(): void {

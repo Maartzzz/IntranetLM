@@ -4,7 +4,11 @@ import {
     EvaluationStartResponse,
     EvaluationSubmitRequest,
     EvaluationResultResponse,
-    EvaluationAttempt
+    EvaluationAttempt,
+    PendingEvaluation,
+    EvaluationAnswerProgressRequest,
+    EvaluationResumeResponse,
+    MyEvaluationResponse
 } from '../models/evaluation.models';
 import { Observable } from 'rxjs';
 
@@ -44,6 +48,43 @@ export class EvaluationService {
         Observable<EvaluationAttempt[]> {
         return this.http.get<EvaluationAttempt[]>(
             `/api/evaluations/courses/${courseId}/attempts`
+        );
+    }
+
+    
+    getPendingEvaluations(): Observable<PendingEvaluation[]> {
+        return this.http.get<PendingEvaluation[]>(
+            `${this.apiUrl}/pending`
+        );
+    }
+    
+    saveAnswerProgress(
+        attemptId: number,
+        request: EvaluationAnswerProgressRequest
+        ): Observable<void> {
+        return this.http.put<void>(
+            `${this.apiUrl}/attempts/${attemptId}/answers`,
+            request
+        );
+    }
+
+    resumeEvaluation(attemptId: number): Observable<EvaluationResumeResponse> {
+        return this.http.get<EvaluationResumeResponse>(
+            `${this.apiUrl}/attempts/${attemptId}/resume`
+        );
+    }
+
+    getMyEvaluations(): Observable<MyEvaluationResponse[]> {
+        return this.http.get<MyEvaluationResponse[]>(
+            `${this.apiUrl}/mine`
+        );
+    }
+
+    
+    downloadCertificate(attemptId: number): Observable<Blob> {
+        return this.http.get(
+            `/api/certificates/attempts/${attemptId}`,
+            { responseType: 'blob' }
         );
     }
 }

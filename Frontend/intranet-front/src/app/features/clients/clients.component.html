@@ -1,0 +1,102 @@
+<section class="clients-page">
+  <div class="page-header">
+    <div>
+      <h1>Clientes</h1>
+      <p>Administración de clientes y razones sociales</p>
+    </div>
+
+    @if (canManage) {
+      <button class="primary-button" type="button" (click)="openCreateDialog()">
+        + Nuevo cliente
+      </button>
+    }
+  </div>
+
+  <div class="filters">
+    <div class="search-field">
+      <label for="client-search">Buscar</label>
+      <input
+        id="client-search"
+        type="text"
+        placeholder="Razón social, nombre o documento..."
+        [(ngModel)]="searchTerm">
+    </div>
+
+    @if (canManage) {
+      <div class="filter-field">
+        <label for="client-status">Estado</label>
+        <select id="client-status" [(ngModel)]="selectedStatus">
+          <option value="ALL">Todos</option>
+          <option value="ACTIVE">Activos</option>
+          <option value="INACTIVE">Inactivos</option>
+        </select>
+      </div>
+    }
+  </div>
+
+  @if (loading) {
+    <p class="feedback">Cargando clientes...</p>
+  }
+
+  @if (errorMessage) {
+    <div class="error-message">{{ errorMessage }}</div>
+  }
+
+  @if (!loading && !errorMessage) {
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Documento</th>
+            <th>Dirección</th>
+            <th>Estado</th>
+            @if (canManage) {
+              <th>Acciones</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (client of filteredClients; track client.id) {
+            <tr>
+              <td>
+                <strong>{{ client.businessName }}</strong>
+                <small>ID: {{ client.id }}</small>
+              </td>
+              <td>{{ client.documentType }} {{ client.documentNumber }}</td>
+              <td>{{ client.address || '—' }}</td>
+              <td>
+                <span class="status" [class.active]="client.active" [class.inactive]="!client.active">
+                  {{ client.active ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              @if (canManage) {
+                <td class="actions-cell">
+                  <button class="text-button" type="button" (click)="openEditDialog(client)">Editar</button>
+                  <button
+                    class="text-button"
+                    [class.activate]="!client.active"
+                    [class.deactivate]="client.active"
+                    type="button"
+                    (click)="toggleActive(client)">
+                    {{ client.active ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="canManage ? 5 : 4" class="empty">
+                No se encontraron clientes.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="results-count">
+      {{ filteredClients.length }} cliente(s) encontrado(s)
+    </p>
+  }
+</section>

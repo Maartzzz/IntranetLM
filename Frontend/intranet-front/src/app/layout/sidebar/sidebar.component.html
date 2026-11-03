@@ -1,94 +1,242 @@
 <aside class="sidebar">
-
     <div class="logo">
-        <span class="logo-title">INTRANET</span>
-        <span class="logo-subtitle">LMoving</span>
+        <img
+            class="logo-full"
+            src="assets/images/logo-logistics-moving.png"
+            alt="Logistics Moving SAC"
+        />
+
+        <img
+            class="logo-icon"
+            src="assets/images/logo-moving-emblem.png"
+            alt="Logistics Moving"
+        />
     </div>
 
-    <nav class="navigation">
 
-        <!-- Dashboard -->
-        @if (isAdmin() || isSupervisor())
-        {<a
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        >
-        <span>Dashboard</span>
-        </a>}
-        
-        <!-- Administración -->
-        @if (isAdmin()) {
+  <nav class="navigation">
 
-        <a
-            routerLink="/users"
-            routerLinkActive="active"
-        >
-            <span>Usuarios</span>
-        </a>
+    <a routerLink="/cic" routerLinkActive="active">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5" />
+      </svg>
+      <span>Centro de Información</span>
+    </a>
 
-        }
-
-
-        <!-- Administración / Supervisión -->
-        @if (isAdmin() || isSupervisor()) {
-
-        <a
-            routerLink="/drivers"
-            routerLinkActive="active"
-        >
-            <span>Conductores</span>
-        </a>
-
-        }
-
-
-        <!-- Driver -->
-        @if (isAdmin() || isSupervisor()) {
-
-        <a
-            routerLink="/courses"
-            routerLinkActive="active"
-        >
-            <span>Cursos</span>
-        </a>
-
-        <a
-            routerLink="/questions"
-            routerLinkActive="active"
-        >
-            <span>Banco de Preguntas</span>
-        </a>
-
-        <a
-            routerLink="/certificates"
-            routerLinkActive="active"
-        >
-            <span>Certificados</span>
-        </a>
-
-        }
-
-        <a
-            routerLink="/learning"
-            routerLinkActive="active"
-        >
-            <span>Aprendizaje</span>
-        </a>
-
-    </nav>
-
-
-    <div class="sidebar-footer">
-
-        <button
+    <!-- Configuración -->
+     @if (isAdmin() || isSupervisor() || isOperations()) {
+    <div class="nav-section">
+    <button
         type="button"
-        class="logout-button"
-        (click)="logout()"
-        >
-        Cerrar sesión
+        class="nav-section-button"
+        (click)="toggleConfiguracion()"
+        [attr.aria-expanded]="configuracionExpanded">
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z
+            M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.7 2.9-.2-.1a1.7
+            1.7 0 0 0-1.8.1l-.2.1h-3.4l-.1-.2a1.7 1.7 0 0 0-1.5-1l-.2-.1-2.9 1.7-.1-.2a1.7 1.7
+            0 0 0-1.9-.3l-.2.1-2.9-1.7.1-.2a1.7 1.7 0 0 0-.1-1.8l-.1-.2v-3.4l.2-.1a1.7 1.7 0 0
+            0 1-1.5l.1-.2-1.7-2.9.2-.1a1.7 1.7 0 0 0 .3-1.9l-.1-.2 1.7-2.9.2.1a1.7 1.7 0 0 0
+            1.8-.1l.2-.1h3.4l.1.2a1.7 1.7 0 0 0 1.5 1l.2.1 2.9-1.7.1.2a1.7 1.7 0 0 0 1.9.3l.2-.1
+            2.9 1.7-.1.2a1.7 1.7 0 0 0 .1 1.8l.1.2v3.4l-.2.1a1.7 1.7 0 0 0-1 1.5l-.1.2z"/>
+        </svg>
+
+        <span>Configuración</span>
+        <span class="nav-arrow">
+        {{ configuracionExpanded ? '−' : '+' }}
+        </span>
+    </button>
+
+    @if (configuracionExpanded) {
+        <div class="nav-submenu">
+
+        @if (isAdmin()) {
+            <a routerLink="/users" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2
+                M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8
+                M16 3.2a4 4 0 0 1 0 7.6
+                M18 15h1a4 4 0 0 1 3 4v2"/>
+            </svg>
+            <span>Usuarios</span>
+            </a>
+        }
+
+        @if (canAccessOperations()) {
+            <a routerLink="/clients" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 20h18 M5 20V7l7-4 7 4v13 M9 20v-6h6v6 M9 9h.01 M15 9h.01"/>
+            </svg>
+            <span>Clientes</span>
+            </a>
+        }
+
+        @if (canAccessOperations()) {
+            <a routerLink="/cargo-types" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 7h18v13H3z M3 7l3-4h12l3 4 M8 11h8 M8 15h5"/>
+            </svg>
+            <span>Tipos de carga</span>
+            </a>
+        }
+
+        @if (isAdmin() || isSupervisor()) {
+            <a routerLink="/drivers" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 6h12v12H3z
+                M15 10h4l3 4v4h-7z
+                M7 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4
+                M18 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
+            </svg>
+            <span>Conductores</span>
+            </a>
+        }
+
+        @if (isAdmin() || isSupervisor()) {
+          <a routerLink="/requirement-catalog" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5"/>
+            </svg>
+            <span>Catálogo de requisitos</span>
+          </a>
+        }
+
+        </div>
+    }
+    </div>
+    }
+
+    <!-- Aprendizaje -->
+    <div class="nav-section">
+    <button
+        type="button"
+        class="nav-section-button"
+        (click)="toggleAprendizaje()"
+        [attr.aria-expanded]="aprendizajeExpanded">
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 5.5A2.5 2.5 0 0 1 5.5 3H12v17H5.5A2.5 2.5 0 0 0 3 22z
+            M21 5.5A2.5 2.5 0 0 0 18.5 3H12v17h6.5a2.5 2.5 0 0 1 2.5 2z"/>
+        </svg>
+
+        <span>Aprendizaje</span>
+        <span class="nav-arrow">
+        {{ aprendizajeExpanded ? '−' : '+' }}
+        </span>
+    </button>
+
+    @if (aprendizajeExpanded) {
+        <div class="nav-submenu">
+
+        @if (isAdmin() || isSupervisor()) {
+            <a
+            routerLink="/dashboard"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 13h8V3H3z M15 21h6v-8h-6z
+                M15 3h6v6h-6z M3 17h8v4H3z"/>
+            </svg>
+            <span>Dashboard</span>
+            </a>
+        }
+
+        @if (isAdmin() || isSupervisor()) {
+            <a routerLink="/courses" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5"/>
+            </svg>
+            <span>Cursos</span>
+            </a>
+
+            <a routerLink="/questions" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9.5 9a3 3 0 1 1 5 2.2c-1.5 1-2.5 1.5-2.5 3.3
+                M12 18h.01 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/>
+            </svg>
+            <span>Banco de Preguntas</span>
+            </a>
+
+            <a routerLink="/certificates" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 3h12v13H6z M9 7h6 M9 10h6 M9 13h3
+                M9 16l-2 5 5-2 5 2-2-5"/>
+            </svg>
+            <span>Certificados</span>
+            </a>
+        }
+
+        <a routerLink="/learning" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m2 8 10-5 10 5-10 5z
+                M6 10v6c4 3 8 3 12 0v-6 M22 8v7"/>
+            </svg>
+            <span>Mis Capacitaciones</span>
+        </a>
+
+        <a routerLink="/my-evaluations" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 3h8 M9 3v4l-4 6a7 7 0 0 0 6 10h2a7 7 0 0 0 6-10l-4-6V3 M8 14h8"/>
+            </svg>
+            <span>Evaluaciones</span>
+        </a>
+
+        </div>
+    }
+    </div>
+
+
+    <!-- Operaciones: sección independiente dentro del mismo layout -->
+    @if (canAccessOperations()) {
+      <div class="nav-section">
+        <button
+          type="button"
+          class="nav-section-button"
+          (click)="toggleOperaciones()"
+          [attr.aria-expanded]="operacionesExpanded">
+
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7h11v11H3z M14 11h4l3 4v3h-7z M7 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4 M18 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
+          </svg>
+
+          <span>Operaciones</span>
+          <span class="nav-arrow">
+            {{ operacionesExpanded ? '−' : '+' }}
+          </span>
         </button>
 
-    </div>
+        @if (operacionesExpanded) {
+          <div class="nav-submenu">
+            <a routerLink="/operations" routerLinkActive="active">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5"/>
+              </svg>
+              <span>Operaciones</span>
+            </a>
+          </div>
+        }
+      </div>
+    }
 
+    <a routerLink="/communication" routerLinkActive="active">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5a9 9 0 0 1-.9-4A8.5 8.5 0 0 1 12.5 3h.5a8.5 8.5 0 0 1 8 8z" />
+      </svg>
+      <span>Sugerencias y Quejas</span>
+    </a>
+
+  </nav>
+
+  <div class="sidebar-footer">
+    <button
+      type="button"
+      class="logout-button"
+      (click)="logout()">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M10 17l5-5-5-5 M15 12H3 M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7" />
+      </svg>
+      <span>Cerrar sesión</span>
+    </button>
+  </div>
 </aside>

@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Editar cliente' : 'Nuevo cliente' }}</h2>
+
+<div class="dialog-content">
+  @if (errorMessage) {
+    <div class="error-message">{{ errorMessage }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline">
+      <mat-label>Tipo de documento</mat-label>
+      <mat-select formControlName="documentType">
+        <mat-option value="RUC">RUC</mat-option>
+        <mat-option value="DNI">DNI</mat-option>
+        <mat-option value="CE">Carné de extranjería</mat-option>
+      </mat-select>
+      @if (form.controls.documentType.touched && form.controls.documentType.hasError('required')) {
+        <mat-error>Selecciona un tipo de documento.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Número de documento</mat-label>
+      <input matInput formControlName="documentNumber" maxlength="20" autocomplete="off">
+      @if (form.controls.documentNumber.touched && form.controls.documentNumber.hasError('required')) {
+        <mat-error>El número de documento es obligatorio.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Razón social / Nombre</mat-label>
+      <input matInput formControlName="businessName" maxlength="200">
+      @if (form.controls.businessName.touched && form.controls.businessName.hasError('required')) {
+        <mat-error>La razón social o nombre es obligatorio.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Dirección</mat-label>
+      <textarea matInput formControlName="address" maxlength="300" rows="2"></textarea>
+    </mat-form-field>
+
+    <div class="actions">
+      <button mat-button type="button" (click)="cancel()" [disabled]="isSaving">Cancelar</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="isSaving">
+        {{ isSaving ? 'Guardando...' : (isEditMode ? 'Guardar cambios' : 'Crear cliente') }}
+      </button>
+    </div>
+  </form>
+</div>

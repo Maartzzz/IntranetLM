@@ -1,0 +1,75 @@
+<section class="cargo-types-page">
+  <div class="page-header">
+    <div>
+      <h1>Tipos de carga</h1>
+      <p>Catálogo de cargas y clasificación de contenedores</p>
+    </div>
+    @if (canManage) {
+      <button class="primary-button" type="button" (click)="openCreateDialog()">+ Nuevo tipo de carga</button>
+    }
+  </div>
+
+  <div class="filters">
+    <div class="search-field">
+      <label for="cargo-search">Buscar</label>
+      <input id="cargo-search" type="text" placeholder="Nombre del tipo de carga..." [(ngModel)]="searchTerm">
+    </div>
+    <div class="filter-field">
+      <label for="cargo-kind">Clasificación</label>
+      <select id="cargo-kind" [(ngModel)]="selectedKind">
+        <option value="ALL">Todas</option>
+        <option value="CONTAINER">Contenedores</option>
+        <option value="LOOSE">Carga suelta</option>
+      </select>
+    </div>
+    @if (canManage) {
+      <div class="filter-field">
+        <label for="cargo-status">Estado</label>
+        <select id="cargo-status" [(ngModel)]="selectedStatus">
+          <option value="ALL">Todos</option>
+          <option value="ACTIVE">Activos</option>
+          <option value="INACTIVE">Inactivos</option>
+        </select>
+      </div>
+    }
+  </div>
+
+  @if (loading) { <p class="feedback">Cargando tipos de carga...</p> }
+  @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
+
+  @if (!loading && !errorMessage) {
+    <div class="cargo-grid">
+      @for (item of filteredCargoTypes; track item.id) {
+        <article class="cargo-card" [class.inactive-card]="!item.active">
+          <div class="card-topline">
+            <span class="kind-badge" [class.container-badge]="item.container">
+              {{ item.container ? 'Contenedor' : 'Carga suelta' }}
+            </span>
+            @if (canManage) {
+              <span class="status" [class.active]="item.active" [class.inactive]="!item.active">
+                {{ item.active ? 'Activo' : 'Inactivo' }}
+              </span>
+            }
+          </div>
+          <div class="card-content">
+            <div class="cargo-icon" aria-hidden="true">{{ item.container ? '▤' : '▰' }}</div>
+            <h2>{{ item.name }}</h2>
+            <p>{{ item.container ? 'Tipo de carga transportada en contenedor.' : 'Tipo de carga transportada como carga suelta.' }}</p>
+          </div>
+          @if (canManage) {
+            <div class="card-actions">
+              <button class="text-button" type="button" (click)="openEditDialog(item)">Editar</button>
+              <button class="text-button" [class.activate]="!item.active" [class.deactivate]="item.active"
+                type="button" (click)="toggleActive(item)">
+                {{ item.active ? 'Desactivar' : 'Activar' }}
+              </button>
+            </div>
+          }
+        </article>
+      } @empty {
+        <div class="empty-state">No se encontraron tipos de carga con los filtros seleccionados.</div>
+      }
+    </div>
+    <p class="results-count">{{ filteredCargoTypes.length }} tipo(s) de carga encontrado(s)</p>
+  }
+</section>

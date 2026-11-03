@@ -1,0 +1,15 @@
+CREATE TABLE cargo_types (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    is_container BOOLEAN NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_cargo_types_name UNIQUE (name)
+);
+
+INSERT INTO cargo_types (name, is_container)
+VALUES
+    ('CONTENEDOR 20''', TRUE),
+    ('CONTENEDOR 40''', TRUE),
+    ('CARGA SUELTA', FALSE);

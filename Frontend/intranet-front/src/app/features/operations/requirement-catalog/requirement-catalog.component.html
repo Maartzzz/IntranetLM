@@ -1,0 +1,139 @@
+<div class="catalog-page">
+
+  <header class="page-header">
+    <div>
+      <h1>Catálogo de requisitos</h1>
+      <p>Administra los requisitos disponibles para las operaciones.</p>
+    </div>
+
+    @if (canManage) {
+      <button class="primary-button" (click)="openCreate()">
+        + Nuevo requisito
+      </button>
+    }
+  </header>
+
+  @if (successMessage) {
+    <div class="success-message">{{ successMessage }}</div>
+  }
+
+  @if (errorMessage) {
+    <div class="error-message">{{ errorMessage }}</div>
+  }
+
+  @if (showForm) {
+    <section class="form-card">
+      <h2>{{ editingId ? 'Editar requisito' : 'Nuevo requisito' }}</h2>
+
+      <form (ngSubmit)="save()">
+
+        <label for="requirementName">Nombre</label>
+        <input
+          id="requirementName"
+          name="name"
+          [(ngModel)]="form.name"
+          maxlength="120"
+          required
+          placeholder="Ej. Confirmación de reserva">
+
+        <label for="requirementDescription">Descripción</label>
+        <textarea
+          id="requirementDescription"
+          name="description"
+          [(ngModel)]="form.description"
+          maxlength="4000"
+          rows="3"
+          placeholder="Describe qué se debe verificar...">
+        </textarea>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            name="active"
+            [(ngModel)]="form.active">
+          Requisito activo
+        </label>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="cancelForm()">
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving">
+            {{ saving ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+
+      </form>
+    </section>
+  }
+
+  <section class="filters">
+    <input
+      type="search"
+      [(ngModel)]="searchTerm"
+      placeholder="Buscar por nombre o descripción...">
+
+    <select [(ngModel)]="statusFilter">
+      <option value="ALL">Todos</option>
+      <option value="ACTIVE">Activos</option>
+      <option value="INACTIVE">Inactivos</option>
+    </select>
+  </section>
+
+  @if (loading) {
+    <p class="empty-state">Cargando requisitos...</p>
+  } @else if (filteredRequirements.length === 0) {
+    <p class="empty-state">No se encontraron requisitos.</p>
+  } @else {
+    <section class="requirements-grid">
+
+      @for (item of filteredRequirements; track item.id) {
+        <article class="requirement-card">
+
+          <div class="card-header">
+            <h3>{{ item.name }}</h3>
+
+            <span
+              class="status"
+              [class.active]="item.active"
+              [class.inactive]="!item.active">
+              {{ item.active ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+
+          <p class="description">
+            {{ item.description || 'Sin descripción.' }}
+          </p>
+
+          <div class="card-footer">
+            @if (canManage) {
+              <button
+                class="text-button"
+                (click)="openEdit(item)">
+                Editar
+              </button>
+
+              <button
+                class="text-button"
+                [class.activate]="!item.active"
+                [class.deactivate]="item.active"
+                (click)="toggleStatus(item)">
+                {{ item.active ? 'Desactivar' : 'Activar' }}
+              </button>
+            }
+          </div>
+
+        </article>
+      }
+
+    </section>
+  }
+
+</div>

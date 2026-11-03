@@ -1,0 +1,206 @@
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.communication-page {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.page-header p,
+.card-heading p {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.communication-card {
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.card-heading {
+  margin-bottom: 24px;
+}
+
+.card-heading h2 {
+  margin: 0 0 6px;
+  color: #1f2937;
+  font-size: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.field-hint {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.identity-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 8px 0 24px;
+  padding: 14px;
+  background: #f3f6fb;
+  border-radius: 8px;
+}
+
+.identity-notice p {
+  margin: 0;
+  color: #374151;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.notice-icon {
+  display: flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #64748b;
+  border-radius: 50%;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submit-button {
+  min-height: 44px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  background: #1d4ed8;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #1e40af;
+}
+
+.submit-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.feedback {
+  margin: 16px 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.feedback p {
+  margin: 6px 0 0;
+}
+
+.feedback.success {
+  border: 1px solid #a7f3d0;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.feedback.error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+@media (max-width: 640px) {
+  .communication-page {
+    padding: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 23px;
+  }
+
+  .communication-card {
+    padding: 18px;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .submit-button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,71 @@
+<section class="detail-page">
+  <a class="back-link" routerLink="/operations">← Volver a operaciones</a>
+  @if (loading) { <p class="feedback">Cargando operación...</p> }
+  @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
+  @if (!loading && operation) {
+    <header class="detail-header"><div><span class="eyebrow">{{ operation.operationNumber }}</span><h1>{{ operation.clientName }}</h1><p>Detalle de la operación y seguimiento de requisitos.</p></div>
+      <span class="status-pill" [style.backgroundColor]="operation.statusColor || '#64748B'">{{ operation.statusName || 'Sin estado' }}</span>
+    </header>
+    <section class="info-card"><div class="section-heading"><h2>Información general</h2></div>
+      <div class="info-grid">
+        <div><label>Tipo de carga</label><strong>{{ operation.cargoTypeName }} · {{ operation.container ? 'Contenedor (FCL)' : 'Carga suelta (LCL)' }}</strong></div>
+        <div><label>Referencia</label><strong>{{ operation.reference || '—' }}</strong></div>
+        <div><label>O/S del cliente</label><strong>{{ operation.customerOrderNumber || '—' }}</strong></div>
+        <div><label>Cantidad estimada</label><strong>{{ operation.quantity ?? '—' }}</strong></div>
+        <div><label>Origen</label><strong>{{ operation.origin || 'Pendiente' }}</strong></div>
+        <div><label>Destino</label><strong>{{ operation.destination || 'Pendiente' }}</strong></div>
+        <div><label>Fecha estimada</label><strong>{{ operation.estimatedDate || 'Por definir' }}</strong></div>
+        <div><label>Última actualización</label><strong>{{ operation.updatedAt | date:'dd/MM/yyyy HH:mm' }}</strong></div>
+      </div>
+      @if (operation.observation) { <div class="observation"><label>Observaciones</label><p>{{ operation.observation }}</p></div> }
+    </section>
+
+    <section class="requirements-section"><header class="section-heading"><div><h2>Requisitos</h2><p>Seguimiento independiente de los requisitos de esta operación.</p></div>
+      <button class="primary-button" type="button" (click)="addRequirement()">+ Agregar requisito</button>
+    </header>
+    @if (requirementError) { <div class="error-message">{{ requirementError }}</div> }
+    <div class="requirements-grid">
+      @for (item of requirements; track item.id) {
+        <article class="requirement-card"><div class="requirement-top"><h3>{{ item.requirementName }}</h3><span class="status-pill" [style.backgroundColor]="item.statusColor || '#64748B'">{{ item.statusName }}</span></div>
+          <p><label>Responsable externo</label><strong>{{ item.externalResponsible || 'No indicado' }}</strong></p>
+          @if (item.comment) { <p class="comment">{{ item.comment }}</p> }
+          <footer><small>Registrado: {{ item.registeredAt | date:'dd/MM/yyyy HH:mm' }}</small><button class="text-button" type="button" (click)="editRequirement(item)">Editar</button></footer>
+        </article>
+      } @empty { @if (!requirementError) { <div class="empty-state">Aún no hay requisitos registrados para esta operación.</div> } }
+    </div>
+    </section>
+
+    <section class="activity-section">
+      <header class="section-heading">
+        <div><h2>Historial de actividad</h2><p>Registro cronológico de los cambios realizados en esta operación y sus requisitos.</p></div>
+        <button class="secondary-button" type="button" (click)="loadActivity()" [disabled]="activityLoading">{{ activityLoading ? 'Actualizando...' : 'Actualizar' }}</button>
+      </header>
+      @if (activityError) { <div class="error-message">{{ activityError }}</div> }
+      @if (activityLoading && activities.length === 0) { <p class="feedback">Cargando historial...</p> }
+      @if (!activityLoading && activities.length === 0 && !activityError) { <div class="empty-state">Todavía no hay movimientos registrados.</div> }
+      @if (activities.length > 0) {
+        <div class="activity-list">
+          @for (item of activities; track item.id) {
+            <article class="activity-item">
+              <span class="activity-marker" [class.status-marker]="item.action === 'STATUS_CHANGED'" [class.created-marker]="item.action === 'CREATED'"></span>
+              <div class="activity-content">
+                <div class="activity-topline"><strong>{{ item.description }}</strong><time>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</time></div>
+                <div class="activity-meta">
+                  <span class="activity-tag">{{ actionLabel(item.action) }}</span>
+                  <span>{{ entityLabel(item.entityType) }}</span>
+                  <span>Por {{ item.actorName || item.actorUsername }}</span>
+                </div>
+                @if (item.oldValue || item.newValue) {
+                  <div class="activity-values">
+                    @if (item.oldValue) { <div><small>Anterior</small><p>{{ item.oldValue }}</p></div> }
+                    @if (item.newValue) { <div><small>Nuevo</small><p>{{ item.newValue }}</p></div> }
+                  </div>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</section>

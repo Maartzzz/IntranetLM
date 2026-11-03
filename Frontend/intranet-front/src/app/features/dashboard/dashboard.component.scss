@@ -259,3 +259,90 @@
   }
 
 }
+
+
+/* Botones de acciones del dashboard */
+.refresh-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  padding: 0.6rem 1rem;
+  min-height: 38px;
+
+  border: 1px solid #2563eb;
+  border-radius: 8px;
+
+  background-color: #2563eb;
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+
+  white-space: nowrap;
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.3);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    background-color: #94a3b8;
+    border-color: #94a3b8;
+    color: #ffffff;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.8;
+  }
+}
+
+/* Espaciado de la sección de evaluaciones agotadas */
+.exhausted-section {
+  margin-top: 1.5rem;
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .recent-table td:last-child,
+  .recent-table th:last-child {
+    text-align: center;
+    white-space: nowrap;
+  }
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 640px) {
+  .refresh-button {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .exhausted-section .section-header {
+    align-items: flex-start;
+  }
+}

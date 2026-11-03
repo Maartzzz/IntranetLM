@@ -65,4 +65,10 @@ import {
 
     }
 
+    getAvailableEvaluationCourses(): Observable<Course[]> {
+        return this.http.get<Course[]>(
+            '/api/evaluations/available'
+        );
+    }
+
 }
