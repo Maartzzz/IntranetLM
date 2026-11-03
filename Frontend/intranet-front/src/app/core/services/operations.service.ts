@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Operation, OperationRequest, OperationRequirement, OperationRequirementRequest, RequirementCatalog, RequirementCatalogRequest, Status } from '../models/operations.models';
+import { OperationActivity } from '../models/operation-activity.models';
 
 @Injectable({ providedIn: 'root' })
 export class OperationsService {
@@ -33,6 +34,10 @@ export class OperationsService {
     });
   }
 
+    getActivity(operationId: number): Observable<OperationActivity[]> {
+    return this.http.get<OperationActivity[]>(`${this.operationsUrl}/${operationId}/activity`);
+  }
+
   createRequirementCatalog(
     request: RequirementCatalogRequest
   ): Observable<RequirementCatalog> {
@@ -40,14 +45,14 @@ export class OperationsService {
   }
 
   updateRequirementCatalog(
-  id: number,
-  request: RequirementCatalogRequest
-): Observable<RequirementCatalog> {
-  return this.http.put<RequirementCatalog>(
-    `${this.catalogUrl}/${id}`,
-    request
-  );
-}
+    id: number,
+    request: RequirementCatalogRequest
+  ): Observable<RequirementCatalog> {
+    return this.http.put<RequirementCatalog>(
+      `${this.catalogUrl}/${id}`,
+      request
+    );
+  }
 
   getRequirements(operationId: number): Observable<OperationRequirement[]> {
     return this.http.get<OperationRequirement[]>(`${this.operationsUrl}/${operationId}/requirements`);
@@ -62,8 +67,8 @@ export class OperationsService {
   }
 
   getStatuses(processCode: 'OPERACION' | 'REQUISITO'): Observable<Status[]> {
-  return this.http.get<Status[]>('/api/statuses', {
-    params: new HttpParams().set('processCode', processCode)
-  });
-}
+    return this.http.get<Status[]>('/api/statuses', {
+      params: new HttpParams().set('processCode', processCode)
+    });
+  }
 }
