@@ -19,8 +19,7 @@ public record ClientResponse(
     public static ClientResponse from(Client client) {
         return new ClientResponse(
             client.getId(), client.getDocumentType(), client.getDocumentNumber(),
-            client.getBusinessName(), client.getAddress(), client.isActive(),
-            client.getParentClient() == null ? null : client.getParentClient().getId(),
+            client.getBusinessName(), client.getAddress(), client.isActive(), null,
             client.getCreatedAt(), client.getUpdatedAt()
         );
     }

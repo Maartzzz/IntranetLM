@@ -21,9 +21,12 @@ import { CicAdminComponent } from './features/cic/cic-admin/cic-admin.component'
 import { EvaluationsComponent } from './features/evaluations/evaluations.component';
 import { OperationsHomeComponent } from './features/operations/operations-home.component';
 import { ClientsComponent } from './features/clients/clients.component';
+import { WarehousesComponent } from './features/warehouses/warehouses.component';
 import { CargoTypesComponent } from './features/cargo-types/cargo-types.component';
 import { OperationDetailComponent } from './features/operations/operation-detail/operation-detail.component';
 import { RequirementCatalogComponent } from './features/operations/requirement-catalog/requirement-catalog.component';
+import { LocationsComponent } from './features/locations/locations.component';
+import { SubclientsComponent } from './features/subclients/subclients.component';
 
 export const routes: Routes = [
     {
@@ -108,8 +111,20 @@ export const routes: Routes = [
             component: ClientsComponent
         },
         {
+            path: 'subclients',
+            component: SubclientsComponent
+        },
+        {
+            path: 'warehouses',
+            component: WarehousesComponent
+        },
+        {
             path: 'cargo-types',
             component: CargoTypesComponent
+        },
+        {
+            path: 'locations',
+            component: LocationsComponent
         },
         {
             path: 'cic',

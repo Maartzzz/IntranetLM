@@ -1,0 +1,64 @@
+<section class="warehouses-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">Configuración</p><h1>Almacenes</h1><p class="subtitle">Administra almacenes de terceros vinculados a ubicaciones físicas.</p></div>
+    @if (canManage) { <button class="primary-button" type="button" (click)="openCreate()">＋ Nuevo almacén</button> }
+  </header>
+  @if (error) { <div class="alert error">{{ error }}</div> }
+  @if (success) { <div class="alert success">{{ success }}</div> }
+
+  @if (showForm && canManage) {
+    <section class="panel">
+      <div class="panel-title"><div><h2>{{ editingId === null ? 'Registrar almacén' : 'Editar almacén' }}</h2><p>Selecciona una ubicación existente o registra una nueva sin salir de este formulario.</p></div><button class="text-button" type="button" (click)="cancel()">Cerrar</button></div>
+      <div class="form-grid">
+        <div class="wide location-choice">
+          <span class="field-label">Ubicación física *</span>
+          <div class="choice-tabs">
+            <button type="button" class="text-button" [class.selected-choice]="locationMode === 'EXISTING'" (click)="locationMode = 'EXISTING'">Seleccionar existente</button>
+            <button type="button" class="text-button" [class.selected-choice]="locationMode === 'NEW'" (click)="locationMode = 'NEW'">Registrar nueva ubicación</button>
+          </div>
+          @if (locationMode === 'EXISTING') {
+            <select [(ngModel)]="form.locationId">
+              <option [ngValue]="0">Seleccionar ubicación</option>
+              @for (loc of locations; track loc.id) { <option [ngValue]="loc.id">{{ loc.name }} — {{ loc.address }}{{ loc.district ? ' · ' + loc.district : '' }}</option> }
+            </select>
+          } @else {
+            <div class="form-grid location-form-grid">
+              <label>Nombre o referencia del lugar *<input [(ngModel)]="newLocation.name" maxlength="150" placeholder="Ej. Depósito Callao" /></label>
+              <label>Tipo de lugar *<select [(ngModel)]="newLocation.locationType"><option value="ALMACEN">Almacén</option><option value="DEPOSITO">Depósito</option><option value="PUERTO">Puerto</option><option value="PLANTA">Planta</option><option value="CENTRO_DISTRIBUCION">Centro de distribución</option><option value="OTRO">Otro</option></select></label>
+              <label class="wide">Dirección *<input [(ngModel)]="newLocation.address" maxlength="250" placeholder="Dirección física" /></label>
+              <label>Distrito<input [(ngModel)]="newLocation.district" maxlength="100" /></label>
+              <label>Provincia<input [(ngModel)]="newLocation.province" maxlength="100" /></label>
+              <label>Departamento<input [(ngModel)]="newLocation.department" maxlength="100" /></label>
+              <label>Referencia<input [(ngModel)]="newLocation.reference" maxlength="250" /></label>
+            </div>
+            <p class="location-help">La ubicación se guardará primero. Luego se asociará automáticamente al almacén.</p>
+          }
+        </div>
+        <label>Código *<input [(ngModel)]="form.warehouseCode" maxlength="30" placeholder="Ej. ALM-001" /></label>
+        <label>Nombre del almacén *<input [(ngModel)]="form.warehouseName" maxlength="150" /></label>
+        <label>Tipo *<select [(ngModel)]="form.warehouseType">@for (type of types; track type.value) { <option [value]="type.value">{{ type.label }}</option> }</select></label>
+        <label>Operador / empresa administradora *<input [(ngModel)]="form.operatorName" maxlength="150" /></label>
+        <label class="wide">Observaciones<textarea [(ngModel)]="form.observations" rows="3" maxlength="5000"></textarea></label>
+      </div>
+      <div class="form-actions"><button class="text-button" type="button" (click)="cancel()">Cancelar</button><button class="primary-button" type="button" [disabled]="saving || (locationMode === 'EXISTING' && !form.locationId) || (locationMode === 'NEW' && (!newLocation.name.trim() || !newLocation.address.trim())) || !form.warehouseCode.trim() || !form.warehouseName.trim() || !form.operatorName.trim()" (click)="save()">{{ saving ? 'Guardando…' : 'Guardar almacén' }}</button></div>
+    </section>
+  }
+
+  <section class="panel">
+    <div class="toolbar"><div><h2>Almacenes registrados</h2><p>{{ filtered.length }} resultado(s)</p></div><input class="search" [(ngModel)]="search" placeholder="Buscar por código, nombre, ubicación u operador…" /></div>
+    @if (loading) { <div class="empty-state">Cargando almacenes…</div> }
+    @else if (filtered.length) {
+      <div class="warehouse-list">
+        @for (row of filtered; track row.id) {
+          <article class="warehouse-card" [class.inactive]="!row.active">
+            <div class="card-heading"><div><span class="code">{{ row.warehouseCode }}</span><h3>{{ row.warehouseName }}</h3></div><span class="status" [class.off]="!row.active">{{ row.active ? 'Activo' : 'Inactivo' }}</span></div>
+            <p class="location">{{ row.locationName }} · {{ row.address }}{{ row.district ? ' · ' + row.district : '' }}{{ row.province ? ', ' + row.province : '' }}</p>
+            <div class="details"><span><b>Tipo:</b> {{ typeLabel(row.warehouseType) }}</span><span><b>Operador:</b> {{ row.operatorName }}</span></div>
+            @if (row.observations) { <p class="observations">{{ row.observations }}</p> }
+            @if (canManage) { <div class="actions"><button class="text-button" type="button" (click)="openEdit(row)">Editar</button><button class="text-button" type="button" (click)="toggle(row)">{{ row.active ? 'Desactivar' : 'Reactivar' }}</button></div> }
+          </article>
+        }
+      </div>
+    } @else { <div class="empty-state">No se encontraron almacenes. Registra uno nuevo para comenzar.</div> }
+  </section>
+</section>

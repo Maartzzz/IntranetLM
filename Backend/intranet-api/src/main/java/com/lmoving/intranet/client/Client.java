@@ -6,12 +6,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -42,11 +39,6 @@ public class Client {
 
     @Column(nullable = false)
     private boolean active = true;
-
-    // Reserved for the future client/subclient hierarchy.
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_client_id")
-    private Client parentClient;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -79,8 +71,6 @@ public class Client {
     public void setAddress(String address) { this.address = address; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
-    public Client getParentClient() { return parentClient; }
-    public void setParentClient(Client parentClient) { this.parentClient = parentClient; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

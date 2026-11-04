@@ -1,0 +1,120 @@
+<section class="subclients-page">
+  <div class="page-header">
+    <div>
+      <h1>Subclientes</h1>
+      <p>Administra las empresas relacionadas con cada cliente principal.</p>
+    </div>
+  </div>
+
+  @if (loadingClients) {
+    <p class="feedback">Cargando clientes...</p>
+  }
+
+  @if (errorMessage) {
+    <div class="message error-message">{{ errorMessage }}</div>
+  }
+  @if (successMessage) {
+    <div class="message success-message">{{ successMessage }}</div>
+  }
+
+  @if (!loadingClients) {
+    <div class="selection-panel">
+      <div class="field client-field">
+        <label for="parent-client">Cliente principal</label>
+        <select id="parent-client" [(ngModel)]="selectedClientId" (ngModelChange)="onClientChange()">
+          <option [ngValue]="null">Selecciona un cliente</option>
+          @for (client of clients; track client.id) {
+            <option [ngValue]="client.id">{{ client.businessName }} — {{ client.documentNumber }}</option>
+          }
+        </select>
+      </div>
+      @if (selectedClient) {
+        <div class="client-summary">
+          <span class="summary-label">Cliente seleccionado</span>
+          <strong>{{ selectedClient.businessName }}</strong>
+          <small>{{ selectedClient.documentType }} {{ selectedClient.documentNumber }}</small>
+        </div>
+      }
+    </div>
+
+    @if (canManage && selectedClientId !== null) {
+      <div class="add-panel">
+        <div class="section-heading">
+          <div>
+            <h2>Agregar subcliente</h2>
+            <p>Selecciona una empresa existente o registra una nueva desde aquí. Una empresa puede relacionarse consigo misma y participar en varias relaciones comerciales.</p>
+          </div>
+        </div>
+        <div class="add-controls">
+          <div class="field search-field">
+            <label for="subclient-search">Buscar empresa disponible</label>
+            <input id="subclient-search" type="search" [(ngModel)]="searchTerm"
+              placeholder="Razón social o número de documento...">
+          </div>
+          <div class="field subclient-field">
+            <label for="subclient-select">Empresa</label>
+            <select id="subclient-select" [(ngModel)]="selectedSubclientId">
+              <option [ngValue]="null">Selecciona una empresa</option>
+              @for (client of availableSubclients; track client.id) {
+                <option [ngValue]="client.id">{{ client.businessName }} — {{ client.documentNumber }}</option>
+              }
+            </select>
+          </div>
+          <div class="add-actions">
+            <button class="secondary-button" type="button" (click)="openCreateCompany()" [disabled]="saving">
+              Registrar empresa
+            </button>
+            <button class="primary-button" type="button" (click)="addSubclient()"
+              [disabled]="saving || selectedSubclientId === null">
+              {{ saving ? 'Guardando...' : 'Agregar subcliente' }}
+            </button>
+          </div>
+        </div>
+        @if (availableSubclients.length === 0) {
+          <p class="hint">No hay empresas disponibles que coincidan con la búsqueda.</p>
+        }
+      </div>
+    }
+
+    <div class="list-heading">
+      <div>
+        <h2>Subclientes asociados</h2>
+        <p>Empresas vinculadas al cliente principal seleccionado.</p>
+      </div>
+      <span class="count">{{ relations.length }} {{ relations.length === 1 ? 'relación' : 'relaciones' }}</span>
+    </div>
+
+    @if (loadingRelations) {
+      <p class="feedback">Cargando relaciones...</p>
+    } @else if (selectedClientId === null) {
+      <div class="empty-state">Selecciona un cliente principal para consultar sus subclientes.</div>
+    } @else {
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Subcliente</th>
+              <th>Documento</th>
+              <th>Estado de relación</th>
+              @if (canManage) { <th>Acciones</th> }
+            </tr>
+          </thead>
+          <tbody>
+            @for (relation of relations; track relation.id) {
+              <tr>
+                <td><strong>{{ relation.subclientName }}</strong><small>ID relación: {{ relation.id }}</small></td>
+                <td>{{ getSubclientDocument(relation.subclientId) }}</td>
+                <td><span class="status active">Activa</span></td>
+                @if (canManage) {
+                  <td><button class="text-button deactivate" type="button" (click)="deactivateRelation(relation)">Retirar relación</button></td>
+                }
+              </tr>
+            } @empty {
+              <tr><td [attr.colspan]="canManage ? 4 : 3" class="empty">Esta empresa todavía no tiene relaciones comerciales registradas.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>

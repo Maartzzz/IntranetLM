@@ -1,102 +1,229 @@
-<section class="clients-page">
-  <div class="page-header">
+<section class="hub">
+  <header class="head">
     <div>
+      <small>CONFIGURACIÓN COMERCIAL</small>
       <h1>Clientes</h1>
-      <p>Administración de clientes y razones sociales</p>
+      <p>Gestiona las empresas y las direcciones donde se realizan los servicios.</p>
     </div>
-
     @if (canManage) {
-      <button class="primary-button" type="button" (click)="openCreateDialog()">
-        + Nuevo cliente
-      </button>
+      <button class="primary" type="button" (click)="createClient()">＋ Registrar empresa</button>
     }
-  </div>
+  </header>
 
-  <div class="filters">
-    <div class="search-field">
-      <label for="client-search">Buscar</label>
-      <input
-        id="client-search"
-        type="text"
-        placeholder="Razón social, nombre o documento..."
-        [(ngModel)]="searchTerm">
-    </div>
+  @if (error) { <div class="alert error">{{ error }}</div> }
+  @if (success) { <div class="alert success">{{ success }}</div> }
 
-    @if (canManage) {
-      <div class="filter-field">
-        <label for="client-status">Estado</label>
-        <select id="client-status" [(ngModel)]="selectedStatus">
-          <option value="ALL">Todos</option>
-          <option value="ACTIVE">Activos</option>
-          <option value="INACTIVE">Inactivos</option>
-        </select>
+  <div class="layout">
+    <aside class="panel left">
+      <div class="list-heading">
+        <h2>Empresas</h2>
+        <span>{{ filteredClients.length }}</span>
       </div>
-    }
-  </div>
+      <input [(ngModel)]="search" placeholder="Buscar por razón social o RUC…" aria-label="Buscar empresa" />
+      <div class="company-list">
+        @for (client of filteredClients; track client.id) {
+          <button class="company" type="button" [class.selected]="selected?.id === client.id" (click)="selectClient(client)">
+            <b>{{ client.businessName }}</b>
+            <small>{{ client.documentType }} {{ client.documentNumber }}</small>
+          </button>
+        } @empty {
+          <p class="empty">No se encontraron empresas.</p>
+        }
+      </div>
+    </aside>
 
-  @if (loading) {
-    <p class="feedback">Cargando clientes...</p>
-  }
-
-  @if (errorMessage) {
-    <div class="error-message">{{ errorMessage }}</div>
-  }
-
-  @if (!loading && !errorMessage) {
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Documento</th>
-            <th>Dirección</th>
-            <th>Estado</th>
-            @if (canManage) {
-              <th>Acciones</th>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          @for (client of filteredClients; track client.id) {
-            <tr>
-              <td>
-                <strong>{{ client.businessName }}</strong>
-                <small>ID: {{ client.id }}</small>
-              </td>
-              <td>{{ client.documentType }} {{ client.documentNumber }}</td>
-              <td>{{ client.address || '—' }}</td>
-              <td>
-                <span class="status" [class.active]="client.active" [class.inactive]="!client.active">
-                  {{ client.active ? 'Activo' : 'Inactivo' }}
-                </span>
-              </td>
-              @if (canManage) {
-                <td class="actions-cell">
-                  <button class="text-button" type="button" (click)="openEditDialog(client)">Editar</button>
-                  <button
-                    class="text-button"
-                    [class.activate]="!client.active"
-                    [class.deactivate]="client.active"
-                    type="button"
-                    (click)="toggleActive(client)">
-                    {{ client.active ? 'Desactivar' : 'Activar' }}
-                  </button>
-                </td>
-              }
-            </tr>
-          } @empty {
-            <tr>
-              <td [attr.colspan]="canManage ? 5 : 4" class="empty">
-                No se encontraron clientes.
-              </td>
-            </tr>
+    <main class="panel right">
+      @if (!selected) {
+        <div class="welcome">
+          <div class="welcome-icon">⌂</div>
+          <h2>Selecciona una empresa</h2>
+          <p>Desde aquí podrás administrar sus empresas relacionadas y las direcciones de atención de cada una.</p>
+        </div>
+      } @else {
+        <div class="company-title">
+          <div>
+            <small>CLIENTE</small>
+            <h2>{{ selected.businessName }}</h2>
+            <p>{{ selected.documentType }} {{ selected.documentNumber }}</p>
+          </div>
+          @if (canManage) {
+            <button class="secondary" type="button" (click)="editClient()">Editar datos</button>
           }
-        </tbody>
-      </table>
-    </div>
+        </div>
 
-    <p class="results-count">
-      {{ filteredClients.length }} cliente(s) encontrado(s)
-    </p>
-  }
+        <section class="content-section">
+          <div class="section-head">
+            <div>
+              <h3>Empresas relacionadas</h3>
+              <p>Empresas que pueden intervenir en los servicios de este cliente.</p>
+            </div>
+            @if (canManage) {
+              <button class="secondary" type="button" (click)="addRelationOpen = !addRelationOpen">＋ Añadir empresa</button>
+            }
+          </div>
+
+          @if (addRelationOpen) {
+            <div class="form relation-form">
+              <label>
+                Seleccionar empresa registrada
+                <select [(ngModel)]="subclientId">
+                  <option [ngValue]="null">Selecciona una empresa</option>
+                  @for (client of available; track client.id) {
+                    <option [ngValue]="client.id">{{ client.businessName }} · {{ client.documentNumber }}</option>
+                  }
+                </select>
+              </label>
+              <button class="primary" type="button" [disabled]="busy || subclientId === null" (click)="addRelation()">Agregar empresa</button>
+              <div class="new-company-note">
+                <span>¿La empresa todavía no está registrada?</span>
+                <button class="text-action" type="button" [disabled]="busy" (click)="createRelatedClient()">Registrar empresa nueva</button>
+              </div>
+            </div>
+          }
+
+          <div class="relations">
+            @for (relation of relations; track relation.id) {
+              <div class="relation" [class.chosen]="selectedRelation?.id === relation.id" [class.inactive]="!relation.active">
+                <button class="relation-name" type="button" (click)="selectRelation(relation)">
+                  <span class="company-avatar">{{ relation.subclientName.charAt(0) }}</span>
+                  <span class="relation-copy">
+                    <b>{{ relation.subclientName }}</b>
+                    <small>{{ relation.active ? 'Relación activa' : 'Relación inactiva' }}</small>
+                  </span>
+                </button>
+                @if (canManage) {
+                  <button class="plain" type="button" (click)="relationStatus(relation)">{{ relation.active ? 'Desactivar' : 'Reactivar' }}</button>
+                }
+              </div>
+            } @empty {
+              <p class="empty">Todavía no hay empresas relacionadas. Añade una para registrar sus direcciones.</p>
+            }
+          </div>
+        </section>
+
+        @if (selectedRelation) {
+          <section class="content-section address-section">
+            <div class="section-head">
+              <div>
+                <h3>Direcciones de atención</h3>
+                <p>{{ selectedRelation.subclientName }} · Lugares de recojo y entrega.</p>
+              </div>
+              @if (canManage) {
+                <button class="primary" type="button" (click)="addAddressOpen = !addAddressOpen">＋ Añadir dirección</button>
+              }
+            </div>
+
+            @if (addAddressOpen) {
+              <div class="address-form">
+                <div class="form-title">
+                  <div>
+                    <h4>Nueva dirección</h4>
+                    <p>Completa los datos del lugar. Se guardará y quedará vinculada a {{ selectedRelation.subclientName }}.</p>
+                  </div>
+                </div>
+
+                <div class="form-grid">
+                  <label>
+                    Nombre o referencia del lugar
+                    <input [(ngModel)]="address.name" placeholder="Ej. Almacén Callao" />
+                  </label>
+                  <label>
+                    Tipo de lugar
+                    <select [(ngModel)]="address.locationType">
+                      <option value="ALMACEN">Almacén</option>
+                      <option value="DEPOSITO">Depósito</option>
+                      <option value="PUERTO">Puerto</option>
+                      <option value="PLANTA">Planta</option>
+                      <option value="CENTRO_DISTRIBUCION">Centro de distribución</option>
+                      <option value="OTRO">Otro</option>
+                    </select>
+                  </label>
+                  <label class="wide">
+                    Dirección
+                    <input [(ngModel)]="address.streetAddress" placeholder="Av., calle, número, zona…" />
+                  </label>
+                  <label>
+                    Distrito
+                    <input [(ngModel)]="address.district" placeholder="Ej. Callao" />
+                  </label>
+                  <label>
+                    Provincia
+                    <input [(ngModel)]="address.province" placeholder="Ej. Callao" />
+                  </label>
+                  <label>
+                    Departamento
+                    <input [(ngModel)]="address.department" placeholder="Ej. Lima" />
+                  </label>
+                  <label>
+                    Referencia adicional
+                    <input [(ngModel)]="address.reference" placeholder="Referencia para llegar" />
+                  </label>
+                  <label>
+                    Uso de la dirección
+                    <select [(ngModel)]="address.usageType">
+                      <option value="RECOJO">Recojo</option>
+                      <option value="ENTREGA">Entrega</option>
+                      <option value="AMBOS">Recojo y entrega</option>
+                    </select>
+                  </label>
+                  <label>
+                    Persona de contacto
+                    <input [(ngModel)]="address.contactName" placeholder="Nombre del contacto" />
+                  </label>
+                  <label>
+                    Teléfono de contacto
+                    <input [(ngModel)]="address.contactPhone" placeholder="Teléfono" />
+                  </label>
+                  <label>
+                    Horario de atención
+                    <input [(ngModel)]="address.operatingHours" placeholder="Ej. Lun–Vie 08:00–17:00" />
+                  </label>
+                  <label class="wide">
+                    Instrucciones
+                    <textarea [(ngModel)]="address.instructions" rows="2" placeholder="Indicaciones para el conductor…"></textarea>
+                  </label>
+                </div>
+
+                @if (pendingLocationId !== null) {
+                  <p class="pending-note">La dirección ya fue creada. Falta completar su asociación; puedes reintentar sin duplicarla.</p>
+                }
+                <div class="form-actions">
+                  <button class="plain" type="button" [disabled]="busy" (click)="cancelAddress()">Cancelar</button>
+                  <button class="primary" type="button" [disabled]="busy || !address.name.trim() || !address.streetAddress.trim()" (click)="saveAddress()">
+                    {{ busy ? 'Guardando…' : (pendingLocationId !== null ? 'Reintentar guardado' : 'Guardar dirección') }}
+                  </button>
+                </div>
+              </div>
+            }
+
+            <div class="addresses">
+              @for (item of addresses; track item.id) {
+                <article class="address-card" [class.inactive]="!item.active">
+                  <div class="address-icon">⌖</div>
+                  <div class="address-copy">
+                    <div class="address-heading">
+                      <b>{{ item.locationName }}</b>
+                      <span class="usage" [class.delivery]="item.usageType === 'ENTREGA'">{{ item.usageType === 'AMBOS' ? 'Recojo y entrega' : (item.usageType === 'RECOJO' ? 'Recojo' : 'Entrega') }}</span>
+                    </div>
+                    <p>{{ item.address }}</p>
+                    <small>Contacto: {{ item.contactName || 'No indicado' }} · {{ item.contactPhone || 'Sin teléfono' }}</small>
+                    @if (item.operatingHours) { <small>Horario: {{ item.operatingHours }}</small> }
+                    @if (item.instructions) { <small>Indicaciones: {{ item.instructions }}</small> }
+                  </div>
+                  @if (canManage) {
+                    <button class="plain" type="button" (click)="addressStatus(item)">{{ item.active ? 'Desactivar' : 'Reactivar' }}</button>
+                  }
+                </article>
+              } @empty {
+                <div class="empty-addresses">
+                  <h4>Sin direcciones registradas</h4>
+                  <p>Agrega la dirección donde se realizan los recojos o entregas para esta empresa.</p>
+                </div>
+              }
+            </div>
+          </section>
+        }
+      }
+    </main>
+  </div>
 </section>

@@ -1,0 +1,91 @@
+<section class="locations-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">Configuración</p><h1>Ubicaciones</h1><p class="subtitle">Administra ubicaciones físicas y asígnalas a cada relación cliente-subcliente.</p></div>
+    @if (canManage) { <button class="primary-button" type="button" (click)="showLocationForm = !showLocationForm">＋ Nueva ubicación</button> }
+  </header>
+
+  @if (error) { <div class="alert error">{{ error }}</div> }
+  @if (success) { <div class="alert success">{{ success }}</div> }
+
+  <section class="panel selector-panel">
+    <div class="panel-title"><div><h2>Relación comercial</h2><p>Selecciona el cliente emisor y el subcliente para consultar sus direcciones.</p></div></div>
+    <div class="selector-grid">
+      <label>Cliente emisor
+        <select [(ngModel)]="selectedClientId" (ngModelChange)="onClientChange()">
+          <option [ngValue]="null">Seleccionar cliente</option>
+          @for (client of clients; track client.id) { <option [ngValue]="client.id">{{ client.businessName }} · {{ client.documentNumber }}</option> }
+        </select>
+      </label>
+      <label>Subcliente
+        <select [(ngModel)]="selectedRelationId" (ngModelChange)="onRelationChange()" [disabled]="!selectedClientId">
+          <option [ngValue]="null">Seleccionar subcliente</option>
+          @for (relation of relations; track relation.id) { <option [ngValue]="relation.id">{{ relation.subclientName }}</option> }
+        </select>
+      </label>
+    </div>
+  </section>
+
+  @if (showLocationForm && canManage) {
+    <section class="panel form-panel">
+      <div class="panel-title"><div><h2>Nueva ubicación física</h2><p>Se registra una sola vez y luego puede reutilizarse en distintas relaciones.</p></div><button class="text-button" type="button" (click)="showLocationForm = false">Cerrar</button></div>
+      <div class="form-grid">
+        <label>Nombre *<input [(ngModel)]="locationForm.name" maxlength="150" placeholder="Ej. Almacén Callao" /></label>
+        <label>Tipo *<select [(ngModel)]="locationForm.locationType">@for (type of locationTypes; track type.value) { <option [value]="type.value">{{ type.label }}</option> }</select></label>
+        <label class="wide">Dirección *<input [(ngModel)]="locationForm.address" maxlength="300" placeholder="Dirección completa" /></label>
+        <label>Referencia<input [(ngModel)]="locationForm.reference" maxlength="300" /></label>
+        <label>Distrito<input [(ngModel)]="locationForm.district" maxlength="100" /></label>
+        <label>Provincia<input [(ngModel)]="locationForm.province" maxlength="100" /></label>
+        <label>Departamento<input [(ngModel)]="locationForm.department" maxlength="100" /></label>
+      </div>
+      <div class="form-actions"><button class="primary-button" type="button" [disabled]="saving || !locationForm.name.trim() || !locationForm.address.trim()" (click)="createLocation()">Guardar ubicación</button></div>
+    </section>
+  }
+
+  @if (selectedRelationId) {
+    <section class="panel">
+      <div class="panel-title"><div><h2>Direcciones de la relación</h2><p>{{ relationLocations.length }} ubicación(es) registrada(s).</p></div>
+        @if (canManage) { <button class="primary-button" type="button" (click)="showAssociationForm = !showAssociationForm">＋ Asociar ubicación</button> }
+      </div>
+      @if (showAssociationForm && canManage) {
+        <div class="association-form">
+          <div class="form-grid">
+            <label class="wide">Ubicación física *
+              <select [(ngModel)]="association.locationId"><option [ngValue]="0">Seleccionar ubicación</option>@for (location of locations; track location.id) { @if (location.active) { <option [ngValue]="location.id">{{ location.name }} — {{ location.address }}</option> } }</select>
+            </label>
+            <label>Uso *<select [(ngModel)]="association.usageType">@for (usage of usageTypes; track usage.value) { <option [value]="usage.value">{{ usage.label }}</option> }</select></label>
+            <label>Contacto<input [(ngModel)]="association.contactName" maxlength="150" /></label>
+            <label>Teléfono<input [(ngModel)]="association.contactPhone" maxlength="30" /></label>
+            <label>Horario de atención<input [(ngModel)]="association.operatingHours" maxlength="200" placeholder="Ej. Lun-Vie 08:00 a 17:00" /></label>
+            <label class="wide">Instrucciones<textarea [(ngModel)]="association.instructions" rows="2"></textarea></label>
+          </div>
+          <div class="form-actions"><button class="primary-button" type="button" [disabled]="saving || !association.locationId" (click)="addAssociation()">Guardar asociación</button><button class="text-button" type="button" (click)="showAssociationForm = false">Cancelar</button></div>
+        </div>
+      }
+      @if (relationLocations.length) {
+        <div class="location-list">
+          @for (row of relationLocations; track row.id) {
+            <article class="location-card" [class.inactive]="!row.active">
+              <div class="location-main"><div><h3>{{ row.locationName }}</h3><p>{{ row.address }}</p></div><span class="usage">{{ row.usageType }}</span></div>
+              <div class="meta-grid"><span><b>Tipo:</b> {{ row.locationType }}</span><span><b>Contacto:</b> {{ row.contactName || '—' }}</span><span><b>Teléfono:</b> {{ row.contactPhone || '—' }}</span><span><b>Horario:</b> {{ row.operatingHours || '—' }}</span></div>
+              @if (row.instructions) { <p class="instructions">{{ row.instructions }}</p> }
+              <div class="card-footer"><span>{{ row.active ? 'Activa' : 'Inactiva' }}</span>@if (canManage) { <button class="text-button" type="button" (click)="toggleAssociation(row)">{{ row.active ? 'Desactivar relación' : 'Reactivar relación' }}</button> }</div>
+            </article>
+          }
+        </div>
+      } @else { <div class="empty-state">Esta relación todavía no tiene ubicaciones asociadas.</div> }
+    </section>
+  } @else {
+    <div class="empty-state">Selecciona un cliente y un subcliente para administrar sus ubicaciones.</div>
+  }
+
+  <section class="panel catalog-panel">
+    <div class="panel-title"><div><h2>Catálogo de ubicaciones</h2><p>Registro maestro de ubicaciones físicas disponibles.</p></div><span class="count">{{ locations.length }} registros</span></div>
+    @if (locations.length) {
+      <div class="catalog-list">@for (location of locations; track location.id) {
+        <div class="catalog-row"><div><strong>{{ location.name }}</strong><p>{{ location.address }} · {{ location.district || 'Sin distrito' }}</p></div><span class="status" [class.off]="!location.active">{{ location.active ? 'Activa' : 'Inactiva' }}</span>
+          @if (canManage) { <button class="text-button" type="button" (click)="toggleLocation(location)">{{ location.active ? 'Desactivar' : 'Activar' }}</button> }
+        </div>
+      }</div>
+    } @else { <div class="empty-state compact">No hay ubicaciones registradas.</div> }
+  </section>
+</section>
