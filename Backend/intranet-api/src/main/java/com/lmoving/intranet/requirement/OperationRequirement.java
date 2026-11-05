@@ -2,6 +2,8 @@ package com.lmoving.intranet.requirement;
 
 import java.time.LocalDateTime;
 import com.lmoving.intranet.operation.Operation;
+import com.lmoving.intranet.oscliente.ClientServiceOrder;
+import com.lmoving.intranet.osinterna.InternalServiceOrder;
 import com.lmoving.intranet.status.Status;
 import jakarta.persistence.*;
 
@@ -11,9 +13,17 @@ public class OperationRequirement {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "operation_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "operation_id")
     private Operation operation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_service_order_id")
+    private ClientServiceOrder clientServiceOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "internal_service_order_id")
+    private InternalServiceOrder internalServiceOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requirement_catalog_id")
@@ -48,6 +58,10 @@ public class OperationRequirement {
     public Long getId() { return id; }
     public Operation getOperation() { return operation; }
     public void setOperation(Operation v) { operation = v; }
+    public ClientServiceOrder getClientServiceOrder() { return clientServiceOrder; }
+    public void setClientServiceOrder(ClientServiceOrder v) { clientServiceOrder = v; }
+    public InternalServiceOrder getInternalServiceOrder() { return internalServiceOrder; }
+    public void setInternalServiceOrder(InternalServiceOrder v) { internalServiceOrder = v; }
     public RequirementCatalog getCatalog() { return catalog; }
     public void setCatalog(RequirementCatalog v) { catalog = v; }
     public String getCustomName() { return customName; }

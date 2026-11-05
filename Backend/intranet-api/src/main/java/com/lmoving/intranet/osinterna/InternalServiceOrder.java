@@ -6,6 +6,7 @@ import com.lmoving.intranet.client.Client;
 import com.lmoving.intranet.client.Location;
 import com.lmoving.intranet.oscliente.ClientServiceOrder;
 import com.lmoving.intranet.status.Status;
+import com.lmoving.intranet.provider.Provider;
 import jakarta.persistence.*;
 
 @Entity
@@ -18,13 +19,14 @@ public class InternalServiceOrder {
     private Client client;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "client_service_order_id")
     private ClientServiceOrder clientServiceOrder;
+    @Column(name = "client_order_number", length = 80) private String clientOrderNumber;
     @Column(name = "service_type", nullable = false, length = 3) private String serviceType;
     @Column(length = 120) private String reference;
     @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "origin_location_id", nullable = false)
     private Location origin;
     @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "destination_location_id", nullable = false)
     private Location destination;
-    @Column(name = "provider_id") private Long providerId;
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "provider_id") private Provider provider;
     @Column(name = "scheduled_date") private LocalDate scheduledDate;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "status_id") private Status status;
     @Column(name = "billing_status", nullable = false, length = 20) private String billingStatus = "PENDIENTE";
@@ -38,11 +40,12 @@ public class InternalServiceOrder {
     public Long getInternalOrderNumber() { return internalOrderNumber; }
     public Client getClient() { return client; } public void setClient(Client v) { client = v; }
     public ClientServiceOrder getClientServiceOrder() { return clientServiceOrder; } public void setClientServiceOrder(ClientServiceOrder v) { clientServiceOrder = v; }
+    public String getClientOrderNumber() { return clientOrderNumber; } public void setClientOrderNumber(String v) { clientOrderNumber = v; }
     public String getServiceType() { return serviceType; } public void setServiceType(String v) { serviceType = v; }
     public String getReference() { return reference; } public void setReference(String v) { reference = v; }
     public Location getOrigin() { return origin; } public void setOrigin(Location v) { origin = v; }
     public Location getDestination() { return destination; } public void setDestination(Location v) { destination = v; }
-    public Long getProviderId() { return providerId; } public void setProviderId(Long v) { providerId = v; }
+    public Provider getProvider() { return provider; } public void setProvider(Provider v) { provider = v; }
     public LocalDate getScheduledDate() { return scheduledDate; } public void setScheduledDate(LocalDate v) { scheduledDate = v; }
     public Status getStatus() { return status; } public void setStatus(Status v) { status = v; }
     public String getBillingStatus() { return billingStatus; } public void setBillingStatus(String v) { billingStatus = v; }

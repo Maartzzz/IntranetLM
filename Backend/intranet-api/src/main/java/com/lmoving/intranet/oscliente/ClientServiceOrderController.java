@@ -10,7 +10,8 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/client-service-orders")
 public class ClientServiceOrderController {
     private final ClientServiceOrderService service;
-    public ClientServiceOrderController(ClientServiceOrderService service) { this.service = service; }
+    private final com.lmoving.intranet.osinterna.InternalServiceOrderService internalServiceOrderService;
+    public ClientServiceOrderController(ClientServiceOrderService service, com.lmoving.intranet.osinterna.InternalServiceOrderService internalServiceOrderService) { this.service = service; this.internalServiceOrderService = internalServiceOrderService; }
 
     @GetMapping
     public List<ClientServiceOrderResponse> listar(@RequestParam(required = false) Long clientId) {
@@ -19,6 +20,11 @@ public class ClientServiceOrderController {
 
     @GetMapping("/{id}")
     public ClientServiceOrderResponse obtener(@PathVariable Long id) { return service.obtener(id); }
+
+    @GetMapping("/{id}/distribution")
+    public com.lmoving.intranet.osinterna.InternalServiceOrderService.DistributionResponse obtenerDistribucion(@PathVariable Long id) {
+        return internalServiceOrderService.obtenerDistribucion(id);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
