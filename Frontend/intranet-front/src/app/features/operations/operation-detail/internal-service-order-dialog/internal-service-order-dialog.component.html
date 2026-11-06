@@ -1,0 +1,45 @@
+<h2 mat-dialog-title>Generar O/S internas</h2>
+<mat-dialog-content>
+  <p class="context">O/S cliente <strong>{{ data.clientOrder.clientOrderNumber }}</strong> · {{ data.clientOrder.serviceType }}</p>
+  @if (loading) { <p class="feedback">Cargando catálogos...</p> }
+  @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
+  <form [formGroup]="common" class="dialog-form">
+    <div class="form-row">
+      <mat-form-field appearance="outline"><mat-label>Origen (ubicación)</mat-label><mat-select formControlName="originLocationId"><mat-option [value]="0">Seleccionar origen</mat-option>@for (location of locations; track location.id) { <mat-option [value]="location.id">{{ location.name }}</mat-option> }</mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Destino (ubicación)</mat-label><mat-select formControlName="destinationLocationId"><mat-option [value]="0">Seleccionar destino</mat-option>@for (location of locations; track location.id) { <mat-option [value]="location.id">{{ location.name }}</mat-option> }</mat-select></mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="outline"><mat-label>Estado inicial</mat-label><mat-select formControlName="statusId"><mat-option [value]="0">Automático</mat-option>@for (status of statuses; track status.id) { <mat-option [value]="status.id">{{ status.name }}</mat-option> }</mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Fecha programada (opcional)</mat-label><input matInput type="date" formControlName="scheduledDate"></mat-form-field>
+    </div>
+    @if (isFcl) {
+      <div class="rows-heading"><strong>Contenedores a separar</strong><button mat-button type="button" (click)="addFclRow()">+ Agregar contenedor</button></div>
+      <p class="hint">Se crea una O/S interna por cada contenedor. Los tipos y cantidades se precargan desde la solicitud.</p>
+      <div formArrayName="fclRows">
+        @for (row of fclRows.controls; track $index) {
+          <div class="detail-row" [formGroupName]="$index">
+            <mat-form-field appearance="outline"><mat-label>Tipo de contenedor</mat-label><mat-select formControlName="cargoTypeId"><mat-option [value]="0">Seleccionar</mat-option>@for (type of cargoTypes; track type.id) { <mat-option [value]="type.id">{{ type.name }}</mat-option> }</mat-select></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Número de contenedor</mat-label><input matInput formControlName="containerNumber"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>m³</mat-label><input matInput type="number" min="0" formControlName="cubicMeters"></mat-form-field>
+            <button mat-button color="warn" type="button" (click)="removeFclRow($index)">Quitar</button>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="rows-heading"><strong>Distribución de carga suelta</strong><button mat-button type="button" (click)="addLclRow()">+ Agregar O/S interna</button></div>
+      <p class="hint">Puedes dividir los bultos solicitados entre varias O/S internas.</p>
+      <div formArrayName="lclRows">
+        @for (row of lclRows.controls; track $index) {
+          <div class="detail-row" [formGroupName]="$index">
+            <mat-form-field appearance="outline"><mat-label>Bultos</mat-label><input matInput type="number" min="0" formControlName="packages"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Peso (kg)</mat-label><input matInput type="number" min="0" formControlName="weightKg"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Volumen (m³)</mat-label><input matInput type="number" min="0" formControlName="cubicMeters"></mat-form-field>
+            <button mat-button color="warn" type="button" (click)="removeLclRow($index)">Quitar</button>
+          </div>
+        }
+      </div>
+    }
+    <mat-form-field appearance="outline" class="full-width"><mat-label>Observaciones generales</mat-label><textarea matInput rows="2" formControlName="observations"></textarea></mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end"><button mat-button type="button" (click)="cancel()" [disabled]="saving">Cancelar</button><button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="saving || loading">{{ saving ? 'Generando...' : 'Generar O/S internas' }}</button></mat-dialog-actions>

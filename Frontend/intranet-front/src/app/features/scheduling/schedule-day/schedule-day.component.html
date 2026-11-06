@@ -1,0 +1,131 @@
+<section class="day-page">
+  <header class="day-page-header">
+    <div class="heading-main">
+      <button type="button" class="back-button" (click)="goBackToWeek()" aria-label="Volver a programación semanal">← Volver a la semana</button>
+      <p class="eyebrow">OPERACIONES / PROGRAMACIÓN</p>
+      <h1>Programación diaria</h1>
+      <p class="subtitle">Detalle operativo de las órdenes programadas para esta fecha.</p>
+      @if (dayDate) {
+        <div class="date-label">{{ dayDate | date:'EEEE, dd MMMM yyyy' }}</div>
+      }
+    </div>
+    <div class="day-total">
+      <strong>{{ filteredOrders.length }}</strong>
+      <span>O/S programadas</span>
+    </div>
+  </header>
+
+  <section class="filters-panel" aria-label="Filtros de órdenes">
+    <label class="search-field">
+      <span>Buscar</span>
+      <input type="search" placeholder="O/S, cliente, referencia, contenedor o proveedor" [value]="searchTerm" (input)="searchTerm = $any($event.target).value" />
+    </label>
+    <div class="filter-group" aria-label="Filtrar por tipo de servicio">
+      <button type="button" [class.active]="serviceFilter === 'ALL'" (click)="setFilter('ALL')">Todos</button>
+      <button type="button" [class.active]="serviceFilter === 'FCL'" (click)="setFilter('FCL')">Contenedores</button>
+      <button type="button" [class.active]="serviceFilter === 'LCL'" (click)="setFilter('LCL')">Carga suelta</button>
+    </div>
+  </section>
+
+  @if (loading) {
+    <div class="state-message">Cargando órdenes del día…</div>
+  } @else if (errorMessage) {
+    <div class="error-message" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button type="button" (click)="loadDay()">Reintentar</button>
+    </div>
+  } @else {
+    @if (serviceFilter !== 'LCL') {
+      <section class="service-section">
+        <header class="section-title">
+          <div>
+            <span class="section-kicker fcl-kicker">FCL</span>
+            <h2>Contenedores</h2>
+          </div>
+          <span class="section-count">{{ fclOrders.length }} órdenes</span>
+        </header>
+        @if (fclOrders.length) {
+          <div class="orders-grid">
+            @for (order of fclOrders; track order.id) {
+              <article class="detail-card fcl-card">
+                <div class="card-heading">
+                  <div><span class="order-number">O/S {{ order.internalOrderNumber }}</span><span class="client-name">{{ order.clientName }}</span></div>
+                  <span class="type-badge fcl-badge">FCL</span>
+                </div>
+                <div class="reference-line">{{ order.clientOrderNumber || order.reference || 'Sin O/S cliente' }}</div>
+                <div class="detail-grid">
+                  <div class="detail-item"><span>Contenedor</span><strong>{{ order.fclDetail?.containerNumber || 'Pendiente' }}</strong></div>
+                  <div class="detail-item"><span>Tipo</span><strong>{{ order.fclDetail?.cargoTypeName || 'Pendiente' }}</strong></div>
+                  <div class="detail-item"><span>Almacén de origen</span><strong>{{ order.originName || 'Pendiente' }}</strong></div>
+                  <div class="detail-item"><span>Destino</span><strong>{{ order.destinationName || 'Pendiente' }}</strong></div>
+                  <div class="detail-item"><span>Almacén de vacíos</span><strong>{{ order.fclDetail?.emptyWarehouseLocationName || 'Pendiente' }}</strong></div>
+                  <div class="detail-item"><span>Vencimiento devolución</span><strong>{{ order.fclDetail?.returnDueDate ? (order.fclDetail?.returnDueDate | date:'dd/MM/yyyy') : 'Pendiente' }}</strong></div>
+                  <div class="detail-item"><span>Proveedor</span><strong>{{ order.providerName || 'Sin asignar' }}</strong></div>
+                  <div class="detail-item"><span>Cubicaje</span><strong>{{ order.fclDetail?.cubicMeters ?? '—' }}{{ order.fclDetail?.cubicMeters != null ? ' m³' : '' }}</strong></div>
+                </div>
+                @if (order.fclDetail?.memo || order.observations) {
+                  <div class="notes"><span>Observaciones / Memo</span><p>{{ order.fclDetail?.memo || order.observations }}</p></div>
+                }
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="empty-section">No hay contenedores para los filtros seleccionados.</div>
+        }
+      </section>
+    }
+
+    @if (serviceFilter !== 'FCL') {
+      <section class="service-section">
+        <header class="section-title">
+          <div>
+            <span class="section-kicker lcl-kicker">LCL</span>
+            <h2>Carga suelta</h2>
+          </div>
+          <span class="section-count">{{ lclOrders.length }} órdenes</span>
+        </header>
+        @if (lclOrders.length) {
+          <div class="orders-grid">
+            @for (order of lclOrders; track order.id) {
+              <article class="detail-card lcl-card">
+                <div class="card-heading">
+                  <div><span class="order-number">O/S {{ order.internalOrderNumber }}</span><span class="client-name">{{ order.clientName }}</span></div>
+                  <span class="type-badge lcl-badge">LCL</span>
+                </div>
+                <div class="reference-line">{{ order.clientOrderNumber || order.reference || 'Sin O/S cliente' }}</div>
+                <div class="detail-grid">
+                  <div class="detail-item"><span>Bultos</span><strong>{{ order.lclDetail?.packages ?? '—' }}</strong></div>
+                  <div class="detail-item"><span>Peso</span><strong>{{ order.lclDetail?.weightKg ?? '—' }}{{ order.lclDetail?.weightKg != null ? ' kg' : '' }}</strong></div>
+                  <div class="detail-item"><span>Cubicaje</span><strong>{{ order.lclDetail?.cubicMeters ?? '—' }}{{ order.lclDetail?.cubicMeters != null ? ' m³' : '' }}</strong></div>
+                  <div class="detail-item"><span>Almacén de origen</span><strong>{{ order.originName || 'Pendiente' }}</strong></div>
+                  <div class="detail-item"><span>Destino</span><strong>{{ order.destinationName || 'Pendiente' }}</strong></div>
+                  <div class="detail-item"><span>Proveedor</span><strong>{{ order.providerName || 'Sin asignar' }}</strong></div>
+                </div>
+                @if (order.observations) {
+                  <div class="notes"><span>Observaciones</span><p>{{ order.observations }}</p></div>
+                }
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="empty-section">No hay carga suelta para los filtros seleccionados.</div>
+        }
+      </section>
+    }
+
+    @if (otherOrders.length) {
+      <section class="service-section">
+        <header class="section-title"><div><span class="section-kicker other-kicker">OTROS</span><h2>Otros servicios</h2></div><span class="section-count">{{ otherOrders.length }} órdenes</span></header>
+        <div class="orders-grid">
+          @for (order of otherOrders; track order.id) {
+            <article class="detail-card"><div class="card-heading"><div><span class="order-number">O/S {{ order.internalOrderNumber }}</span><span class="client-name">{{ order.clientName }}</span></div><span class="type-badge">{{ order.serviceType }}</span></div><div class="reference-line">{{ order.clientOrderNumber || order.reference || 'Sin referencia' }}</div><p class="other-description">{{ order.observations || 'Sin observaciones' }}</p></article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (!filteredOrders.length) {
+      <div class="empty-day"><strong>No hay órdenes para mostrar</strong><span>Prueba cambiando los filtros o selecciona otra fecha.</span></div>
+    }
+  }
+</section>

@@ -1,0 +1,360 @@
+<section class="scheduling-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">OPERACIONES</p>
+      <h1>Programación</h1>
+      <p class="subtitle">Planificación semanal de órdenes de servicio internas.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="secondary-button" (click)="toggleHistory()" [disabled]="savingVersion">
+        {{ historyOpen ? 'Ocultar histórico' : 'Histórico' }}
+      </button>
+      <button type="button" class="primary-button" (click)="saveCurrentVersion()" [disabled]="saving || loading || savingVersion">
+        {{ savingVersion ? 'Guardando…' : 'Guardar versión' }}
+      </button>
+      <button type="button" class="secondary-button" (click)="goToCurrentWeek()" [disabled]="saving">Semana actual</button>
+      <button type="button" class="icon-button" aria-label="Semana anterior" (click)="previousWeek()" [disabled]="saving">‹</button>
+      <button type="button" class="icon-button" aria-label="Semana siguiente" (click)="nextWeek()" [disabled]="saving">›</button>
+    </div>
+  </header>
+
+  <div class="period-label">
+    {{ startDate | date:'dd MMM yyyy' }} — {{ endDate | date:'dd MMM yyyy' }}
+  </div>
+
+  <div class="summary-grid">
+    <article class="summary-card">
+      <span class="summary-label">O/S programadas</span>
+      <strong>{{ scheduled.length }}</strong>
+      <span class="summary-hint">Dentro del periodo seleccionado</span>
+    </article>
+    <article class="summary-card">
+      <span class="summary-label">O/S disponibles</span>
+      <strong>{{ available.length }}</strong>
+      <span class="summary-hint">Sin fecha, otros periodos o retiradas</span>
+    </article>
+  </div>
+
+  @if (successMessage) {
+    <div class="success-feedback" role="status">{{ successMessage }}</div>
+  }
+  @if (versionMessage) {
+    <div class="success-feedback" role="status">{{ versionMessage }}</div>
+  }
+  @if (versionError) {
+    <div class="error-feedback" role="alert">{{ versionError }}</div>
+  }
+  @if (historyOpen) {
+    <section class="history-panel">
+      <div class="history-heading">
+        <div>
+          <h2>Histórico de programación</h2>
+          <p>Versiones guardadas para el periodo seleccionado. Los snapshots son de solo lectura.</p>
+        </div>
+        <button type="button" class="secondary-button" (click)="loadVersions()" [disabled]="loadingVersions">Actualizar</button>
+      </div>
+      @if (loadingVersions) {
+        <div class="feedback">Consultando versiones…</div>
+      } @else if (!versions.length) {
+        <div class="empty-history">Todavía no hay versiones guardadas para este periodo.</div>
+      } @else {
+        <div class="version-list">
+          @for (version of versions; track version.id) {
+            <article class="version-item">
+              <div>
+                <strong>Versión {{ version.versionNumber }}</strong>
+                <span>{{ version.scheduledOrderCount }} O/S · {{ version.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                <small>{{ version.createdByName || version.createdByUsername }}</small>
+              </div>
+              <button type="button" class="secondary-button" (click)="viewVersion(version)" [disabled]="loadingSnapshot">Ver snapshot</button>
+            </article>
+          }
+        </div>
+      }
+      @if (loadingSnapshot) {
+        <div class="feedback">Cargando snapshot…</div>
+      }
+      @if (selectedVersion) {
+        <section class="snapshot-panel">
+          <div class="snapshot-heading">
+            <div>
+              <h3>Versión {{ selectedVersion.versionNumber }}</h3>
+              <p>Fotografía guardada el {{ selectedVersion.createdAt | date:'dd/MM/yyyy HH:mm' }} · {{ selectedVersion.snapshot.length }} O/S</p>
+            </div>
+            <button type="button" class="secondary-button" (click)="closeSnapshot()">Cerrar detalle</button>
+          </div>
+          @if (selectedVersion.snapshot.length) {
+            <div class="snapshot-grid">
+              @for (order of selectedVersion.snapshot; track order.id) {
+                <article class="snapshot-order" [class.fcl]="order.serviceType === 'FCL'" [class.lcl]="order.serviceType === 'LCL'">
+                  <div class="snapshot-order-top">
+                    <strong>O/S {{ order.internalOrderNumber }}</strong>
+                    <span>{{ order.serviceType }}</span>
+                  </div>
+                  <b>{{ order.clientName }}</b>
+                  <small>{{ order.clientOrderNumber || order.reference || 'Sin referencia' }}</small>
+                  <span>Fecha: {{ order.scheduledDate | date:'dd/MM/yyyy' }}</span>
+                  @if (order.serviceType === 'FCL') {
+                    <span>Contenedor: {{ order.fclDetail?.containerNumber || 'Pendiente' }}</span>
+                    <span>Tipo: {{ order.fclDetail?.cargoTypeName || 'Pendiente' }}</span>
+                    <span>Proveedor: {{ order.providerName || 'Sin asignar' }}</span>
+                  } @else if (order.serviceType === 'LCL') {
+                    <span>Bultos: {{ order.lclDetail?.packages ?? '—' }}</span>
+                    <span>Peso: {{ order.lclDetail?.weightKg ?? '—' }} kg</span>
+                    <span>Proveedor: {{ order.providerName || 'Sin asignar' }}</span>
+                  }
+                  <small>{{ order.originName || 'Origen pendiente' }} → {{ order.destinationName || 'Destino pendiente' }}</small>
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="empty-history">Esta versión no contiene O/S programadas.</div>
+          }
+        </section>
+      }
+    </section>
+  }
+  @if (saving) {
+    <div class="saving-feedback">Guardando cambios de programación…</div>
+  }
+
+  @if (loading) {
+    <div class="feedback">Cargando programación…</div>
+  } @else if (errorMessage) {
+    <div class="error-feedback" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button type="button" class="secondary-button" (click)="loadSchedule()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="planning-layout">
+      <aside class="available-section">
+        <div class="section-heading">
+          <div>
+            <h2>Órdenes disponibles</h2>
+            <p>Arrastra una orden al día que corresponda.</p>
+          </div>
+          <span class="available-count">{{ available.length }}</span>
+        </div>
+
+        <section class="available-group">
+          <div class="available-group-heading">
+            <div>
+              <h3>Sin programar</h3>
+              <p>Órdenes que todavía no tienen fecha asignada.</p>
+            </div>
+            <span class="available-count">{{ unscheduledOrders.length }}</span>
+          </div>
+          <div class="available-list"
+            cdkDropList
+            [id]="unscheduledListId"
+            [cdkDropListData]="unscheduledOrders"
+            [cdkDropListConnectedTo]="connectedDropListIds"
+            [cdkDropListDisabled]="saving"
+            (cdkDropListDropped)="onDrop($event)">
+            @for (order of unscheduledOrders; track order.id) {
+              <article class="order-card available-card"
+  cdkDrag
+  cdkDragPreviewContainer="global"
+  [cdkDragData]="order"
+  [cdkDragDisabled]="saving"
+  [class.fcl]="order.serviceType === 'FCL'"
+  [class.lcl]="order.serviceType === 'LCL'">
+  <div class="drag-card-content">
+    <div class="order-card-top">
+      <strong>O/S {{ order.internalOrderNumber }}</strong>
+      <span class="service-tag">{{ order.serviceType }}</span>
+    </div>
+    <div class="client-name">{{ order.clientName }}</div>
+    <div class="order-reference">{{ order.clientOrderNumber || order.reference || 'Sin referencia' }}</div>
+    @if (order.serviceType === 'FCL' && order.fclDetail?.cargoTypeName) {
+      <div class="order-detail">{{ order.fclDetail?.cargoTypeName }}</div>
+    }
+    @if (order.serviceType === 'LCL' && order.lclDetail?.packages !== null && order.lclDetail?.packages !== undefined) {
+      <div class="order-detail">{{ order.lclDetail?.packages }} bultos</div>
+    }
+    <div class="available-meta">
+      <span>{{ order.scheduledDate ? ('Fecha actual: ' + (order.scheduledDate | date:'dd/MM/yyyy')) : 'Sin fecha programada' }}</span>
+      <span>{{ order.providerName || 'Sin proveedor asignado' }}</span>
+    </div>
+  </div>
+  <span class="drag-handle" aria-label="Arrastrar orden" cdkDragHandle>⠿</span>
+  <ng-template cdkDragPlaceholder>
+    <div class="drag-placeholder">Soltar para programar</div>
+  </ng-template>
+</article>
+            } @empty {
+              <div class="empty-available">No hay órdenes sin programar.</div>
+            }
+          </div>
+        </section>
+
+        <section class="available-group">
+          <div class="available-group-heading">
+            <div>
+              <h3>Programadas en otros periodos</h3>
+              <p>Órdenes con fecha anterior o posterior a esta semana.</p>
+            </div>
+            <span class="available-count">{{ otherPeriodOrders.length }}</span>
+          </div>
+          <div class="available-list"
+            cdkDropList
+            [id]="otherPeriodListId"
+            [cdkDropListData]="otherPeriodOrders"
+            [cdkDropListConnectedTo]="connectedDropListIds"
+            [cdkDropListDisabled]="saving"
+            (cdkDropListDropped)="onDrop($event)">
+            @for (order of otherPeriodOrders; track order.id) {
+              <article class="order-card available-card"
+  cdkDrag
+  cdkDragPreviewContainer="global"
+  [cdkDragData]="order"
+  [cdkDragDisabled]="saving"
+  [class.fcl]="order.serviceType === 'FCL'"
+  [class.lcl]="order.serviceType === 'LCL'">
+  <div class="drag-card-content">
+    <div class="order-card-top">
+      <strong>O/S {{ order.internalOrderNumber }}</strong>
+      <span class="service-tag">{{ order.serviceType }}</span>
+    </div>
+    <div class="client-name">{{ order.clientName }}</div>
+    <div class="order-reference">{{ order.clientOrderNumber || order.reference || 'Sin referencia' }}</div>
+    @if (order.serviceType === 'FCL' && order.fclDetail?.cargoTypeName) {
+      <div class="order-detail">{{ order.fclDetail?.cargoTypeName }}</div>
+    }
+    @if (order.serviceType === 'LCL' && order.lclDetail?.packages !== null && order.lclDetail?.packages !== undefined) {
+      <div class="order-detail">{{ order.lclDetail?.packages }} bultos</div>
+    }
+    <div class="available-meta">
+      <span>{{ order.scheduledDate ? ('Fecha actual: ' + (order.scheduledDate | date:'dd/MM/yyyy')) : 'Sin fecha programada' }}</span>
+      <span>{{ order.providerName || 'Sin proveedor asignado' }}</span>
+    </div>
+  </div>
+  <span class="drag-handle" aria-label="Arrastrar orden" cdkDragHandle>⠿</span>
+  <ng-template cdkDragPlaceholder>
+    <div class="drag-placeholder">Soltar para programar</div>
+  </ng-template>
+</article>
+            } @empty {
+              <div class="empty-available">No hay órdenes de otros periodos.</div>
+            }
+          </div>
+        </section>
+
+        <section class="available-group">
+          <div class="available-group-heading">
+            <div>
+              <h3>Retiradas de esta semana</h3>
+              <p>Órdenes excluidas del tablero que conservan su fecha.</p>
+            </div>
+            <span class="available-count">{{ excludedOrders.length }}</span>
+          </div>
+          <div class="available-list"
+            cdkDropList
+            [id]="excludedListId"
+            [cdkDropListData]="excludedOrders"
+            [cdkDropListConnectedTo]="connectedDropListIds"
+            [cdkDropListDisabled]="saving"
+            (cdkDropListDropped)="onDrop($event)">
+            @for (order of excludedOrders; track order.id) {
+              <article class="order-card available-card"
+  cdkDrag
+  cdkDragPreviewContainer="global"
+  [cdkDragData]="order"
+  [cdkDragDisabled]="saving"
+  [class.fcl]="order.serviceType === 'FCL'"
+  [class.lcl]="order.serviceType === 'LCL'">
+  <div class="drag-card-content">
+    <div class="order-card-top">
+      <strong>O/S {{ order.internalOrderNumber }}</strong>
+      <span class="service-tag">{{ order.serviceType }}</span>
+    </div>
+    <div class="client-name">{{ order.clientName }}</div>
+    <div class="order-reference">{{ order.clientOrderNumber || order.reference || 'Sin referencia' }}</div>
+    @if (order.serviceType === 'FCL' && order.fclDetail?.cargoTypeName) {
+      <div class="order-detail">{{ order.fclDetail?.cargoTypeName }}</div>
+    }
+    @if (order.serviceType === 'LCL' && order.lclDetail?.packages !== null && order.lclDetail?.packages !== undefined) {
+      <div class="order-detail">{{ order.lclDetail?.packages }} bultos</div>
+    }
+    <div class="available-meta">
+      <span>{{ order.scheduledDate ? ('Fecha actual: ' + (order.scheduledDate | date:'dd/MM/yyyy')) : 'Sin fecha programada' }}</span>
+      <span>{{ order.providerName || 'Sin proveedor asignado' }}</span>
+    </div>
+  </div>
+  <span class="drag-handle" aria-label="Arrastrar orden" cdkDragHandle>⠿</span>
+  <ng-template cdkDragPlaceholder>
+    <div class="drag-placeholder">Soltar para programar</div>
+  </ng-template>
+</article>
+            } @empty {
+              <div class="empty-available">No hay órdenes retiradas.</div>
+            }
+          </div>
+        </section>
+
+      </aside>
+
+      <section class="board-section">
+        <div class="section-heading">
+          <div>
+            <h2>Tablero semanal</h2>
+            <p>Arrastra las órdenes entre días para reprogramarlas. Puedes devolverlas al panel para retirarlas del tablero.</p>
+          </div>
+          <span class="board-hint">FCL · LCL</span>
+        </div>
+
+        <div class="week-grid">
+          @for (day of days; track day.dateKey) {
+            <section class="day-column" [class.sunday]="day.isSunday" [class.saturday]="day.isSaturday">
+              <button type="button" class="day-header day-header-button" (click)="openDay(day.dateKey)" [attr.aria-label]="'Ver detalle del ' + day.label">
+                <span>{{ day.label }}</span>
+                <span class="day-header-actions"><span class="day-count">{{ day.orders.length }}</span><span class="day-open-hint">Ver día ↗</span></span>
+              </button>
+              @if (day.isSaturday) {
+                <div class="day-note">Media jornada · hasta 12:00</div>
+              }
+              @if (day.isSunday) {
+                <div class="day-note">No laborable</div>
+              }
+              <div class="day-orders"
+                cdkDropList
+                [id]="getDayListId(day.dateKey)"
+                [cdkDropListData]="day.orders"
+                [cdkDropListConnectedTo]="connectedDropListIds"
+                [cdkDropListDisabled]="saving || day.isSunday"
+                (cdkDropListDropped)="onDrop($event, day.dateKey)">
+                @for (order of day.orders; track order.id) {
+                  <article class="order-card scheduled-card"
+                    cdkDrag
+                    cdkDragPreviewContainer="global"
+                    [cdkDragData]="order"
+                    [cdkDragDisabled]="saving"
+                    [class.fcl]="order.serviceType === 'FCL'"
+                    [class.lcl]="order.serviceType === 'LCL'">
+                    <div class="order-card-top">
+                      <strong>O/S {{ order.internalOrderNumber }}</strong>
+                      <span class="service-tag">{{ order.serviceType }}</span>
+                    </div>
+                    <div class="client-name">{{ order.clientName }}</div>
+                    <div class="order-reference">{{ order.clientOrderNumber || order.reference || 'Sin referencia' }}</div>
+                    @if (order.serviceType === 'FCL' && order.fclDetail?.containerNumber) {
+                      <div class="order-detail">{{ order.fclDetail?.containerNumber }}</div>
+                    }
+                    @if (order.serviceType === 'LCL' && order.lclDetail?.packages !== null && order.lclDetail?.packages !== undefined) {
+                      <div class="order-detail">{{ order.lclDetail?.packages }} bultos</div>
+                    }
+                    <div class="route-text">{{ order.originName || 'Origen pendiente' }} → {{ order.destinationName || 'Destino pendiente' }}</div>
+                    <button type="button" class="remove-order-button" (click)="removeFromBoard(order)" [disabled]="saving">Retirar del tablero</button>
+                    <span class="drag-handle scheduled-handle" aria-label="Arrastrar orden" cdkDragHandle>⠿</span>
+                  </article>
+                } @empty {
+                  <div class="empty-day">Suelta aquí una O/S</div>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      </section>
+    </div>
+  }
+</section>

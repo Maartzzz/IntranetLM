@@ -20,6 +20,106 @@
       @if (operation.observation) { <div class="observation"><label>Observaciones</label><p>{{ operation.observation }}</p></div> }
     </section>
 
+    <section class="client-order-section">
+      <header class="section-heading">
+        <div><h2>Orden de Servicio del Cliente</h2><p>Solicitud recibida del cliente y asociada a esta operación.</p></div>
+        @if (!clientServiceOrder && !clientOrderLoading) {
+          <button class="primary-button" type="button" (click)="addClientServiceOrder()">+ Registrar O/S del cliente</button>
+        }
+      </header>
+      @if (clientOrderLoading) { <p class="feedback">Consultando O/S del cliente...</p> }
+      @if (clientOrderError) { <div class="error-message">{{ clientOrderError }} <button class="text-button" type="button" (click)="loadClientServiceOrder()">Reintentar</button></div> }
+      @if (clientServiceOrder) {
+        <article class="client-order-card">
+          <div class="client-order-top"><div><span class="eyebrow">O/S {{ clientServiceOrder.clientOrderNumber }}</span><h3>{{ clientServiceOrder.serviceType }} · {{ clientServiceOrder.statusName }}</h3></div><span class="status-pill" [style.backgroundColor]="clientServiceOrder.statusColor || '#64748B'">{{ clientServiceOrder.statusName }}</span></div>
+          <div class="info-grid">
+            <div><label>Referencia</label><strong>{{ clientServiceOrder.reference || '—' }}</strong></div>
+            <div><label>Fecha de recepción</label><strong>{{ clientServiceOrder.receivedDate || '—' }}</strong></div>
+            <div><label>Llegada estimada</label><strong>{{ clientServiceOrder.estimatedArrivalDate || '—' }}</strong></div>
+            <div><label>Origen</label><strong>{{ clientServiceOrder.origin || '—' }}</strong></div>
+            <div><label>Destino</label><strong>{{ clientServiceOrder.destination || '—' }}</strong></div>
+            @if (clientServiceOrder.serviceType === 'FCL') {
+              <div class="wide-field"><label>Contenedores</label><strong>{{ clientOrderFclSummary }}</strong></div>
+            } @else {
+              <div><label>Total de bultos</label><strong>{{ clientServiceOrder.totalPackages ?? '—' }}</strong></div>
+            }
+          </div>
+          @if (clientServiceOrder.observation) { <p class="client-order-observation">{{ clientServiceOrder.observation }}</p> }
+        </article>
+      } @else if (!clientOrderLoading && !clientOrderError) {
+        <div class="empty-state">Esta operación todavía no tiene una O/S del cliente registrada.</div>
+      }
+    </section>
+
+    @if (clientServiceOrder) {
+      <section class="internal-orders-section">
+        <header class="section-heading">
+          <div><h2>Órdenes de Servicio Internas</h2><p>Órdenes generadas a partir de la O/S {{ clientServiceOrder.clientOrderNumber }}.</p></div>
+          <div class="internal-actions">
+            <button class="primary-button" type="button" (click)="createInternalOrders()" [disabled]="!canGenerateInternalOrders">+ Generar O/S internas</button>
+            <button class="secondary-button" type="button" (click)="loadInternalOrders(); loadDistribution()" [disabled]="internalOrdersLoading || distributionLoading">
+              {{ internalOrdersLoading || distributionLoading ? 'Actualizando...' : 'Actualizar' }}
+            </button>
+          </div>
+        </header>
+
+        <div class="distribution-card">
+          <div class="distribution-heading"><strong>Distribución de la solicitud</strong><span>{{ clientServiceOrder.serviceType }}</span></div>
+          @if (distributionLoading) { <p class="feedback">Consultando cantidades...</p> }
+          @if (distributionError) { <div class="error-message">{{ distributionError }} <button class="text-button" type="button" (click)="loadDistribution()">Reintentar</button></div> }
+          @if (distribution) {
+            @if (distribution.serviceType === 'FCL') {
+              <div class="distribution-grid">
+                @for (item of distribution.fcl; track item.cargoTypeId) {
+                  <article class="distribution-item">
+                    <strong>{{ item.cargoTypeName }}</strong>
+                    <div class="distribution-values">
+                      <span><small>Solicitado</small><b>{{ item.requested }}</b></span>
+                      <span><small>Asignado</small><b>{{ item.distributed }}</b></span>
+                      <span><small>Disponible</small><b>{{ item.available }}</b></span>
+                    </div>
+                    <div class="distribution-track"><span [style.width.%]="item.requested > 0 ? (item.distributed / item.requested * 100) : 0"></span></div>
+                  </article>
+                }
+              </div>
+            } @else {
+              <article class="distribution-item">
+                <strong>Bultos solicitados</strong>
+                <div class="distribution-values">
+                  <span><small>Solicitados</small><b>{{ distribution.requestedPackages ?? 0 }}</b></span>
+                  <span><small>Asignados</small><b>{{ distribution.distributedPackages ?? 0 }}</b></span>
+                  <span><small>Disponibles</small><b>{{ distribution.availablePackages ?? 0 }}</b></span>
+                </div>
+                <div class="distribution-track"><span [style.width.%]="(distribution.requestedPackages ?? 0) > 0 ? ((distribution.distributedPackages ?? 0) / (distribution.requestedPackages ?? 1) * 100) : 0"></span></div>
+              </article>
+            }
+          }
+        </div>
+
+        <div class="internal-orders-list">
+          @if (internalOrdersError) { <div class="error-message">{{ internalOrdersError }} <button class="text-button" type="button" (click)="loadInternalOrders()">Reintentar</button></div> }
+          @if (internalOrdersLoading && internalOrders.length === 0) { <p class="feedback">Cargando órdenes internas...</p> }
+          @for (order of internalOrders; track order.id) {
+            <article class="internal-order-card">
+              <div class="internal-order-header">
+                <div><span class="eyebrow">O/S INTERNA #{{ order.internalOrderNumber }}</span><h3>{{ order.serviceType }} · {{ order.statusName || 'Sin estado' }}</h3></div>
+                <span class="billing-pill" [class.invoiced]="order.billingStatus === 'FACTURADO'">{{ order.billingStatus === 'FACTURADO' ? 'Facturado' : 'Pendiente de facturar' }}</span>
+              </div>
+              <div class="internal-order-data">
+                <div><label>Origen</label><strong>{{ order.originName }}</strong></div>
+                <div><label>Destino</label><strong>{{ order.destinationName }}</strong></div>
+                <div><label>Proveedor</label><strong>{{ order.providerName || 'Sin asignar' }}</strong></div>
+                <div><label>Programación</label><strong>{{ order.scheduledDate ? (order.scheduledDate | date:'dd/MM/yyyy') : 'Sin programar' }}</strong></div>
+              </div>
+              @if (order.reference) { <p class="internal-order-reference">Referencia: {{ order.reference }}</p> }
+            </article>
+          } @empty {
+            @if (!internalOrdersLoading && !internalOrdersError) { <div class="empty-state">Todavía no se han generado O/S internas para esta solicitud.</div> }
+          }
+        </div>
+      </section>
+    }
+
     <section class="requirements-section"><header class="section-heading"><div><h2>Requisitos</h2><p>Seguimiento independiente de los requisitos de esta operación.</p></div>
       <button class="primary-button" type="button" (click)="addRequirement()">+ Agregar requisito</button>
     </header>

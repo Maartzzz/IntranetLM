@@ -27,6 +27,8 @@ import { OperationDetailComponent } from './features/operations/operation-detail
 import { RequirementCatalogComponent } from './features/operations/requirement-catalog/requirement-catalog.component';
 import { LocationsComponent } from './features/locations/locations.component';
 import { SubclientsComponent } from './features/subclients/subclients.component';
+import { SchedulingComponent } from './features/scheduling/scheduling.component';
+import { ScheduleDayComponent } from './features/scheduling/schedule-day/schedule-day.component';
 
 export const routes: Routes = [
     {
@@ -97,6 +99,14 @@ export const routes: Routes = [
         {
             path: 'operations',
             component: OperationsHomeComponent
+        },
+        {
+            path: 'scheduling/day/:date',
+            component: ScheduleDayComponent
+        },
+        {
+            path: 'scheduling',
+            component: SchedulingComponent
         },
         {
             path: 'operations/:id',

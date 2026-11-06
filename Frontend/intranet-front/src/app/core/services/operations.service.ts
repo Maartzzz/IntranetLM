@@ -3,6 +3,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Operation, OperationRequest, OperationRequirement, OperationRequirementRequest, RequirementCatalog, RequirementCatalogRequest, Status } from '../models/operations.models';
 import { OperationActivity } from '../models/operation-activity.models';
+import { ClientServiceOrder, ClientServiceOrderRequest } from '../models/client-service-orders.models';
+import { ClientServiceOrderDistribution, InternalServiceOrder, InternalServiceOrderRequest } from '../models/internal-service-orders.models';
 
 @Injectable({ providedIn: 'root' })
 export class OperationsService {
@@ -66,7 +68,34 @@ export class OperationsService {
     return this.http.put<OperationRequirement>(`${this.operationsUrl}/${operationId}/requirements/${requirementId}`, request);
   }
 
-  getStatuses(processCode: 'OPERACION' | 'REQUISITO'): Observable<Status[]> {
+
+  getClientServiceOrders(clientId: number): Observable<ClientServiceOrder[]> {
+    return this.http.get<ClientServiceOrder[]>('/api/client-service-orders', {
+      params: new HttpParams().set('clientId', clientId)
+    });
+  }
+
+  createClientServiceOrder(request: ClientServiceOrderRequest): Observable<ClientServiceOrder> {
+    return this.http.post<ClientServiceOrder>('/api/client-service-orders', request);
+  }
+
+  getInternalServiceOrders(clientId: number): Observable<InternalServiceOrder[]> {
+    return this.http.get<InternalServiceOrder[]>('/api/internal-service-orders', {
+      params: new HttpParams().set('clientId', clientId)
+    });
+  }
+
+  createInternalServiceOrder(request: InternalServiceOrderRequest): Observable<InternalServiceOrder> {
+    return this.http.post<InternalServiceOrder>('/api/internal-service-orders', request);
+  }
+
+  getClientServiceOrderDistribution(clientServiceOrderId: number): Observable<ClientServiceOrderDistribution> {
+    return this.http.get<ClientServiceOrderDistribution>(
+      `/api/client-service-orders/${clientServiceOrderId}/distribution`
+    );
+  }
+
+  getStatuses(processCode: 'OPERACION' | 'REQUISITO' | 'OS_INTERNA'): Observable<Status[]> {
     return this.http.get<Status[]>('/api/statuses', {
       params: new HttpParams().set('processCode', processCode)
     });

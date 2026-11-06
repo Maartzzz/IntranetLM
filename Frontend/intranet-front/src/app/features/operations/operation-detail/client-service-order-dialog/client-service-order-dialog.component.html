@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>Registrar O/S del cliente</h2>
+<mat-dialog-content>
+  <p class="context">Operación vinculada: <strong>{{ data.operationId }}</strong> · {{ data.clientName }} · {{ serviceType }}</p>
+  @if (loading) { <p class="feedback">Cargando datos...</p> }
+  @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
+  <form [formGroup]="form" class="order-form">
+    <mat-form-field appearance="outline"><mat-label>Número de O/S del cliente</mat-label><input matInput formControlName="clientOrderNumber" maxlength="80"><mat-error>Este campo es obligatorio.</mat-error></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Referencia</mat-label><input matInput formControlName="reference"></mat-form-field>
+    <div class="form-row">
+      <mat-form-field appearance="outline"><mat-label>Fecha de recepción</mat-label><input matInput type="date" formControlName="receivedDate"></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Llegada estimada</mat-label><input matInput type="date" formControlName="estimatedArrivalDate"></mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="outline"><mat-label>Origen</mat-label><input matInput formControlName="origin"></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Destino</mat-label><input matInput formControlName="destination"></mat-form-field>
+    </div>
+    @if (serviceType === 'FCL') {
+      <div class="quantity-heading"><strong>Contenedores solicitados</strong><button mat-button type="button" (click)="addFclQuantity()">+ Agregar tipo</button></div>
+      <div formArrayName="fclQuantities">
+        @for (group of fclQuantities.controls; track $index) {
+          <div class="form-row quantity-row" [formGroupName]="$index">
+            <mat-form-field appearance="outline"><mat-label>Tipo de contenedor</mat-label><mat-select formControlName="cargoTypeId"><mat-option [value]="0">Seleccionar</mat-option>@for (type of cargoTypes; track type.id) { <mat-option [value]="type.id">{{ type.name }}</mat-option> }</mat-select></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Cantidad</mat-label><input matInput type="number" min="1" formControlName="totalQuantity"></mat-form-field>
+            <button mat-button color="warn" type="button" (click)="removeFclQuantity($index)">Quitar</button>
+          </div>
+        }
+      </div>
+    } @else {
+      <mat-form-field appearance="outline"><mat-label>Total de bultos</mat-label><input matInput type="number" min="0" formControlName="totalPackages"></mat-form-field>
+    }
+    <mat-form-field appearance="outline"><mat-label>Observaciones</mat-label><textarea matInput rows="3" formControlName="observation"></textarea></mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end"><button mat-button type="button" (click)="cancel()" [disabled]="saving">Cancelar</button><button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="saving || loading">{{ saving ? 'Guardando...' : 'Registrar O/S' }}</button></mat-dialog-actions>
