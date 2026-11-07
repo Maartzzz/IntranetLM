@@ -5,9 +5,12 @@
   @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
   <form [formGroup]="common" class="dialog-form">
     <div class="form-row">
-      <mat-form-field appearance="outline"><mat-label>Origen (ubicación)</mat-label><mat-select formControlName="originLocationId"><mat-option [value]="0">Seleccionar origen</mat-option>@for (location of locations; track location.id) { <mat-option [value]="location.id">{{ location.name }}</mat-option> }</mat-select></mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Destino (ubicación)</mat-label><mat-select formControlName="destinationLocationId"><mat-option [value]="0">Seleccionar destino</mat-option>@for (location of locations; track location.id) { <mat-option [value]="location.id">{{ location.name }}</mat-option> }</mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Origen (ubicación)</mat-label><mat-select formControlName="originLocationId"><mat-option [value]="0">Seleccionar origen</mat-option>@for (location of originLocations; track location.id) { <mat-option [value]="locationId(location)">{{ locationLabel(location) }}</mat-option> }</mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Destino (ubicación)</mat-label><mat-select formControlName="destinationLocationId"><mat-option [value]="0">Seleccionar destino</mat-option>@for (location of destinationLocations; track location.id) { <mat-option [value]="locationId(location)">{{ locationLabel(location) }}</mat-option> }</mat-select></mat-form-field>
     </div>
+    @if (usesSubclientLocations && (!originLocations.length || !destinationLocations.length)) {
+      <p class="hint">La relación seleccionada no tiene ubicaciones activas configuradas para {{ !originLocations.length && !destinationLocations.length ? 'recojo ni entrega' : (!originLocations.length ? 'recojo' : 'entrega') }}. Configura sus ubicaciones antes de generar las O/S internas.</p>
+    }
     <div class="form-row">
       <mat-form-field appearance="outline"><mat-label>Estado inicial</mat-label><mat-select formControlName="statusId"><mat-option [value]="0">Automático</mat-option>@for (status of statuses; track status.id) { <mat-option [value]="status.id">{{ status.name }}</mat-option> }</mat-select></mat-form-field>
       <mat-form-field appearance="outline"><mat-label>Fecha programada (opcional)</mat-label><input matInput type="date" formControlName="scheduledDate"></mat-form-field>
@@ -42,4 +45,4 @@
     <mat-form-field appearance="outline" class="full-width"><mat-label>Observaciones generales</mat-label><textarea matInput rows="2" formControlName="observations"></textarea></mat-form-field>
   </form>
 </mat-dialog-content>
-<mat-dialog-actions align="end"><button mat-button type="button" (click)="cancel()" [disabled]="saving">Cancelar</button><button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="saving || loading">{{ saving ? 'Generando...' : 'Generar O/S internas' }}</button></mat-dialog-actions>
+<mat-dialog-actions align="end"><button mat-button type="button" (click)="cancel()" [disabled]="saving">Cancelar</button><button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="saving || loading || !originLocations.length || !destinationLocations.length">{{ saving ? 'Generando...' : 'Generar O/S internas' }}</button></mat-dialog-actions>

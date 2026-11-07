@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 public record OperationRequest(
     @Size(max = 150) String reference,
     @NotNull Long clientId,
+    Long clientSubclientId,
     @NotNull Long cargoTypeId,
     @Size(max = 100) String customerOrderNumber,
     @Size(max = 200) String origin,

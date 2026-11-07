@@ -9,7 +9,7 @@ import { forkJoin, from, of } from 'rxjs';
 import { concatMap, toArray } from 'rxjs/operators';
 import { ClientServiceOrder } from '../../../../core/models/client-service-orders.models';
 import { InternalServiceOrderRequest } from '../../../../core/models/internal-service-orders.models';
-import { Location } from '../../../../core/models/locations.models';
+import { Location, ClientSubclientLocation } from '../../../../core/models/locations.models';
 import { CargoType } from '../../../../core/models/cargo-types.models';
 import { Status } from '../../../../core/models/operations.models';
 import { LocationsService } from '../../../../core/services/locations.service';
@@ -43,10 +43,13 @@ export class InternalServiceOrderDialogComponent {
   private readonly api = inject(OperationsService);
   private readonly locationsApi = inject(LocationsService);
   private readonly cargoApi = inject(CargoTypeService);
-  readonly data = inject<{ clientOrder: ClientServiceOrder; distribution: import('../../../../core/models/internal-service-orders.models').ClientServiceOrderDistribution }>(MAT_DIALOG_DATA);
+  readonly data = inject<{ clientOrder: ClientServiceOrder; distribution: import('../../../../core/models/internal-service-orders.models').ClientServiceOrderDistribution; clientSubclientId?: number | null }>(MAT_DIALOG_DATA);
   private readonly ref = inject(MatDialogRef<InternalServiceOrderDialogComponent>);
 
   locations: Location[] = [];
+  originLocations: Array<Location | ClientSubclientLocation> = [];
+  destinationLocations: Array<Location | ClientSubclientLocation> = [];
+  usesSubclientLocations = false;
   cargoTypes: CargoType[] = [];
   statuses: Status[] = [];
   loading = true;
@@ -67,13 +70,26 @@ export class InternalServiceOrderDialogComponent {
   get lclRows(): FormArray<FormGroup> { return this.common.controls.lclRows; }
 
   constructor() {
+    const locationsRequest = this.data.clientSubclientId
+      ? this.locationsApi.listRelationLocations(this.data.clientSubclientId)
+      : this.locationsApi.listActive();
+
     forkJoin({
-      locations: this.locationsApi.listActive(),
+      locations: locationsRequest,
       cargoTypes: this.cargoApi.getActiveCargoTypes(),
       statuses: this.api.getStatuses('OS_INTERNA')
     }).subscribe({
       next: result => {
-        this.locations = result.locations.filter(x => x.active);
+        this.usesSubclientLocations = !!this.data.clientSubclientId;
+        if (this.usesSubclientLocations) {
+          const relationLocations = (result.locations as ClientSubclientLocation[]).filter(x => x.active);
+          this.originLocations = relationLocations.filter(x => x.usageType === 'RECOJO' || x.usageType === 'AMBOS');
+          this.destinationLocations = relationLocations.filter(x => x.usageType === 'ENTREGA' || x.usageType === 'AMBOS');
+        } else {
+          this.locations = (result.locations as Location[]).filter(x => x.active);
+          this.originLocations = this.locations;
+          this.destinationLocations = this.locations;
+        }
         this.cargoTypes = result.cargoTypes.filter(x => x.active && x.container);
         this.statuses = result.statuses;
         if (this.data.clientOrder.serviceType === 'FCL') {
@@ -91,6 +107,14 @@ export class InternalServiceOrderDialogComponent {
         this.loading = false;
       }
     });
+  }
+
+  locationId(location: Location | ClientSubclientLocation): number {
+    return 'locationId' in location ? location.locationId : location.id;
+  }
+
+  locationLabel(location: Location | ClientSubclientLocation): string {
+    return 'locationName' in location ? `${location.locationName} · ${location.address}` : `${location.name} · ${location.address}`;
   }
 
   get isFcl(): boolean { return this.data.clientOrder.serviceType === 'FCL'; }

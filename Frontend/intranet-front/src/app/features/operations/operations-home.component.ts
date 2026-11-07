@@ -120,6 +120,7 @@ export class OperationsHomeComponent implements OnInit {
     this.service.updateOperation(operation.id, {
       reference: operation.reference,
       clientId: operation.clientId,
+      clientSubclientId: operation.clientSubclientId,
       cargoTypeId: operation.cargoTypeId,
       customerOrderNumber: operation.customerOrderNumber,
       origin: operation.origin,

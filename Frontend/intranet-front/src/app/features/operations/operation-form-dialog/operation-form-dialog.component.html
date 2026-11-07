@@ -5,9 +5,17 @@
   <form [formGroup]="form" (ngSubmit)="save()">
     <div class="form-grid">
       <mat-form-field appearance="outline"><mat-label>Cliente</mat-label>
-        <mat-select formControlName="clientId"><mat-option [value]="0" disabled>Selecciona un cliente</mat-option>
+        <mat-select formControlName="clientId" (selectionChange)="onClientChange($event.value)"><mat-option [value]="0" disabled>Selecciona un cliente</mat-option>
           @for (client of clients; track client.id) { <mat-option [value]="client.id">{{ client.businessName }}</mat-option> }
         </mat-select><mat-error>Selecciona un cliente activo.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Subcliente (opcional)</mat-label>
+        <mat-select formControlName="clientSubclientId" [disabled]="!form.controls.clientId.value || loadingSubclients">
+          <mat-option [value]="null">Sin subcliente</mat-option>
+          @for (relation of subclients; track relation.id) { <mat-option [value]="relation.id">{{ relation.subclientName }}</mat-option> }
+        </mat-select>
+        @if (loadingSubclients) { <mat-hint>Cargando subclientes...</mat-hint> }
+        @else { <mat-hint>Selecciona un subcliente si la operación corresponde a uno.</mat-hint> }
       </mat-form-field>
       <mat-form-field appearance="outline"><mat-label>Tipo de carga</mat-label>
         <mat-select formControlName="cargoTypeId"><mat-option [value]="0" disabled>Selecciona un tipo</mat-option>

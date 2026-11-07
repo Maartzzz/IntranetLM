@@ -9,6 +9,8 @@ import com.lmoving.intranet.activity.OperationActivityService;
 import com.lmoving.intranet.cargotype.CargoType;
 import com.lmoving.intranet.cargotype.repository.CargoTypeRepository;
 import com.lmoving.intranet.client.Client;
+import com.lmoving.intranet.client.ClientSubclient;
+import com.lmoving.intranet.client.repository.ClientSubclientRepository;
 import com.lmoving.intranet.client.repository.ClientRepository;
 import com.lmoving.intranet.status.Status;
 import com.lmoving.intranet.status.StatusRepository;
@@ -19,15 +21,17 @@ public class OperationService {
     private final OperationRepository operationRepository;
     private final ClientRepository clientRepository;
     private final CargoTypeRepository cargoTypeRepository;
+    private final ClientSubclientRepository clientSubclientRepository;
     private final StatusRepository statusRepository;
     private final OperationActivityService activityService;
 
     public OperationService(OperationRepository operationRepository, ClientRepository clientRepository,
             CargoTypeRepository cargoTypeRepository, StatusRepository statusRepository,
-            OperationActivityService activityService) {
+            OperationActivityService activityService, ClientSubclientRepository clientSubclientRepository) {
         this.operationRepository = operationRepository;
         this.clientRepository = clientRepository;
         this.cargoTypeRepository = cargoTypeRepository;
+        this.clientSubclientRepository = clientSubclientRepository;
         this.statusRepository = statusRepository;
         this.activityService = activityService;
     }
@@ -97,6 +101,19 @@ public class OperationService {
 
         operation.setReference(normalizar(request.reference()));
         operation.setClient(client);
+
+        ClientSubclient clientSubclient = null;
+        if (request.clientSubclientId() != null) {
+            clientSubclient = clientSubclientRepository.findById(request.clientSubclientId())
+                .orElseThrow(() -> new IllegalArgumentException("La relación cliente-subcliente indicada no existe"));
+            if (!clientSubclient.isActive()) {
+                throw new IllegalArgumentException("La relación cliente-subcliente está inactiva");
+            }
+            if (!clientSubclient.getClient().getId().equals(client.getId())) {
+                throw new IllegalArgumentException("La relación cliente-subcliente no corresponde al cliente seleccionado");
+            }
+        }
+        operation.setClientSubclient(clientSubclient);
         operation.setCargoType(cargo);
         operation.setCustomerOrderNumber(normalizar(request.customerOrderNumber()));
         operation.setOrigin(normalizar(request.origin()));
@@ -114,6 +131,7 @@ public class OperationService {
 
     private String snapshot(Operation o) {
         return "Referencia=" + o.getReference() + "; Cliente=" + (o.getClient() != null ? o.getClient().getBusinessName() : null)
+            + "; Subcliente=" + (o.getClientSubclient() != null ? o.getClientSubclient().getSubclient().getBusinessName() : null)
             + "; TipoCarga=" + (o.getCargoType() != null ? o.getCargoType().getName() : null)
             + "; Pedido=" + o.getCustomerOrderNumber() + "; Origen=" + o.getOrigin()
             + "; Destino=" + o.getDestination() + "; Cantidad=" + o.getQuantity()
@@ -126,6 +144,9 @@ public class OperationService {
     private OperationResponse toResponse(Operation o) {
         return new OperationResponse(o.getId(), o.getOperationNumber(), o.getReference(),
             o.getClient().getId(), o.getClient().getBusinessName(),
+            o.getClientSubclient() != null ? o.getClientSubclient().getId() : null,
+            o.getClientSubclient() != null ? o.getClientSubclient().getSubclient().getId() : null,
+            o.getClientSubclient() != null ? o.getClientSubclient().getSubclient().getBusinessName() : null,
             o.getCargoType().getId(), o.getCargoType().getName(), o.getCargoType().isContainer(),
             o.getCustomerOrderNumber(), o.getOrigin(), o.getDestination(), o.getQuantity(), o.getEstimatedDate(),
             o.getStatus() != null ? o.getStatus().getId() : null,

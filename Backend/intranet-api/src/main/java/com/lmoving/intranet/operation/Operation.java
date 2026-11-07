@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 import com.lmoving.intranet.cargotype.CargoType;
 import com.lmoving.intranet.client.Client;
+import com.lmoving.intranet.client.ClientSubclient;
 import com.lmoving.intranet.status.Status;
 import jakarta.persistence.*;
 
@@ -24,6 +25,10 @@ public class Operation {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_subclient_id")
+    private ClientSubclient clientSubclient;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cargo_type_id", nullable = false)
@@ -70,6 +75,8 @@ public class Operation {
     public void setReference(String v) { reference = v; }
     public Client getClient() { return client; }
     public void setClient(Client v) { client = v; }
+    public ClientSubclient getClientSubclient() { return clientSubclient; }
+    public void setClientSubclient(ClientSubclient v) { clientSubclient = v; }
     public CargoType getCargoType() { return cargoType; }
     public void setCargoType(CargoType v) { cargoType = v; }
     public String getCustomerOrderNumber() { return customerOrderNumber; }

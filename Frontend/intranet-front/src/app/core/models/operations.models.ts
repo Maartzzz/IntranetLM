@@ -3,6 +3,9 @@ export interface Operation {
   operationNumber: string;
   reference: string | null;
   clientId: number;
+  clientSubclientId: number | null;
+  subclientId?: number | null;
+  subclientName?: string | null;
   clientName: string;
   cargoTypeId: number;
   cargoTypeName: string;
@@ -23,6 +26,7 @@ export interface Operation {
 export interface OperationRequest {
   reference: string | null;
   clientId: number;
+  clientSubclientId: number | null;
   cargoTypeId: number;
   customerOrderNumber: string | null;
   origin: string | null;

@@ -159,7 +159,7 @@ export class OperationDetailComponent implements OnInit {
     if (!this.clientServiceOrder || !this.distribution) return;
     const dialogRef = this.dialog.open(InternalServiceOrderDialogComponent, {
       width: '900px', maxWidth: 'calc(100vw - 28px)',
-      data: { clientOrder: this.clientServiceOrder, distribution: this.distribution }
+      data: { clientOrder: this.clientServiceOrder, distribution: this.distribution, clientSubclientId: this.operation?.clientSubclientId ?? null }
     });
     dialogRef.afterClosed().subscribe(created => {
       if (created?.length) {
