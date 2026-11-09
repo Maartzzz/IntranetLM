@@ -9,8 +9,12 @@ import com.lmoving.intranet.cargotype.CargoType;
 import com.lmoving.intranet.cargotype.repository.CargoTypeRepository;
 import com.lmoving.intranet.client.Client;
 import com.lmoving.intranet.client.Location;
+import com.lmoving.intranet.client.ClientSubclient;
+import com.lmoving.intranet.client.ClientSubclientLocation;
+import com.lmoving.intranet.client.LocationUsageType;
 import com.lmoving.intranet.client.repository.ClientRepository;
 import com.lmoving.intranet.client.repository.LocationRepository;
+import com.lmoving.intranet.client.repository.ClientSubclientLocationRepository;
 import com.lmoving.intranet.oscliente.ClientServiceOrder;
 import com.lmoving.intranet.oscliente.ClientServiceOrderRepository;
 import com.lmoving.intranet.oscliente.ClientServiceOrderFclQuantityRepository;
@@ -33,6 +37,7 @@ public class InternalServiceOrderService {
  private final ClientServiceOrderFclQuantityRepository clientFclQuantityRepository;
  private final ClientServiceOrderLclQuantityRepository clientLclQuantityRepository;
  private final LocationRepository locationRepository;
+ private final ClientSubclientLocationRepository clientSubclientLocationRepository;
  private final CargoTypeRepository cargoTypeRepository;
  private final StatusRepository statusRepository;
  private final ProviderRepository providerRepository;
@@ -42,12 +47,14 @@ public class InternalServiceOrderService {
   InternalServiceOrderLclRepository lclRepository, ClientRepository clientRepository,
   ClientServiceOrderRepository clientOrderRepository, ClientServiceOrderFclQuantityRepository clientFclQuantityRepository,
   ClientServiceOrderLclQuantityRepository clientLclQuantityRepository, LocationRepository locationRepository,
+  ClientSubclientLocationRepository clientSubclientLocationRepository,
   CargoTypeRepository cargoTypeRepository, StatusRepository statusRepository, ProviderRepository providerRepository, EntityManager entityManager,
   com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleHistoryService scheduleHistoryService){
   this.repository=repository; this.fclRepository=fclRepository; this.lclRepository=lclRepository;
   this.clientRepository=clientRepository; this.clientOrderRepository=clientOrderRepository;
   this.clientFclQuantityRepository=clientFclQuantityRepository; this.clientLclQuantityRepository=clientLclQuantityRepository;
-  this.locationRepository=locationRepository; this.cargoTypeRepository=cargoTypeRepository; this.statusRepository=statusRepository;
+  this.locationRepository=locationRepository; this.clientSubclientLocationRepository=clientSubclientLocationRepository;
+  this.cargoTypeRepository=cargoTypeRepository; this.statusRepository=statusRepository;
   this.providerRepository=providerRepository; this.entityManager = entityManager; this.scheduleHistoryService = scheduleHistoryService;
  }
  @Transactional(readOnly=true) public List<InternalServiceOrderResponse> listar(Long clientId){
@@ -63,6 +70,7 @@ public class InternalServiceOrderService {
   Location origin=locationActiva(request.originLocationId(),"Origen");
   Location destination=locationActiva(request.destinationLocationId(),"Destino");
   validarUbicaciones(origin,destination);
+  validarUbicacionesDeSubcliente(clientOrder, client, origin, destination);
   Status status=validarEstado(request.statusId());
   Provider provider=resolverProveedor(request.providerId(),null);
   String clientOrderNumber=resolverNumeroOrdenCliente(request.clientOrderNumber(),clientOrder);
@@ -91,50 +99,51 @@ public class InternalServiceOrderService {
   Location origin=locationActiva(request.originLocationId(),"Origen");
   Location destination=locationActiva(request.destinationLocationId(),"Destino");
   validarUbicaciones(origin,destination);
+  validarUbicacionesDeSubcliente(clientOrder, client, origin, destination);
   Status status=validarEstado(request.statusId());
   Provider provider=resolverProveedor(request.providerId(),order.getProvider());
   String clientOrderNumber=resolverNumeroOrdenCliente(request.clientOrderNumber(),clientOrder);
   aplicarDatosPrincipales(order,request,client,clientOrder,origin,destination,status,provider,clientOrderNumber);
   repository.saveAndFlush(order);
   boolean dateChanged = !java.util.Objects.equals(
-      previousScheduledDate,
-      order.getScheduledDate()
+	  previousScheduledDate,
+	  order.getScheduledDate()
   );
 
   boolean wasCancelled = "Cancelada".equalsIgnoreCase(previousStatusName);
 
   boolean isNowCancelled = order.getStatus() != null
-      && "Cancelada".equalsIgnoreCase(order.getStatus().getName());
+	  && "Cancelada".equalsIgnoreCase(order.getStatus().getName());
 
   // Registrar reactivación
   if (wasCancelled && !isNowCancelled) {
-      scheduleHistoryService.registrar(
-          order,
-          "REACTIVACION",
-          previousScheduledDate,
-          previousScheduledDate,
-          razon(request.scheduleReason(), "Reactivación de O/S interna")
-      );
+	  scheduleHistoryService.registrar(
+		  order,
+		  "REACTIVACION",
+		  previousScheduledDate,
+		  previousScheduledDate,
+		  razon(request.scheduleReason(), "Reactivación de O/S interna")
+	  );
   }
 
   // Registrar programación inicial o reprogramación
   if (dateChanged) {
-      String event = previousScheduledDate == null
-          ? "PROGRAMACION_INICIAL"
-          : "REPROGRAMACION";
+	  String event = previousScheduledDate == null
+		  ? "PROGRAMACION_INICIAL"
+		  : "REPROGRAMACION";
 
-      scheduleHistoryService.registrar(
-          order,
-          event,
-          previousScheduledDate,
-          order.getScheduledDate(),
-          razon(
-              request.scheduleReason(),
-              previousScheduledDate == null
-                  ? "Programación inicial mediante actualización"
-                  : "Reprogramación mediante actualización"
-          )
-      );
+	  scheduleHistoryService.registrar(
+		  order,
+		  event,
+		  previousScheduledDate,
+		  order.getScheduledDate(),
+		  razon(
+			  request.scheduleReason(),
+			  previousScheduledDate == null
+				  ? "Programación inicial mediante actualización"
+				  : "Reprogramación mediante actualización"
+		  )
+	  );
   }
   // Los detalles son progresivos: si se omite el objeto detail, se conserva el detalle actual.
   guardarDetalle(order,request);
@@ -182,20 +191,20 @@ public class InternalServiceOrderService {
    if(cargoTypeId==null) return; // Captura progresiva: aún no hay cantidad asignable.
    final Long selectedCargoTypeId=cargoTypeId;
    var requested=clientFclQuantityRepository.findAllByClientServiceOrder_IdOrderByCargoType_NameAsc(clientOrder.getId())
-    .stream().filter(q->q.getCargoType().getId().equals(selectedCargoTypeId)).findFirst()
-    .orElseThrow(()->new IllegalArgumentException("El tipo de contenedor no está solicitado en la O/S cliente vinculada"));
+	.stream().filter(q->q.getCargoType().getId().equals(selectedCargoTypeId)).findFirst()
+	.orElseThrow(()->new IllegalArgumentException("El tipo de contenedor no está solicitado en la O/S cliente vinculada"));
    long distributed=fclRepository.countDistributedByCargoType(clientOrder.getId(),selectedCargoTypeId,excludeId);
    if(distributed+1>requested.getTotalQuantity())
-    throw new IllegalArgumentException("La distribución supera la cantidad solicitada para este tipo de contenedor. Saldo disponible: "+(requested.getTotalQuantity()-distributed));
+	throw new IllegalArgumentException("La distribución supera la cantidad solicitada para este tipo de contenedor. Saldo disponible: "+(requested.getTotalQuantity()-distributed));
   } else {
    Integer packages=request.lclDetail()!=null?request.lclDetail().packages():null;
    if(request.lclDetail()==null && packages==null && excludeId!=null) packages=lclRepository.findById(excludeId).map(InternalServiceOrderLcl::getPackages).orElse(null);
    if(packages==null) return; // Los bultos pueden completarse posteriormente.
    var requested=clientLclQuantityRepository.findById(clientOrder.getId())
-    .orElseThrow(()->new IllegalArgumentException("La O/S cliente vinculada no tiene cantidad LCL configurada"));
+	.orElseThrow(()->new IllegalArgumentException("La O/S cliente vinculada no tiene cantidad LCL configurada"));
    long distributed=lclRepository.sumDistributedPackages(clientOrder.getId(),excludeId);
    if(distributed+packages>requested.getTotalPackages())
-    throw new IllegalArgumentException("La distribución supera la cantidad de bultos solicitada. Saldo disponible: "+(requested.getTotalPackages()-distributed));
+	throw new IllegalArgumentException("La distribución supera la cantidad de bultos solicitada. Saldo disponible: "+(requested.getTotalPackages()-distributed));
   }
  }
  public InternalServiceOrderResponse cancelar(Long id){
@@ -215,8 +224,8 @@ public class InternalServiceOrderService {
   ClientServiceOrder clientOrder=clientOrderRepository.findById(clientOrderId).orElseThrow(()->notFound("O/S del cliente no encontrada"));
   if("FCL".equals(clientOrder.getServiceType())){
    var rows=clientFclQuantityRepository.findAllByClientServiceOrder_IdOrderByCargoType_NameAsc(clientOrderId).stream().map(q->{
-    long distributed=fclRepository.countDistributedByCargoType(clientOrderId,q.getCargoType().getId(),null);
-    return new FclBalance(q.getCargoType().getId(),q.getCargoType().getName(),q.getTotalQuantity(),distributed,(long)q.getTotalQuantity()-distributed);
+	long distributed=fclRepository.countDistributedByCargoType(clientOrderId,q.getCargoType().getId(),null);
+	return new FclBalance(q.getCargoType().getId(),q.getCargoType().getName(),q.getTotalQuantity(),distributed,(long)q.getTotalQuantity()-distributed);
    }).toList();
    return new DistributionResponse(clientOrderId,clientOrder.getClientOrderNumber(),"FCL",rows,null,null,null);
   }
@@ -229,6 +238,41 @@ public class InternalServiceOrderService {
  public record DistributionResponse(Long clientServiceOrderId,String clientOrderNumber,String serviceType,List<FclBalance> fcl,Integer requestedPackages,Long distributedPackages,Integer availablePackages){}
  private void validarUbicaciones(Location origin,Location destination){
   if(origin.getId().equals(destination.getId())) throw new IllegalArgumentException("El origen y destino no pueden ser la misma ubicación");
+ }
+ private void validarUbicacionesDeSubcliente(ClientServiceOrder clientOrder, Client client,
+   Location origin, Location destination) {
+  // Las operaciones sin subcliente conservan el uso del catálogo general de ubicaciones.
+  if (clientOrder == null || clientOrder.getOperation() == null
+	  || clientOrder.getOperation().getClientSubclient() == null) {
+   return;
+  }
+
+  ClientSubclient relation = clientOrder.getOperation().getClientSubclient();
+  if (!relation.isActive()) {
+   throw new IllegalArgumentException("La relación cliente-subcliente está inactiva");
+  }
+  if (!relation.getClient().getId().equals(client.getId())) {
+   throw new IllegalArgumentException("La relación cliente-subcliente no corresponde al cliente de la O/S interna");
+  }
+
+  validarUsoUbicacion(relation.getId(), origin, "Origen",
+	  LocationUsageType.RECOJO, LocationUsageType.AMBOS);
+  validarUsoUbicacion(relation.getId(), destination, "Destino",
+	  LocationUsageType.ENTREGA, LocationUsageType.AMBOS);
+ }
+
+ private void validarUsoUbicacion(Long relationId, Location location, String label,
+   LocationUsageType required, LocationUsageType alternative) {
+  ClientSubclientLocation association = clientSubclientLocationRepository
+	  .findByClientSubclient_IdAndLocation_Id(relationId, location.getId())
+	  .filter(ClientSubclientLocation::isActive)
+	  .orElseThrow(() -> new IllegalArgumentException(
+		  label + " no está asociada a la relación cliente-subcliente o su asociación está inactiva"));
+
+  LocationUsageType usage = association.getUsageType();
+  if (usage != required && usage != alternative) {
+   throw new IllegalArgumentException(label + " no tiene un uso permitido para esta operación");
+  }
  }
  private Status validarEstado(Long statusId){
   return statusId==null?null:statusRepository.findByIdAndProcessType_CodeAndActiveTrue(statusId,PROCESS)
@@ -249,7 +293,7 @@ public class InternalServiceOrderService {
    detail.setContainerNumber(normalizar(d.containerNumber())); detail.setMemo(normalizar(d.memo()));
    detail.setCubicMeters(d.cubicMeters()); detail.setReturnDueDate(d.returnDueDate());
    if(d.cargoTypeId()!=null){CargoType type=cargoTypeRepository.findById(d.cargoTypeId()).orElseThrow(()->notFound("Tipo de contenedor no encontrado"));
-    if(!type.isActive()||!type.isContainer()) throw new IllegalArgumentException("El tipo seleccionado no es un contenedor activo"); detail.setCargoType(type);
+	if(!type.isActive()||!type.isContainer()) throw new IllegalArgumentException("El tipo seleccionado no es un contenedor activo"); detail.setCargoType(type);
    } else detail.setCargoType(null);
    detail.setEmptyWarehouseLocation(d.emptyWarehouseLocationId()==null?null:locationActiva(d.emptyWarehouseLocationId(),"Almacén de vacíos"));
    fclRepository.save(detail);

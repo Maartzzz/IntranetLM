@@ -6,7 +6,7 @@ import { ClientServiceOrder } from '../../../core/models/client-service-orders.m
 import { ClientServiceOrderDialogComponent } from './client-service-order-dialog/client-service-order-dialog.component';
 import { InternalServiceOrder, ClientServiceOrderDistribution } from '../../../core/models/internal-service-orders.models';
 import { OperationsService } from '../../../core/services/operations.service';
-import { Operation, OperationRequirement, RequirementCatalog } from '../../../core/models/operations.models';
+import { Operation, OperationRequirement, RequirementCatalog, Status } from '../../../core/models/operations.models';
 import { OperationActivity } from '../../../core/models/operation-activity.models';
 import { RequirementFormDialogComponent } from './requirement-form-dialog/requirement-form-dialog.component';
 import { InternalServiceOrderDialogComponent } from './internal-service-order-dialog/internal-service-order-dialog.component';
@@ -35,6 +35,7 @@ export class OperationDetailComponent implements OnInit {
   activityLoading = false;
   activityError = '';
   catalog: RequirementCatalog[] = [];
+  requirementStatuses: Status[] = [];
   loading = true;
   errorMessage = '';
   requirementError = '';
@@ -52,6 +53,7 @@ export class OperationDetailComponent implements OnInit {
       error: error => { console.error(error); this.errorMessage = 'No se pudo cargar la operación.'; this.loading = false; }
     });
     this.service.getRequirementCatalog(true).subscribe({ next: data => this.catalog = data, error: error => console.error('Catálogo de requisitos:', error) });
+    this.service.getStatuses('REQUISITO').subscribe({ next: data => this.requirementStatuses = data.filter(item => item.active), error: error => console.error('Estados de requisitos:', error) });
   }
 
 
@@ -159,7 +161,7 @@ export class OperationDetailComponent implements OnInit {
     if (!this.clientServiceOrder || !this.distribution) return;
     const dialogRef = this.dialog.open(InternalServiceOrderDialogComponent, {
       width: '900px', maxWidth: 'calc(100vw - 28px)',
-      data: { clientOrder: this.clientServiceOrder, distribution: this.distribution, clientSubclientId: this.operation?.clientSubclientId ?? null }
+      data: { clientOrder: this.clientServiceOrder, distribution: this.distribution }
     });
     dialogRef.afterClosed().subscribe(created => {
       if (created?.length) {
@@ -204,7 +206,7 @@ export class OperationDetailComponent implements OnInit {
   editRequirement(item: OperationRequirement): void { this.openRequirementForm('edit', item); }
   private openRequirementForm(mode: 'create' | 'edit', requirement?: OperationRequirement): void {
     this.dialog.open(RequirementFormDialogComponent, {
-      width: '620px', maxWidth: 'calc(100vw - 28px)', data: { mode, operationId: this.operationId, requirement, catalog: this.catalog }
+      width: '620px', maxWidth: 'calc(100vw - 28px)', data: { mode, operationId: this.operationId, requirement, catalog: this.catalog, statuses: this.requirementStatuses }
     }).afterClosed().subscribe(saved => { if (saved) { this.loadRequirements(); this.loadActivity(); this.loadClientServiceOrder(); } });
   }
 }

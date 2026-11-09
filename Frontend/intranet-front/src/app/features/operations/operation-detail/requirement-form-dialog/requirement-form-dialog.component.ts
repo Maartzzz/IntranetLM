@@ -6,11 +6,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatRadioModule } from '@angular/material/radio';
-import { OperationRequirement, OperationRequirementRequest, RequirementCatalog } from '../../../../core/models/operations.models';
+import { OperationRequirement, OperationRequirementRequest, RequirementCatalog, Status } from '../../../../core/models/operations.models';
 import { OperationsService } from '../../../../core/services/operations.service';
 
 export interface RequirementFormDialogData {
-  mode: 'create' | 'edit'; operationId: number; requirement?: OperationRequirement; catalog: RequirementCatalog[];
+  mode: 'create' | 'edit'; operationId: number; requirement?: OperationRequirement; catalog: RequirementCatalog[]; statuses: Status[];
 }
 
 @Component({
@@ -34,16 +34,22 @@ export class RequirementFormDialogComponent {
     requirementCatalogId: [0],
     customName: ['', Validators.maxLength(120)],
     externalResponsible: ['', Validators.maxLength(150)],
-    comment: ['', Validators.maxLength(10000)]
+    comment: ['', Validators.maxLength(10000)],
+    statusId: [this.data.requirement?.statusId ?? null, Validators.required]
   });
 
   constructor() {
+    if (!this.data.requirement) {
+      const pending = this.data.statuses.find(item => item.name.toLowerCase() === 'pendiente');
+      if (pending) this.form.controls.statusId.setValue(pending.id);
+    }
     if (this.data.requirement) {
       this.form.patchValue({
         requirementCatalogId: this.data.requirement.requirementCatalogId ?? 0,
         customName: this.data.requirement.requirementCatalogId ? '' : this.data.requirement.requirementName,
         externalResponsible: this.data.requirement.externalResponsible ?? '',
-        comment: this.data.requirement.comment ?? ''
+        comment: this.data.requirement.comment ?? '',
+        statusId: this.data.requirement.statusId
       });
     }
   }
@@ -63,7 +69,7 @@ export class RequirementFormDialogComponent {
       requirementCatalogId: this.source === 'catalog' ? value.requirementCatalogId : null,
       customName: this.source === 'custom' ? value.customName.trim() : null,
       externalResponsible: value.externalResponsible.trim() || null,
-      statusId: this.data.requirement?.statusId ?? null,
+      statusId: value.statusId,
       comment: value.comment.trim() || null
     };
     const call = this.data.requirement
