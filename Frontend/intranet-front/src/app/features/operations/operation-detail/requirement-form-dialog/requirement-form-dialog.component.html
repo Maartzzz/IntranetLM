@@ -1,34 +1,82 @@
 <h2 mat-dialog-title>{{ isEditMode ? 'Editar requisito' : 'Agregar requisito' }}</h2>
 <div class="dialog-content">
-  @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
+  <div class="dialog-intro">
+    <span class="section-index">REQ</span>
+    <div>
+      <h3>Información del requisito</h3>
+      <p>Define el requisito, quién debe atenderlo y su estado de seguimiento.</p>
+    </div>
+  </div>
+
+  @if (errorMessage) { <div class="error-message" role="alert">{{ errorMessage }}</div> }
+
   <form [formGroup]="form" (ngSubmit)="save()">
-    <mat-radio-group class="source-options" [value]="source" (change)="source = $event.value">
-      <mat-radio-button value="catalog">Desde catálogo</mat-radio-button>
-      <mat-radio-button value="custom">Personalizado</mat-radio-button>
-    </mat-radio-group>
-    @if (source === 'catalog') {
-      <mat-form-field appearance="outline" class="full-width"><mat-label>Requisito</mat-label>
-        <mat-select formControlName="requirementCatalogId"><mat-option [value]="0" disabled>Selecciona un requisito</mat-option>
-          @for (item of catalog; track item.id) { <mat-option [value]="item.id">{{ item.name }}</mat-option> }
-        </mat-select>
+    <section class="form-section">
+      <div class="section-heading">
+        <h4>Origen del requisito</h4>
+        <p>Selecciona un elemento del catálogo o registra uno específico para esta operación.</p>
+      </div>
+      <mat-radio-group class="source-options" [value]="source" (change)="source = $event.value" aria-label="Origen del requisito">
+        <mat-radio-button value="catalog">Desde catálogo</mat-radio-button>
+        <mat-radio-button value="custom">Personalizado</mat-radio-button>
+      </mat-radio-group>
+
+      @if (source === 'catalog') {
+        <mat-form-field appearance="outline" subscriptSizing="fixed" class="full-width">
+          <mat-label>Requisito del catálogo</mat-label>
+          <mat-select formControlName="requirementCatalogId">
+            <mat-option [value]="0" disabled>Selecciona un requisito</mat-option>
+            @for (item of catalog; track item.id) { <mat-option [value]="item.id">{{ item.name }}</mat-option> }
+          </mat-select>
+          @if (catalog.length === 0) { <mat-hint>No hay requisitos activos; puedes registrar uno personalizado.</mat-hint> }
+        </mat-form-field>
+      } @else {
+        <mat-form-field appearance="outline" subscriptSizing="fixed" class="full-width">
+          <mat-label>Nombre del requisito</mat-label>
+          <input matInput formControlName="customName" maxlength="120" placeholder="Ej. Certificado de fumigación">
+          <mat-hint>Máximo 120 caracteres.</mat-hint>
+        </mat-form-field>
+      }
+    </section>
+
+    <section class="form-section">
+      <div class="section-heading">
+        <h4>Responsable y seguimiento</h4>
+        <p>Indica quién debe atenderlo y cuál es su situación actual.</p>
+      </div>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" subscriptSizing="fixed">
+          <mat-label>Responsable externo</mat-label>
+          <input matInput formControlName="externalResponsible" maxlength="150" placeholder="Cliente, agente, almacén, etc.">
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="fixed">
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="statusId">
+            @for (status of data.statuses; track status.id) { <mat-option [value]="status.id">{{ status.name }}</mat-option> }
+          </mat-select>
+          @if (data.statuses.length === 0) { <mat-hint>No se pudieron cargar los estados.</mat-hint> }
+        </mat-form-field>
+      </div>
+    </section>
+
+    <section class="form-section last-section">
+      <div class="section-heading">
+        <h4>Comentarios</h4>
+        <p>Agrega observaciones o indicaciones para el seguimiento.</p>
+      </div>
+      <mat-form-field appearance="outline" subscriptSizing="fixed" class="full-width">
+        <mat-label>Comentario</mat-label>
+        <textarea matInput rows="4" formControlName="comment" maxlength="10000" placeholder="Escribe información relevante sobre este requisito..."></textarea>
+        <mat-hint align="end">{{ form.controls.comment.value.length }}/10000</mat-hint>
       </mat-form-field>
-      @if (catalog.length === 0) { <p class="hint">No hay requisitos activos en el catálogo. Puedes registrar uno personalizado.</p> }
-    } @else {
-      <mat-form-field appearance="outline" class="full-width"><mat-label>Nombre del requisito</mat-label><input matInput formControlName="customName" maxlength="120"></mat-form-field>
-    }
-    <mat-form-field appearance="outline" class="full-width"><mat-label>Responsable externo</mat-label><input matInput formControlName="externalResponsible" maxlength="150" placeholder="Cliente, agente, almacén, etc."></mat-form-field>
-    <mat-form-field appearance="outline" class="full-width"><mat-label>Estado</mat-label>
-      <mat-select formControlName="statusId">
-        @for (status of data.statuses; track status.id) {
-          <mat-option [value]="status.id">{{ status.name }}</mat-option>
-        }
-      </mat-select>
-      @if (data.statuses.length === 0) { <mat-hint>No se pudieron cargar los estados de requisitos.</mat-hint> }
-    </mat-form-field>
-    <mat-form-field appearance="outline" class="full-width"><mat-label>Comentario</mat-label><textarea matInput rows="4" formControlName="comment" maxlength="10000"></textarea></mat-form-field>
-    <p class="hint">Puedes actualizar el estado y el comentario. Los cambios quedarán registrados en el historial de la operación.</p>
-    <div class="actions"><button mat-button type="button" (click)="cancel()" [disabled]="isSaving">Cancelar</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="isSaving || form.invalid || data.statuses.length === 0">{{ isSaving ? 'Guardando...' : 'Guardar requisito' }}</button>
+      <p class="history-note">Los cambios de estado y comentarios quedarán asociados al historial de la operación.</p>
+    </section>
+
+    <div class="actions">
+      <button mat-button type="button" (click)="cancel()" [disabled]="isSaving">Cancelar</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="isSaving || form.invalid || data.statuses.length === 0">
+        {{ isSaving ? 'Guardando...' : (isEditMode ? 'Guardar cambios' : 'Agregar requisito') }}
+      </button>
     </div>
   </form>
 </div>

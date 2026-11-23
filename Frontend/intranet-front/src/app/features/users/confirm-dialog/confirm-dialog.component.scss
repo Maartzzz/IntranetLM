@@ -1,31 +1,10 @@
-:host {
-    display: block;
-}
-
-.dialog-content {
-    padding: 0 24px;
-}
-
-.dialog-content p {
-    margin: 0;
-
-    font-size: 15px;
-    line-height: 1.5;
-
-    color: #555;
-}
-
-.dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-
-    gap: 8px;
-
-    padding: 16px 24px 20px;
-}
-
-h2 {
-    padding: 0 24px;
-    font-size: 30px;
-}
+:host { display:block; color:#172b45; }
+.confirm-title { display:flex; align-items:center; gap:12px; margin:0; padding:22px 24px 15px; color:#1d3049; font-size:18px; font-weight:700; line-height:1.35; }
+.confirm-icon { display:inline-flex; flex:0 0 32px; width:32px; height:32px; align-items:center; justify-content:center; border-radius:10px; background:#edf3ff; color:#3264d8; font-size:15px; font-weight:700; }
+.confirm-content { padding:0 24px 8px; }
+.confirm-content p { margin:0; color:#5d6d82; font-size:13px; line-height:1.6; white-space:pre-line; }
+.confirm-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:13px 24px 19px; border-top:1px solid #e8edf4; }
+.confirm-actions button { min-width:104px; min-height:36px; border-radius:7px; font-size:11px; font-weight:650; }
+.cancel-button { color:#52647a; }
+.confirm-button { box-shadow:none; }
+@media(max-width:480px){ .confirm-title{padding:19px 18px 13px;font-size:16px}.confirm-content{padding:0 18px 8px}.confirm-actions{padding:12px 18px 16px}.confirm-actions button{min-width:90px} }

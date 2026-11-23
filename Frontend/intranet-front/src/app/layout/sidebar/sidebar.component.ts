@@ -58,19 +58,25 @@ export class SidebarComponent {
   }
 
   
-  aprendizajeExpanded = true;
+  aprendizajeExpanded = false;
 
   toggleAprendizaje(): void {
       this.aprendizajeExpanded = !this.aprendizajeExpanded;
   }
 
-  operacionesExpanded = true;
+  operacionesExpanded = false;
 
   toggleOperaciones(): void {
     this.operacionesExpanded = !this.operacionesExpanded;
   }
 
-  configuracionExpanded = true;
+  reportesExpanded = false;
+
+  toggleReportes(): void {
+    this.reportesExpanded = !this.reportesExpanded;
+  }
+
+  configuracionExpanded = false;
 
   toggleConfiguracion(): void {
     this.configuracionExpanded = !this.configuracionExpanded;

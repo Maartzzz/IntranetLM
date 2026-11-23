@@ -1,1 +1,18 @@
-.dialog-content{padding:0 24px 20px}.source-options{display:flex;gap:22px;margin:4px 0 18px}.full-width{width:100%}.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}.error-message{padding:10px;margin-bottom:12px;background:#fef2f2;color:#b91c1c;border-radius:7px}.hint{font-size:12px;line-height:1.5;color:#64748b;margin:0 0 14px}
+:host{display:block;max-width:100%}
+.dialog-content{padding:0 24px 20px;max-height:78vh;overflow:auto}
+.dialog-intro{display:flex;align-items:flex-start;gap:12px;padding:4px 0 16px;border-bottom:1px solid #e8edf3}
+.section-index{display:grid;place-items:center;flex:0 0 34px;height:30px;border-radius:9px;background:#eef4ff;color:#2457a6;font-size:10px;font-weight:750;letter-spacing:.04em}
+.dialog-intro h3{margin:0;color:#172b4d;font-size:14px;font-weight:650;line-height:1.4}
+.dialog-intro p,.section-heading p{margin:3px 0 0;color:#718096;font-size:12px;line-height:1.5}
+.form-section{padding:18px 0 12px;border-bottom:1px solid #e8edf3}
+.last-section{border-bottom:0;padding-bottom:0}
+.section-heading{margin-bottom:12px}
+.section-heading h4{margin:0;color:#243b5a;font-size:13px;font-weight:650}
+.source-options{display:flex;flex-wrap:wrap;gap:12px 24px;margin:4px 0 14px}
+.full-width{display:block;width:100%}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;align-items:start}
+.form-grid mat-form-field{width:100%;min-width:0}
+.history-note{margin:0 0 4px;padding:9px 11px;border-radius:7px;background:#f5f8fc;color:#64748b;font-size:11px;line-height:1.5}
+.actions{position:sticky;bottom:-20px;display:flex;justify-content:flex-end;gap:10px;margin:14px -24px -20px;padding:14px 24px;background:#fff;border-top:1px solid #e8edf3}
+.error-message{padding:10px 12px;margin:12px 0 0;background:#fef2f2;color:#b91c1c;border-radius:8px;font-size:13px}
+@media(max-width:600px){.dialog-content{padding:0 16px 16px;max-height:82vh}.form-grid{grid-template-columns:1fr;gap:4px}.source-options{gap:10px 18px}.actions{margin:14px -16px -16px;padding:12px 16px}}

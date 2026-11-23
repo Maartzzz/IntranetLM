@@ -13,4 +13,6 @@ public interface DriverRepository
 
     boolean existsByLicenseNumber(String licenseNumber);
 
+    boolean existsByLicenseNumberAndUserUsernameNot(String licenseNumber, String username);
+
 }

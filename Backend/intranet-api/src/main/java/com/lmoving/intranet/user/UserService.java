@@ -6,12 +6,16 @@ import com.lmoving.intranet.user.dto.UserResponse;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.lmoving.intranet.audit.AuditLogService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class UserService {
+
+    @Autowired private AuditLogService auditLogService;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -87,8 +91,10 @@ public class UserService {
         user.setActive(true);
 
         User savedUser = userRepository.save(user);
-
-        return toResponse(savedUser);
+        UserResponse response = toResponse(savedUser);
+        auditLogService.registrar("USUARIOS", "USUARIO", null, savedUser.getUsername(), "CREATED",
+            "Se creó el usuario " + savedUser.getUsername(), null, response.toString());
+        return response;
     }
 
     @Transactional
@@ -101,6 +107,7 @@ public class UserService {
                 .orElseThrow(() ->
                         new RuntimeException("Usuario no encontrado")
                 );
+        String oldSnapshot = toResponse(user).toString();
 
         if (request.email() != null &&
                 !request.email().equals(user.getEmail()) &&
@@ -136,8 +143,11 @@ public class UserService {
         user.setRole(request.role());
 
         User updatedUser = userRepository.save(user);
-
-        return toResponse(updatedUser);
+        UserResponse response = toResponse(updatedUser);
+        auditLogService.registrar("USUARIOS", "USUARIO", null, updatedUser.getUsername(), "UPDATED",
+            "Se actualizaron los datos del usuario " + updatedUser.getUsername(),
+            oldSnapshot, response.toString());
+        return response;
     }
 
     @Transactional
@@ -151,9 +161,12 @@ public class UserService {
                         new RuntimeException("Usuario no encontrado")
                 );
 
+        boolean previous = user.isActive();
         user.setActive(active);
-
         userRepository.save(user);
+        auditLogService.registrar("USUARIOS", "USUARIO", null, username, active ? "ACTIVATED" : "DEACTIVATED",
+            active ? "Se activó el usuario " + username : "Se desactivó el usuario " + username,
+            Boolean.toString(previous), Boolean.toString(active));
     }
 
     private UserResponse toResponse(User user) {

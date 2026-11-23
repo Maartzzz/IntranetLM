@@ -7,3 +7,82 @@
 .internal-orders-section{margin-top:28px}.distribution-card,.internal-order-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:14px}.distribution-heading,.internal-order-header{display:flex;justify-content:space-between;align-items:center;gap:12px}.distribution-heading span,.billing-pill{font-size:11px;font-weight:700;padding:5px 9px;border-radius:14px;background:#eff6ff;color:#1d4ed8}.distribution-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}.distribution-item{border:1px solid #e2e8f0;border-radius:9px;padding:13px}.distribution-item>strong{font-size:13px}.distribution-values{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.distribution-values span{display:flex;flex-direction:column;gap:4px}.distribution-values small,.internal-order-data label{font-size:10px;color:#64748b;text-transform:uppercase}.distribution-values b{font-size:18px}.distribution-track{height:6px;background:#e2e8f0;border-radius:8px;overflow:hidden;margin-top:12px}.distribution-track span{display:block;height:100%;background:#2563eb;border-radius:8px}.internal-order-list{display:flex;flex-direction:column;gap:12px}.internal-order-header{align-items:flex-start}.internal-order-header h3{font-size:15px;margin:5px 0 0}.billing-pill.invoiced{background:#dcfce7;color:#166534}.internal-order-data{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:16px}.internal-order-data div{display:flex;flex-direction:column;gap:5px}.internal-order-data strong{font-size:13px}.internal-order-reference{font-size:12px;color:#64748b;margin:12px 0 0}@media(max-width:700px){.internal-order-data{grid-template-columns:repeat(2,minmax(0,1fr))}.distribution-values b{font-size:16px}}
 
 .internal-actions{display:flex;gap:8px;align-items:center}@media(max-width:600px){.internal-actions{width:100%;flex-wrap:wrap}}
+
+
+/* Acciones de O/S: jerarquía visual consistente y estados claros. */
+.internal-actions,
+.internal-order-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 11px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.action-button--neutral {
+  color: var(--lm-color-primary, #174ea6);
+  border-color: var(--lm-color-border, #dbe2ea);
+  background: var(--lm-color-surface, #fff);
+}
+.action-button--neutral:hover:not(:disabled) { background: var(--lm-color-primary-soft, #eaf1fb); }
+.action-button--status {
+  color: var(--lm-color-warning, #9a6200);
+  border-color: #ead9ad;
+  background: var(--lm-color-warning-soft, #fff6df);
+}
+.action-button--status:hover:not(:disabled) { background: #fcefc9; }
+.action-button--danger {
+  color: var(--lm-color-danger, #b42318);
+  border-color: #f0c8c4;
+  background: var(--lm-color-danger-soft, #fff0ee);
+}
+.action-button--danger:hover:not(:disabled) { background: #ffe2de; }
+.action-button:focus-visible { outline: 3px solid rgb(23 78 166 / 25%); outline-offset: 2px; }
+.action-button:disabled { opacity: .45; cursor: not-allowed; }
+
+.internal-order-footer {
+  justify-content: flex-start;
+  padding-top: 13px;
+  margin-top: 14px;
+  border-top: 1px solid var(--lm-color-border, #dbe2ea);
+}
+.internal-order-footer .status-pill { margin-left: auto; }
+
+@media (max-width: 600px) {
+  .client-order-top { flex-direction: column; }
+  .internal-actions { width: 100%; }
+  .internal-order-footer .status-pill { margin-left: 0; }
+  .action-button { min-height: 38px; }
+}
+
+
+/* Ajustes de presentación para la vista de detalle, sin alterar sus acciones. */
+.detail-page { max-width: 1440px; margin: 0 auto; color: #1e314b; }
+.detail-header { padding: 4px 0 18px; border-bottom: 1px solid #e8edf4; }
+.detail-header h1 { color: #172b45; font-weight: 700; letter-spacing: -.02em; }
+.info-card, .client-order-card, .distribution-card, .internal-order-card, .requirement-card { box-shadow: 0 2px 8px rgb(20 43 74 / 4%); }
+.info-card { padding: 22px; }
+.client-order-section, .internal-orders-section, .requirements-section, .activity-section { margin-top: 30px; }
+.section-heading h2 { color:#20334d; font-weight:700; letter-spacing:-.01em; }
+.info-grid > div { min-width:0; }
+.info-grid strong, .internal-order-data strong { overflow-wrap:anywhere; color:#263a53; }
+.client-order-top, .internal-order-header { flex-wrap:wrap; }
+.client-order-card, .internal-order-card { padding:19px; }
+.empty-state { background:#fbfcfe; }
+@media(max-width:600px) { .detail-page{padding:16px}.info-card,.client-order-card,.distribution-card,.internal-order-card{padding:15px}.detail-header h1{font-size:22px}.section-heading{gap:10px}.info-grid{gap:14px} }

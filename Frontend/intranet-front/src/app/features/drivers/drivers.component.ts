@@ -172,6 +172,59 @@ export class DriversComponent implements OnInit {
       });
   }
 
+  updateDriver(username: string, request: Omit<CreateDriverRequest, 'username'>): void {
+    this.loading = true;
+    this.errorMessage = '';
+    this.driverService.updateDriver(username, request).subscribe({
+      next: () => { this.loading = false; this.loadDrivers(); },
+      error: error => {
+        console.error('Error actualizando conductor:', error);
+        this.loading = false;
+        this.errorMessage = error.status === 409
+          ? (error.error?.message ?? 'El número de licencia ya está registrado.')
+          : error.status === 400
+            ? (error.error?.message ?? 'Los datos del conductor no son válidos.')
+            : 'No se pudo actualizar el conductor.';
+      }
+    });
+  }
+
+  toggleDriverActive(driver: Driver): void {
+    const nextActive = !driver.active;
+    const action = nextActive ? 'activar' : 'desactivar';
+
+    if (!confirm(`¿Deseas ${action} al conductor ${driver.firstName} ${driver.lastName}?`)) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+    this.driverService.setDriverActive(driver.username, nextActive).subscribe({
+      next: () => {
+        this.loading = false;
+        this.loadDrivers();
+      },
+      error: error => {
+        console.error(`Error al ${action} conductor:`, error);
+        this.loading = false;
+        this.errorMessage = error.error?.message ?? `No se pudo ${action} al conductor.`;
+      }
+    });
+  }
+
+  openEditDialog(driver: Driver): void {
+    const dialogRef = this.dialog.open(DriverFormDialog, {
+      width: '500px',
+      maxWidth: 'calc(100vw - 32px)',
+      data: { users: [], driver }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result || result.mode !== 'edit') return;
+      const { username, ...request } = result.request as CreateDriverRequest;
+      this.updateDriver(driver.username, request);
+    });
+  }
+
   openCreateDialog(): void {
 
     const availableDrivers =
@@ -196,7 +249,7 @@ export class DriversComponent implements OnInit {
           return;
         }
 
-        this.createDriver(result);
+        if (result.mode === 'create') this.createDriver(result.request);
       }
     );
   }

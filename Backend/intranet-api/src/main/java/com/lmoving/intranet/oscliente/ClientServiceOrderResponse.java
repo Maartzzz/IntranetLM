@@ -10,7 +10,7 @@ public record ClientServiceOrderResponse(
     LocalDate receivedDate, LocalDate estimatedArrivalDate, String origin, String destination,
     String observation, Long statusId, String statusName, String statusColor,
     List<FclQuantityResponse> fclQuantities, Integer totalPackages,
-    LocalDateTime createdAt, LocalDateTime updatedAt
+    LocalDateTime createdAt, LocalDateTime updatedAt, boolean active
 ) {
     public record FclQuantityResponse(Long cargoTypeId, String cargoTypeName, Integer totalQuantity) {}
 }

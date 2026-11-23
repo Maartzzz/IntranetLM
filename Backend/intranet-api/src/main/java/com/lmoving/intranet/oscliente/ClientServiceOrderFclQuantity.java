@@ -25,4 +25,5 @@ public class ClientServiceOrderFclQuantity {
     public ClientServiceOrder getClientServiceOrder() { return clientServiceOrder; }
     public CargoType getCargoType() { return cargoType; }
     public Integer getTotalQuantity() { return totalQuantity; }
+    public void setTotalQuantity(Integer value) { totalQuantity = value; }
 }

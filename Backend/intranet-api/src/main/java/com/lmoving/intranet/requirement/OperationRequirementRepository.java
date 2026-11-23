@@ -10,4 +10,6 @@ public interface OperationRequirementRepository extends JpaRepository<OperationR
     List<OperationRequirement> findAllByInternalServiceOrder_IdOrderByRegisteredAtAsc(Long internalServiceOrderId);
     boolean existsByClientServiceOrder_IdAndCatalog_Id(Long clientServiceOrderId, Long catalogId);
     boolean existsByInternalServiceOrder_IdAndCatalog_Id(Long internalServiceOrderId, Long catalogId);
+    boolean existsByClientServiceOrder_Id(Long clientServiceOrderId);
+    boolean existsByInternalServiceOrder_Id(Long internalServiceOrderId);
 }

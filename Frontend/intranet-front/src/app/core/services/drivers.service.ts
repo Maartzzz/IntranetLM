@@ -37,6 +37,18 @@ export interface CreateDriverRequest {
         );
     }
 
+    updateDriver(username: string, request: Omit<CreateDriverRequest, 'username'>): Observable<Driver> {
+        return this.http.put<Driver>(`${this.apiUrl}/${encodeURIComponent(username)}`, request);
+    }
+
+    setDriverActive(username: string, active: boolean): Observable<void> {
+        return this.http.patch<void>(
+            `${this.apiUrl}/${encodeURIComponent(username)}/active`,
+            null,
+            { params: { active: String(active) } }
+        );
+    }
+
     getDriver(username: string): Observable<Driver> {
 
         return this.http.get<Driver>(

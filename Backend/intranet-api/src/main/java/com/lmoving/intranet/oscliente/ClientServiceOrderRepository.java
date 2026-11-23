@@ -13,6 +13,9 @@ public interface ClientServiceOrderRepository extends JpaRepository<ClientServic
     List<ClientServiceOrder> findAllByClient_IdOrderByCreatedAtDesc(Long clientId);
     boolean existsByClient_IdAndClientOrderNumberIgnoreCase(Long clientId, String clientOrderNumber);
     boolean existsByClient_IdAndClientOrderNumberIgnoreCaseAndIdNot(Long clientId, String clientOrderNumber, Long id);
+    boolean existsByIdAndActiveTrue(Long id);
+    boolean existsByOperation_Id(Long operationId);
+    boolean existsByOperation_IdAndIdNot(Long operationId, Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from ClientServiceOrder o where o.id = :id")

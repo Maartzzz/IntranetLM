@@ -20,6 +20,16 @@
         placeholder="Buscar por operación, cliente, referencia o ruta..."
       >
     </label>
+    <label class="filter-field" for="operation-board-filter">
+      <span>Mostrar</span>
+      <select id="operation-board-filter" [(ngModel)]="boardFilter">
+        <option value="ALL">Todas las operaciones</option>
+        <option value="WITHOUT_CLIENT_ORDER">Sin O/S del cliente</option>
+        <option value="WITHOUT_INTERNAL_ORDERS">Sin O/S internas</option>
+        <option value="PARTIAL">Distribución parcial</option>
+        <option value="COMPLETE">Distribución completa</option>
+      </select>
+    </label>
     <div class="toolbar-summary">
       <span>{{ filteredOperations.length }} operaciones</span>
       <button type="button" class="refresh-button" (click)="load()" [disabled]="loading || updatingOperationId !== null">
@@ -110,9 +120,50 @@
                         <span>Ref. {{ operation.reference }}</span>
                       }
                       @if (operation.customerOrderNumber) {
-                        <span>O/S {{ operation.customerOrderNumber }}</span>
+                        <span>Pedido {{ operation.customerOrderNumber }}</span>
                       }
                     </div>
+                  }
+
+                  @if (summaryFor(operation.id); as summary) {
+                    <section class="operational-summary" aria-label="Seguimiento operativo">
+                      <div class="summary-heading">
+                        <strong>Seguimiento operativo</strong>
+                        <span [class.partial-state]="summary.pending !== null && summary.pending > 0 && (summary.distributed ?? 0) > 0"
+                              [class.complete-state]="summary.pending === 0">
+                          {{ distributionLabel(operation.id) }}
+                        </span>
+                      </div>
+                      <div class="summary-row">
+                        <span>O/S del cliente</span>
+                        <strong>{{ summary.clientServiceOrder?.clientOrderNumber || 'Pendiente' }}</strong>
+                      </div>
+                      <div class="summary-row">
+                        <span>O/S internas activas</span>
+                        <strong>{{ summary.internalOrders.length }}</strong>
+                      </div>
+                      @if (summary.clientServiceOrder) {
+                        <div class="summary-row">
+                          <span>Programación pendiente</span>
+                          <strong>{{ pendingScheduleCount(operation.id) }}</strong>
+                        </div>
+                      }
+                      @if (summary.requested !== null && summary.distributed !== null && summary.pending !== null) {
+                        <div class="distribution-block">
+                          <div class="summary-row">
+                            <span>Distribución</span>
+                            <strong>{{ formatQuantity(summary.distributed, summary.serviceType) }} / {{ formatQuantity(summary.requested, summary.serviceType) }}</strong>
+                          </div>
+                          <div class="distribution-track" role="progressbar"
+                               [attr.aria-valuenow]="distributionPercent(operation.id)"
+                               aria-valuemin="0" aria-valuemax="100"
+                               [attr.aria-label]="'Distribución ' + distributionPercent(operation.id) + '%'">
+                            <span [style.width.%]="distributionPercent(operation.id)"></span>
+                          </div>
+                          <div class="pending-quantity">Pendiente: {{ formatQuantity(summary.pending, summary.serviceType) }}</div>
+                        </div>
+                      }
+                    </section>
                   }
 
                   <footer class="card-footer">

@@ -79,6 +79,18 @@ export class OperationsService {
     return this.http.post<ClientServiceOrder>('/api/client-service-orders', request);
   }
 
+  updateClientServiceOrder(id: number, request: ClientServiceOrderRequest): Observable<ClientServiceOrder> {
+    return this.http.put<ClientServiceOrder>(`/api/client-service-orders/${id}`, request);
+  }
+
+  setClientServiceOrderActive(id: number, active: boolean): Observable<ClientServiceOrder> {
+    return this.http.patch<ClientServiceOrder>(`/api/client-service-orders/${id}/active`, null, { params: new HttpParams().set('active', active) });
+  }
+
+  deleteClientServiceOrder(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/client-service-orders/${id}`);
+  }
+
   getInternalServiceOrders(clientId: number): Observable<InternalServiceOrder[]> {
     return this.http.get<InternalServiceOrder[]>('/api/internal-service-orders', {
       params: new HttpParams().set('clientId', clientId)
@@ -87,6 +99,22 @@ export class OperationsService {
 
   createInternalServiceOrder(request: InternalServiceOrderRequest): Observable<InternalServiceOrder> {
     return this.http.post<InternalServiceOrder>('/api/internal-service-orders', request);
+  }
+
+  createInternalServiceOrders(requests: InternalServiceOrderRequest[]): Observable<InternalServiceOrder[]> {
+    return this.http.post<InternalServiceOrder[]>('/api/internal-service-orders/batch', requests);
+  }
+
+  updateInternalServiceOrder(id: number, request: InternalServiceOrderRequest): Observable<InternalServiceOrder> {
+    return this.http.put<InternalServiceOrder>(`/api/internal-service-orders/${id}`, request);
+  }
+
+  setInternalServiceOrderActive(id: number, active: boolean): Observable<InternalServiceOrder> {
+    return this.http.patch<InternalServiceOrder>(`/api/internal-service-orders/${id}/active`, null, { params: new HttpParams().set('active', active) });
+  }
+
+  deleteInternalServiceOrder(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/internal-service-orders/${id}`);
   }
 
   getClientServiceOrderDistribution(clientServiceOrderId: number): Observable<ClientServiceOrderDistribution> {

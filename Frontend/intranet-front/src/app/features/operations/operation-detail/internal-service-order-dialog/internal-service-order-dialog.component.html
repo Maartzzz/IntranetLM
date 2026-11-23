@@ -1,48 +1,56 @@
 <h2 mat-dialog-title>Generar O/S internas</h2>
 <mat-dialog-content>
-  <p class="context">O/S cliente <strong>{{ data.clientOrder.clientOrderNumber }}</strong> · {{ data.clientOrder.serviceType }}</p>
+  <div class="context-card"><span class="context-label">Orden de servicio de origen</span><strong>{{ data.clientOrder.clientOrderNumber }}</strong><span>{{ data.clientOrder.serviceType }}</span></div>
   @if (loading) { <p class="feedback">Cargando catálogos...</p> }
-  @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
+  @if (errorMessage) { <div class="error-message" role="alert">{{ errorMessage }}</div> }
   <form [formGroup]="common" class="dialog-form">
-    <div class="form-row">
-      <mat-form-field appearance="outline"><mat-label>Origen (ubicación)</mat-label><mat-select formControlName="originLocationId"><mat-option [value]="0">Seleccionar origen</mat-option>@for (location of originLocations; track location.id) { <mat-option [value]="locationId(location)">{{ locationLabel(location) }}</mat-option> }</mat-select></mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Destino (ubicación)</mat-label><mat-select formControlName="destinationLocationId"><mat-option [value]="0">Seleccionar destino</mat-option>@for (location of destinationLocations; track location.id) { <mat-option [value]="locationId(location)">{{ locationLabel(location) }}</mat-option> }</mat-select></mat-form-field>
-    </div>
-    @if (usesSubclientLocations && (!originLocations.length || !destinationLocations.length)) {
-      <p class="hint">La relación seleccionada no tiene ubicaciones activas configuradas para {{ !originLocations.length && !destinationLocations.length ? 'recojo ni entrega' : (!originLocations.length ? 'recojo' : 'entrega') }}. Configura sus ubicaciones antes de generar las O/S internas.</p>
-    }
-    <div class="form-row">
-      <mat-form-field appearance="outline"><mat-label>Estado inicial</mat-label><mat-select formControlName="statusId"><mat-option [value]="0">Automático</mat-option>@for (status of statuses; track status.id) { <mat-option [value]="status.id">{{ status.name }}</mat-option> }</mat-select></mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Fecha programada (opcional)</mat-label><input matInput type="date" formControlName="scheduledDate"></mat-form-field>
-    </div>
-    @if (isFcl) {
-      <div class="rows-heading"><strong>Contenedores a separar</strong><button mat-button type="button" (click)="addFclRow()">+ Agregar contenedor</button></div>
-      <p class="hint">Se crea una O/S interna por cada contenedor. Los tipos y cantidades se precargan desde la solicitud.</p>
-      <div formArrayName="fclRows">
-        @for (row of fclRows.controls; track $index) {
-          <div class="detail-row" [formGroupName]="$index">
-            <mat-form-field appearance="outline"><mat-label>Tipo de contenedor</mat-label><mat-select formControlName="cargoTypeId"><mat-option [value]="0">Seleccionar</mat-option>@for (type of cargoTypes; track type.id) { <mat-option [value]="type.id">{{ type.name }}</mat-option> }</mat-select></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Número de contenedor</mat-label><input matInput formControlName="containerNumber"></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>m³</mat-label><input matInput type="number" min="0" formControlName="cubicMeters"></mat-form-field>
-            <button mat-button color="warn" type="button" (click)="removeFclRow($index)">Quitar</button>
-          </div>
-        }
+    <section class="form-section">
+      <div class="section-heading"><span class="section-index">01</span><div><h3>Ruta y programación</h3><p>Selecciona las ubicaciones habilitadas para esta relación.</p></div></div>
+      <div class="form-row">
+        <mat-form-field appearance="outline"><mat-label>Origen (ubicación)</mat-label><mat-select formControlName="originLocationId"><mat-option [value]="0">Seleccionar origen</mat-option>@for (location of originLocations; track location.id) { <mat-option [value]="locationId(location)">{{ locationLabel(location) }}</mat-option> }</mat-select></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Destino (ubicación)</mat-label><mat-select formControlName="destinationLocationId"><mat-option [value]="0">Seleccionar destino</mat-option>@for (location of destinationLocations; track location.id) { <mat-option [value]="locationId(location)">{{ locationLabel(location) }}</mat-option> }</mat-select></mat-form-field>
       </div>
-    } @else {
-      <div class="rows-heading"><strong>Distribución de carga suelta</strong><button mat-button type="button" (click)="addLclRow()">+ Agregar O/S interna</button></div>
-      <p class="hint">Puedes dividir los bultos solicitados entre varias O/S internas.</p>
-      <div formArrayName="lclRows">
-        @for (row of lclRows.controls; track $index) {
-          <div class="detail-row" [formGroupName]="$index">
-            <mat-form-field appearance="outline"><mat-label>Bultos</mat-label><input matInput type="number" min="0" formControlName="packages"></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Peso (kg)</mat-label><input matInput type="number" min="0" formControlName="weightKg"></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Volumen (m³)</mat-label><input matInput type="number" min="0" formControlName="cubicMeters"></mat-form-field>
-            <button mat-button color="warn" type="button" (click)="removeLclRow($index)">Quitar</button>
-          </div>
-        }
+      @if (usesSubclientLocations && (!originLocations.length || !destinationLocations.length)) {
+        <p class="hint">La relación seleccionada no tiene ubicaciones activas configuradas para {{ !originLocations.length && !destinationLocations.length ? 'recojo ni entrega' : (!originLocations.length ? 'recojo' : 'entrega') }}. Configura sus ubicaciones antes de generar las O/S internas.</p>
+      }
+      <div class="form-row">
+        <mat-form-field appearance="outline"><mat-label>Estado inicial</mat-label><mat-select formControlName="statusId"><mat-option [value]="0">Automático</mat-option>@for (status of statuses; track status.id) { <mat-option [value]="status.id">{{ status.name }}</mat-option> }</mat-select></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Fecha programada (opcional)</mat-label><input matInput type="date" formControlName="scheduledDate"></mat-form-field>
       </div>
-    }
-    <mat-form-field appearance="outline" class="full-width"><mat-label>Observaciones generales</mat-label><textarea matInput rows="2" formControlName="observations"></textarea></mat-form-field>
+    </section>
+    <section class="form-section">
+      @if (isFcl) {
+        <div class="section-heading"><span class="section-index">02</span><div><h3>Separación de contenedores</h3><p>Se crea una O/S interna por cada contenedor individual.</p></div></div>
+        <div class="rows-heading"><strong>Contenedores a separar</strong><button mat-button type="button" (click)="addFclRow()">+ Agregar contenedor</button></div>
+        <p class="hint">Los tipos y cantidades se precargan desde la solicitud; puedes ajustar la distribución.</p>
+        <div formArrayName="fclRows">
+          @for (row of fclRows.controls; track $index) {
+            <div class="detail-row" [formGroupName]="$index">
+              <mat-form-field appearance="outline"><mat-label>Tipo de contenedor</mat-label><mat-select formControlName="cargoTypeId"><mat-option [value]="0">Seleccionar</mat-option>@for (type of cargoTypes; track type.id) { <mat-option [value]="type.id">{{ type.name }}</mat-option> }</mat-select></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Número de contenedor</mat-label><input matInput formControlName="containerNumber"></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>m³</mat-label><input matInput type="number" min="0" formControlName="cubicMeters"></mat-form-field>
+              <button mat-button color="warn" type="button" (click)="removeFclRow($index)">Quitar</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="section-heading"><span class="section-index">02</span><div><h3>Distribución de carga suelta</h3><p>Divide los bultos solicitados entre las O/S internas necesarias.</p></div></div>
+        <div class="rows-heading"><strong>Órdenes internas a generar</strong><button mat-button type="button" (click)="addLclRow()">+ Agregar O/S interna</button></div>
+        <div formArrayName="lclRows">
+          @for (row of lclRows.controls; track $index) {
+            <div class="detail-row" [formGroupName]="$index">
+              <mat-form-field appearance="outline"><mat-label>Bultos</mat-label><input matInput type="number" min="0" formControlName="packages"></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Peso (kg)</mat-label><input matInput type="number" min="0" formControlName="weightKg"></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Volumen (m³)</mat-label><input matInput type="number" min="0" formControlName="cubicMeters"></mat-form-field>
+              <button mat-button color="warn" type="button" (click)="removeLclRow($index)">Quitar</button>
+            </div>
+          }
+        </div>
+      }
+    </section>
+    <section class="form-section last-section"><div class="section-heading"><span class="section-index">03</span><div><h3>Observaciones</h3><p>Indicaciones comunes para las órdenes que se generarán.</p></div></div>
+      <mat-form-field appearance="outline" class="full-width"><mat-label>Observaciones generales</mat-label><textarea matInput rows="2" formControlName="observations"></textarea></mat-form-field>
+    </section>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end"><button mat-button type="button" (click)="cancel()" [disabled]="saving">Cancelar</button><button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="saving || loading || !originLocations.length || !destinationLocations.length">{{ saving ? 'Generando...' : 'Generar O/S internas' }}</button></mat-dialog-actions>

@@ -314,3 +314,22 @@
 .secondary-button:hover {
   background: #e2e8f0;
 }
+
+/* Pulido visual del diálogo de detalle del curso. */
+:host { display:block; color:#172b45; }
+.dialog-content { max-height:min(76vh,820px); overflow:auto; padding:5px 26px 12px; }
+.course-header { align-items:flex-start; padding:10px 0 20px; }
+.course-icon { flex:0 0 48px; width:48px; height:48px; border:1px solid #e5ebf4; background:#f5f8fc; border-radius:11px; }
+.course-title h3 { color:#1d3049; font-size:18px; font-weight:700; line-height:1.35; }
+.status.active { color:#17633a; background:#effaf3; border:1px solid #ccebd7; }
+.status.inactive { color:#64748b; background:#f3f5f8; border:1px solid #e1e6ed; }
+.section { padding:16px 0; border-color:#e8edf4; }
+.section h4 { color:#20334d; font-size:13px; font-weight:700; }
+.description { color:#5f7085; font-size:13px; }
+.info-item { border:1px solid #e7edf5; background:#fbfcfe; }
+.info-item span,.metadata-item span { color:#718096; opacity:1; }
+.info-item strong,.metadata-item strong { color:#263a53; font-size:13px; }
+.metadata-item { padding:4px 0; }
+.evaluations-table-container { box-shadow:0 2px 8px rgb(20 43 74 / 4%); }
+.dialog-actions { border-top:1px solid #e8edf4; padding:12px 26px 18px; }
+@media(max-width:600px){ .dialog-content{padding:4px 18px 10px;max-height:70vh}.dialog-actions{padding:11px 18px 15px} }

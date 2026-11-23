@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.lmoving.intranet.cic.CicCategoria;
 import com.lmoving.intranet.cic.CicDocumento;
 import com.lmoving.intranet.cic.CicEstadoDocumento;
+import com.lmoving.intranet.audit.AuditLogService;
 import com.lmoving.intranet.cic.dto.CicDocumentoResponse;
 import com.lmoving.intranet.cic.repository.CicCategoriaRepository;
 import com.lmoving.intranet.cic.repository.CicDocumentoRepository;
@@ -30,17 +31,20 @@ public class CicService {
     private final CicDocumentoRepository documentoRepository;
     private final UserRepository userRepository;
     private final CicFileStorageService fileStorageService;
+    private final AuditLogService auditLogService;
 
     public CicService(
             CicCategoriaRepository categoriaRepository,
             CicDocumentoRepository documentoRepository,
             UserRepository userRepository,
-            CicFileStorageService fileStorageService) {
+            CicFileStorageService fileStorageService,
+            AuditLogService auditLogService) {
 
         this.categoriaRepository = categoriaRepository;
         this.documentoRepository = documentoRepository;
         this.userRepository = userRepository;
         this.fileStorageService = fileStorageService;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional(readOnly = true)
@@ -127,8 +131,19 @@ public class CicService {
             documento.setEstado(CicEstadoDocumento.BORRADOR);
             documento.setCreadoPor(usuario);
 
-            return CicDocumentoResponse.fromEntity(
-                    documentoRepository.save(documento));
+            CicDocumento guardado = documentoRepository.save(documento);
+            auditLogService.registrar(
+                    "CIC",
+                    "CIC_DOCUMENTO",
+                    guardado.getId(),
+                    "CREATED",
+                    "Se cargó el documento " + guardado.getTitulo()
+                            + " en la categoría " + categoria.getNombre(),
+                    null,
+                    valorAuditoria(guardado)
+            );
+
+            return CicDocumentoResponse.fromEntity(guardado);
 
         } catch (RuntimeException e) {
             fileStorageService.delete(nombreFisico);
@@ -147,6 +162,11 @@ public class CicService {
         }
 
         CicDocumento documento = obtenerDocumento(id);
+        CicEstadoDocumento estadoAnterior = documento.getEstado();
+
+        if (estadoAnterior == nuevoEstado) {
+            return CicDocumentoResponse.fromEntity(documento);
+        }
 
         if (nuevoEstado == CicEstadoDocumento.PUBLICADO
                 && documento.getEstado()
@@ -160,8 +180,32 @@ public class CicService {
 
         documento.setEstado(nuevoEstado);
 
-        return CicDocumentoResponse.fromEntity(
-                documentoRepository.save(documento));
+        CicDocumento guardado = documentoRepository.save(documento);
+        auditLogService.registrar(
+                "CIC",
+                "CIC_DOCUMENTO",
+                guardado.getId(),
+                "STATUS_CHANGED",
+                "Se cambió el estado del documento " + guardado.getTitulo()
+                        + " de " + estadoAnterior + " a " + nuevoEstado
+                        + " (categoría: " + guardado.getCategoria().getNombre() + ")",
+                estadoAnterior.name(),
+                nuevoEstado.name()
+        );
+
+        return CicDocumentoResponse.fromEntity(guardado);
+    }
+
+    private String valorAuditoria(CicDocumento documento) {
+        return "CicDocumento[id=" + documento.getId()
+                + ", titulo=" + documento.getTitulo()
+                + ", descripcion=" + documento.getDescripcion()
+                + ", categoriaId=" + documento.getCategoria().getId()
+                + ", categoria=" + documento.getCategoria().getNombre()
+                + ", nombreArchivo=" + documento.getNombreArchivo()
+                + ", tipoMime=" + documento.getTipoMime()
+                + ", tamanoBytes=" + documento.getTamanoBytes()
+                + ", estado=" + documento.getEstado() + "]";
     }
 
     @Transactional(readOnly = true)

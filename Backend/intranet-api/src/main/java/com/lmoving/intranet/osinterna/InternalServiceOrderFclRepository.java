@@ -15,6 +15,7 @@ public interface InternalServiceOrderFclRepository extends JpaRepository<Interna
         LEFT JOIN statuses s ON s.id = io.status_id
         WHERE io.client_service_order_id = :clientOrderId
           AND f.cargo_type_id = :cargoTypeId
+          AND io.active = TRUE
           AND (s.name IS NULL OR s.name <> 'Cancelada')
           AND (:excludeId IS NULL OR io.id <> :excludeId)
         """, nativeQuery = true)

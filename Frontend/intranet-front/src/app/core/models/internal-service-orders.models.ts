@@ -21,6 +21,7 @@ export interface InternalServiceOrder {
   detail: unknown;
   createdAt: string;
   updatedAt: string;
+  active: boolean;
 }
 
 export interface ClientServiceOrderDistribution {

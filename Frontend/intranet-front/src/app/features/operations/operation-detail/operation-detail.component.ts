@@ -39,6 +39,8 @@ export class OperationDetailComponent implements OnInit {
   loading = true;
   errorMessage = '';
   requirementError = '';
+  orderActionError = '';
+  orderActionLoading = false;
 
   ngOnInit(): void {
     this.operationId = Number(this.route.snapshot.paramMap.get('id'));
@@ -122,7 +124,7 @@ export class OperationDetailComponent implements OnInit {
   }
 
   get canGenerateInternalOrders(): boolean {
-    if (!this.distribution || this.distributionLoading || !this.clientServiceOrder) {
+    if (!this.distribution || this.distributionLoading || !this.clientServiceOrder || !this.clientServiceOrder.active) {
       return false;
     }
 
@@ -133,8 +135,13 @@ export class OperationDetailComponent implements OnInit {
     return (this.distribution.availablePackages ?? 0) > 0;
   }
 
+  get canCreateClientServiceOrder(): boolean {
+    return !!this.operation && !this.clientServiceOrder
+      && (this.operation.statusName ?? '').trim().toLocaleLowerCase() === 'confirmada';
+  }
+
   addClientServiceOrder(): void {
-    if (!this.operation || this.clientServiceOrder) return;
+    if (!this.canCreateClientServiceOrder || !this.operation) return;
     const dialogRef = this.dialog.open(ClientServiceOrderDialogComponent, {
       width: '680px', maxWidth: 'calc(100vw - 28px)',
       data: {
@@ -157,11 +164,71 @@ export class OperationDetailComponent implements OnInit {
     });
   }
 
+  editClientServiceOrder(): void {
+    if (!this.operation || !this.clientServiceOrder) return;
+    const order = this.clientServiceOrder;
+    const dialogRef = this.dialog.open(ClientServiceOrderDialogComponent, { width: '680px', maxWidth: 'calc(100vw - 28px)', data: { operationId: this.operation.id, clientId: order.clientId, clientName: order.clientName, serviceType: order.serviceType, reference: order.reference, origin: order.origin, destination: order.destination, estimatedDate: order.estimatedArrivalDate, customerOrderNumber: order.clientOrderNumber, quantity: order.totalPackages, cargoTypeId: order.fclQuantities[0]?.cargoTypeId ?? this.operation.cargoTypeId, observation: order.observation, order } });
+    dialogRef.afterClosed().subscribe(saved => { if (saved) { this.loadClientServiceOrder(); this.loadActivity(); } });
+  }
+
+  editInternalOrder(order: InternalServiceOrder): void {
+    if (!this.clientServiceOrder || !this.distribution || !this.clientServiceOrder.active) return;
+    const dialogRef = this.dialog.open(InternalServiceOrderDialogComponent, { width: '900px', maxWidth: 'calc(100vw - 28px)', data: { clientOrder: this.clientServiceOrder, distribution: this.distribution, clientSubclientId: this.operation?.clientSubclientId ?? null, order } });
+    dialogRef.afterClosed().subscribe(saved => { if (saved) { this.loadInternalOrders(); this.loadDistribution(); this.loadActivity(); } });
+  }
+
+  toggleClientOrderActive(): void {
+    if (!this.clientServiceOrder || this.orderActionLoading) return;
+    const next = !this.clientServiceOrder.active;
+    if (!confirm(`¿${next ? 'Reactivar' : 'Desactivar'} la O/S del cliente ${this.clientServiceOrder.clientOrderNumber}?`)) return;
+    this.orderActionLoading = true; this.orderActionError = '';
+    this.service.setClientServiceOrderActive(this.clientServiceOrder.id, next).subscribe({
+      next: () => { this.orderActionLoading = false; this.loadClientServiceOrder(); },
+      error: e => { this.orderActionLoading = false; this.orderActionError = e?.error?.message || 'No se pudo cambiar el estado de la O/S del cliente.'; }
+    });
+  }
+
+  deleteClientOrder(): void {
+    if (!this.clientServiceOrder || this.orderActionLoading) return;
+    if (!confirm(`¿Eliminar físicamente la O/S del cliente ${this.clientServiceOrder.clientOrderNumber}? Esta acción no se puede deshacer.`)) return;
+    this.orderActionLoading = true; this.orderActionError = '';
+    this.service.deleteClientServiceOrder(this.clientServiceOrder.id).subscribe({
+      next: () => { this.orderActionLoading = false; this.clientServiceOrder = null; this.internalOrders = []; this.distribution = null; this.loadActivity(); },
+      error: e => { this.orderActionLoading = false; this.orderActionError = e?.error?.message || 'No se puede eliminar la O/S porque tiene registros relacionados.'; }
+    });
+  }
+
+  toggleInternalOrderActive(order: InternalServiceOrder): void {
+    if (this.orderActionLoading) return;
+    const next = !order.active;
+    if (!confirm(`¿${next ? 'Reactivar' : 'Desactivar'} la O/S interna #${order.internalOrderNumber}?`)) return;
+    this.orderActionLoading = true; this.orderActionError = '';
+    this.service.setInternalServiceOrderActive(order.id, next).subscribe({
+      next: () => { this.orderActionLoading = false; this.loadInternalOrders(); this.loadDistribution(); },
+      error: e => { this.orderActionLoading = false; this.orderActionError = e?.error?.message || 'No se pudo cambiar el estado de la O/S interna.'; }
+    });
+  }
+
+  deleteInternalOrder(order: InternalServiceOrder): void {
+    if (this.orderActionLoading) return;
+    if (!confirm(`¿Eliminar físicamente la O/S interna #${order.internalOrderNumber}? Esta acción no se puede deshacer.`)) return;
+    this.orderActionLoading = true; this.orderActionError = '';
+    this.service.deleteInternalServiceOrder(order.id).subscribe({
+      next: () => { this.orderActionLoading = false; this.loadInternalOrders(); this.loadDistribution(); },
+      error: e => { this.orderActionLoading = false; this.orderActionError = e?.error?.message || 'No se puede eliminar la O/S porque tiene programación o registros relacionados.'; }
+    });
+  }
+
   createInternalOrders(): void {
-    if (!this.clientServiceOrder || !this.distribution) return;
+    if (!this.clientServiceOrder || !this.distribution || !this.clientServiceOrder.active) return;
     const dialogRef = this.dialog.open(InternalServiceOrderDialogComponent, {
       width: '900px', maxWidth: 'calc(100vw - 28px)',
-      data: { clientOrder: this.clientServiceOrder, distribution: this.distribution }
+      data: {
+        clientOrder: this.clientServiceOrder,
+        distribution: this.distribution,
+        // La relación vigente se obtiene de la Operación, no se duplica en la O/S del cliente.
+        clientSubclientId: this.operation?.clientSubclientId ?? null
+      }
     });
     dialogRef.afterClosed().subscribe(created => {
       if (created?.length) {

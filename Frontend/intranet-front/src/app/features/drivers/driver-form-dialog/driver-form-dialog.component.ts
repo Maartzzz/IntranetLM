@@ -11,6 +11,7 @@ import {
 } from '../../../core/services/drivers.service';
 import { MatButtonModule } from '@angular/material/button';
 import { User } from '../../../core/models/users.models';
+import { Driver } from '../../../core/models/drivers.models';
 
 @Component({
   selector: 'app-driver-form-dialog',
@@ -34,6 +35,7 @@ export class DriverFormDialog {
       MAT_DIALOG_DATA
     ) as {
     users: User[];
+    driver?: Driver;
   };
 
   form = this.fb.nonNullable.group({
@@ -68,6 +70,23 @@ export class DriverFormDialog {
 
   });
 
+  constructor() {
+    if (this.data.driver) {
+      this.form.patchValue({
+        username: this.data.driver.username,
+        licenseNumber: this.data.driver.licenseNumber,
+        licenseCategory: this.data.driver.licenseCategory,
+        licenseIssueDate: this.data.driver.licenseIssueDate,
+        licenseExpiryDate: this.data.driver.licenseExpiryDate
+      });
+      this.form.controls.username.disable();
+    }
+  }
+
+  get isEditing(): boolean {
+    return !!this.data.driver;
+  }
+
   cancel(): void {
     this.dialogRef.close();
   }
@@ -85,6 +104,6 @@ export class DriverFormDialog {
       ...this.form.getRawValue()
     };
 
-    this.dialogRef.close(request);
+    this.dialogRef.close({ mode: this.isEditing ? 'edit' : 'create', request });
   }
 }

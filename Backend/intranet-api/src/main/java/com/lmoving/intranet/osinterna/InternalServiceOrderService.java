@@ -3,6 +3,8 @@ package com.lmoving.intranet.osinterna;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.lmoving.intranet.audit.AuditLogService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import com.lmoving.intranet.cargotype.CargoType;
@@ -23,12 +25,16 @@ import com.lmoving.intranet.status.Status;
 import com.lmoving.intranet.status.StatusRepository;
 import com.lmoving.intranet.provider.Provider;
 import com.lmoving.intranet.provider.repository.ProviderRepository;
+import com.lmoving.intranet.operation.Operation;
+import com.lmoving.intranet.operation.OperationRepository;
+import com.lmoving.intranet.activity.OperationActivityService;
 
 import jakarta.persistence.EntityManager;
 
 @Service @Transactional
 public class InternalServiceOrderService {
  private static final String PROCESS="OS_INTERNA";
+ @Autowired private AuditLogService auditLogService;
  private final InternalServiceOrderRepository repository;
  private final InternalServiceOrderFclRepository fclRepository;
  private final InternalServiceOrderLclRepository lclRepository;
@@ -43,28 +49,45 @@ public class InternalServiceOrderService {
  private final ProviderRepository providerRepository;
  private final EntityManager entityManager;
  private final com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleHistoryService scheduleHistoryService;
+ private final com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleHistoryRepository historyRepository;
+ private final com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleExclusionRepository exclusionRepository;
+ private final com.lmoving.intranet.requirement.OperationRequirementRepository requirementRepository;
+ private final OperationRepository operationRepository;
+ private final OperationActivityService operationActivityService;
  public InternalServiceOrderService(InternalServiceOrderRepository repository, InternalServiceOrderFclRepository fclRepository,
   InternalServiceOrderLclRepository lclRepository, ClientRepository clientRepository,
   ClientServiceOrderRepository clientOrderRepository, ClientServiceOrderFclQuantityRepository clientFclQuantityRepository,
   ClientServiceOrderLclQuantityRepository clientLclQuantityRepository, LocationRepository locationRepository,
   ClientSubclientLocationRepository clientSubclientLocationRepository,
   CargoTypeRepository cargoTypeRepository, StatusRepository statusRepository, ProviderRepository providerRepository, EntityManager entityManager,
-  com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleHistoryService scheduleHistoryService){
+  com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleHistoryService scheduleHistoryService,
+  com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleHistoryRepository historyRepository,
+  com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleExclusionRepository exclusionRepository,
+  com.lmoving.intranet.requirement.OperationRequirementRepository requirementRepository,
+  OperationRepository operationRepository, OperationActivityService operationActivityService){
   this.repository=repository; this.fclRepository=fclRepository; this.lclRepository=lclRepository;
   this.clientRepository=clientRepository; this.clientOrderRepository=clientOrderRepository;
   this.clientFclQuantityRepository=clientFclQuantityRepository; this.clientLclQuantityRepository=clientLclQuantityRepository;
   this.locationRepository=locationRepository; this.clientSubclientLocationRepository=clientSubclientLocationRepository;
   this.cargoTypeRepository=cargoTypeRepository; this.statusRepository=statusRepository;
-  this.providerRepository=providerRepository; this.entityManager = entityManager; this.scheduleHistoryService = scheduleHistoryService;
+  this.providerRepository=providerRepository; this.entityManager = entityManager; this.scheduleHistoryService = scheduleHistoryService; this.historyRepository = historyRepository; this.exclusionRepository = exclusionRepository; this.requirementRepository = requirementRepository; this.operationRepository = operationRepository; this.operationActivityService = operationActivityService;
  }
  @Transactional(readOnly=true) public List<InternalServiceOrderResponse> listar(Long clientId){
   List<InternalServiceOrder> rows=clientId==null?repository.findAllByOrderByCreatedAtDesc():repository.findAllByClient_IdOrderByCreatedAtDesc(clientId);
   return rows.stream().map(this::toResponse).toList();
  }
  @Transactional(readOnly=true) public InternalServiceOrderResponse obtener(Long id){return toResponse(buscar(id));}
+ public List<InternalServiceOrderResponse> crearLote(List<InternalServiceOrderRequest> requests){
+  if (requests == null || requests.isEmpty()) throw new IllegalArgumentException("Debes incluir al menos una O/S interna para generar");
+  if (requests.size() > 100) throw new IllegalArgumentException("No se pueden generar más de 100 O/S internas en una sola operación");
+  return requests.stream().map(this::crear).toList();
+ }
+
  public InternalServiceOrderResponse crear(InternalServiceOrderRequest request){
   Client client=clienteActivo(request.clientId());
   ClientServiceOrder clientOrder=validarOrdenCliente(request, client);
+  boolean firstForOperation = clientOrder != null && clientOrder.getOperation() != null
+      && !repository.existsByClientServiceOrder_Id(clientOrder.getId());
   validarTipoYDetalles(request);
   validarDistribucion(request, clientOrder, null);
   Location origin=locationActiva(request.originLocationId(),"Origen");
@@ -81,11 +104,31 @@ public class InternalServiceOrderService {
   if (saved.getScheduledDate() != null) scheduleHistoryService.registrar(saved, "PROGRAMACION_INICIAL", null, saved.getScheduledDate(),
    razon(request.scheduleReason(), "Programación inicial al crear la O/S interna"));
   guardarDetalle(saved,request);
-  return toResponse(saved);
+  InternalServiceOrderResponse response = toResponse(saved);
+  auditLogService.registrar("OS_INTERNA", "OS_INTERNA", saved.getId(), "CREATED",
+   "Se creó la O/S interna " + saved.getInternalOrderNumber(), null, response.toString());
+  if (firstForOperation) cambiarOperacionAProgramacion(clientOrder.getOperation());
+  return response;
+ }
+
+ private void cambiarOperacionAProgramacion(Operation operation){
+  Operation managed = operationRepository.findById(operation.getId()).orElseThrow(() -> notFound("Operación asociada no encontrada"));
+  String previous = managed.getStatus() == null ? null : managed.getStatus().getName();
+  if ("En programación".equalsIgnoreCase(previous)) return;
+  Status next = statusRepository.findFirstByProcessType_CodeAndNameAndActiveTrue("OPERACION", "En programación")
+      .orElseThrow(() -> new IllegalStateException("No existe el estado En programación para OPERACION"));
+  managed.setStatus(next);
+  operationRepository.saveAndFlush(managed);
+  String current = next.getName();
+  operationActivityService.registrar(managed.getId(), "STATUS_CHANGED", "OPERACION", managed.getId(),
+      "La operación pasó automáticamente a En programación al generar su primera O/S interna", previous, current);
+  auditLogService.registrar("OPERACIONES", "OPERACION", managed.getId(), "STATUS_CHANGED",
+      "La operación pasó automáticamente a En programación al generar su primera O/S interna", previous, current);
  }
 
  public InternalServiceOrderResponse actualizar(Long id, InternalServiceOrderRequest request){
   InternalServiceOrder order=buscar(id);
+  String oldSnapshot = toResponse(order).toString();
   java.time.LocalDate previousScheduledDate = order.getScheduledDate();
   String previousStatusName = order.getStatus() == null ? null : order.getStatus().getName();
   if(!order.getServiceType().equals(request.serviceType()))
@@ -147,7 +190,11 @@ public class InternalServiceOrderService {
   }
   // Los detalles son progresivos: si se omite el objeto detail, se conserva el detalle actual.
   guardarDetalle(order,request);
-  return toResponse(order);
+  InternalServiceOrderResponse response = toResponse(order);
+  auditLogService.registrar("OS_INTERNA", "OS_INTERNA", order.getId(), "UPDATED",
+   "Se actualizaron los datos de la O/S interna " + order.getInternalOrderNumber(),
+   oldSnapshot, response.toString());
+  return response;
  }
 
  private Provider resolverProveedor(Long providerId, Provider current){
@@ -165,6 +212,7 @@ public class InternalServiceOrderService {
  private ClientServiceOrder validarOrdenCliente(InternalServiceOrderRequest request,Client client){
   if(request.clientServiceOrderId()==null) return null;
   ClientServiceOrder clientOrder=clientOrderRepository.findByIdForUpdate(request.clientServiceOrderId()).orElseThrow(()->notFound("O/S del cliente no encontrada"));
+  if(!clientOrder.isActive()) throw new IllegalArgumentException("La O/S del cliente está inactiva y no puede recibir nuevas distribuciones");
   if(!clientOrder.getClient().getId().equals(client.getId())) throw new IllegalArgumentException("La O/S del cliente pertenece a otro cliente");
   if(!clientOrder.getServiceType().equals(request.serviceType())) throw new IllegalArgumentException("El tipo de servicio debe coincidir con la O/S del cliente");
   return clientOrder;
@@ -207,6 +255,28 @@ public class InternalServiceOrderService {
 	throw new IllegalArgumentException("La distribución supera la cantidad de bultos solicitada. Saldo disponible: "+(requested.getTotalPackages()-distributed));
   }
  }
+ public InternalServiceOrderResponse cambiarActivo(Long id, boolean active) {
+  InternalServiceOrder order = buscar(id);
+  boolean previous = order.isActive();
+  order.setActive(active);
+  InternalServiceOrder saved = repository.saveAndFlush(order);
+  auditLogService.registrar("OS_INTERNA", "OS_INTERNA", saved.getId(), active ? "ACTIVATED" : "DEACTIVATED",
+   active ? "Se activó la O/S interna" : "Se desactivó la O/S interna",
+   Boolean.toString(previous), Boolean.toString(active));
+  return toResponse(saved);
+ }
+ public void eliminar(Long id) {
+  InternalServiceOrder order = buscar(id);
+  if (order.getScheduledDate() != null || historyRepository.existsByInternalServiceOrder_Id(id)
+      || exclusionRepository.existsByInternalServiceOrder_Id(id)
+      || requirementRepository.existsByInternalServiceOrder_Id(id))
+   throw new ResponseStatusException(HttpStatus.CONFLICT,
+      "No se puede eliminar: la O/S interna tiene programación, historial o requisitos asociados. Desactívela para conservar la trazabilidad.");
+  auditLogService.registrar("OS_INTERNA", "OS_INTERNA", id, "DELETED",
+   "Se eliminó la O/S interna " + order.getInternalOrderNumber(), toResponse(order).toString(), null);
+  repository.delete(order);
+  repository.flush();
+ }
  public InternalServiceOrderResponse cancelar(Long id){
   InternalServiceOrder order=buscar(id);
   if(order.getClientServiceOrder()!=null)
@@ -218,7 +288,10 @@ public class InternalServiceOrderService {
   repository.saveAndFlush(order);
   if (!"Cancelada".equalsIgnoreCase(previousStatusName))
    scheduleHistoryService.registrar(order, "CANCELACION", order.getScheduledDate(), null, "Cancelación de O/S interna");
-  return toResponse(order);
+  InternalServiceOrderResponse response = toResponse(order);
+  auditLogService.registrar("OS_INTERNA", "OS_INTERNA", order.getId(), "CANCELLED",
+   "Se canceló la O/S interna", previousStatusName, order.getStatus() == null ? null : order.getStatus().getName());
+  return response;
  }
  public DistributionResponse obtenerDistribucion(Long clientOrderId){
   ClientServiceOrder clientOrder=clientOrderRepository.findById(clientOrderId).orElseThrow(()->notFound("O/S del cliente no encontrada"));
@@ -318,7 +391,7 @@ public class InternalServiceOrderService {
    o.getClientServiceOrder()==null?null:o.getClientServiceOrder().getId(),o.getClientOrderNumber(),
    o.getServiceType(),o.getReference(),o.getOrigin().getId(),o.getOrigin().getName(),o.getDestination().getId(),o.getDestination().getName(),
    o.getProvider()==null?null:o.getProvider().getId(),o.getProvider()==null?null:o.getProvider().getBusinessName(),o.getScheduledDate(),o.getStatus()==null?null:o.getStatus().getId(),o.getStatus()==null?null:o.getStatus().getName(),
-   o.getBillingStatus(),o.getObservations(),detail,o.getCreatedAt(),o.getUpdatedAt());
+   o.getBillingStatus(),o.getObservations(),detail,o.getCreatedAt(),o.getUpdatedAt(),o.isActive());
  }
  public record FclResponse(String containerNumber,Long cargoTypeId,String cargoTypeName,java.math.BigDecimal cubicMeters,Long emptyWarehouseLocationId,java.time.LocalDate returnDueDate,String memo){}
  public record LclResponse(Integer packages,java.math.BigDecimal weightKg,java.math.BigDecimal cubicMeters){}

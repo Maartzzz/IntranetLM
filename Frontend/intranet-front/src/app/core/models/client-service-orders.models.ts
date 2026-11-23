@@ -25,6 +25,7 @@ export interface ClientServiceOrder {
   totalPackages: number | null;
   createdAt: string;
   updatedAt: string;
+  active: boolean;
 }
 
 export interface ClientServiceOrderRequest {

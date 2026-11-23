@@ -30,6 +30,7 @@ public class InternalServiceOrder {
     @Column(name = "scheduled_date") private LocalDate scheduledDate;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "status_id") private Status status;
     @Column(name = "billing_status", nullable = false, length = 20) private String billingStatus = "PENDIENTE";
+    @Column(nullable = false) private boolean active = true;
     @Column(columnDefinition = "TEXT") private String observations;
     @Column(name = "created_at", nullable = false, updatable = false) private LocalDateTime createdAt;
     @Column(name = "updated_at", nullable = false) private LocalDateTime updatedAt;
@@ -48,6 +49,7 @@ public class InternalServiceOrder {
     public Provider getProvider() { return provider; } public void setProvider(Provider v) { provider = v; }
     public LocalDate getScheduledDate() { return scheduledDate; } public void setScheduledDate(LocalDate v) { scheduledDate = v; }
     public Status getStatus() { return status; } public void setStatus(Status v) { status = v; }
+    public boolean isActive() { return active; } public void setActive(boolean v) { active = v; }
     public String getBillingStatus() { return billingStatus; } public void setBillingStatus(String v) { billingStatus = v; }
     public String getObservations() { return observations; } public void setObservations(String v) { observations = v; }
     public LocalDateTime getCreatedAt() { return createdAt; } public LocalDateTime getUpdatedAt() { return updatedAt; }

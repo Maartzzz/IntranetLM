@@ -20,4 +20,5 @@ public class ClientServiceOrderLclQuantity {
     }
     public Long getId() { return id; }
     public Integer getTotalPackages() { return totalPackages; }
+    public void setTotalPackages(Integer value) { totalPackages = value; }
 }

@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface InternalServiceOrderScheduleExclusionRepository
     extends JpaRepository<InternalServiceOrderScheduleExclusion, Long> {
 
+    boolean existsByInternalServiceOrder_Id(Long orderId);
+
     boolean existsByInternalServiceOrder_IdAndExcludedDate(
         Long internalServiceOrderId,
         LocalDate excludedDate

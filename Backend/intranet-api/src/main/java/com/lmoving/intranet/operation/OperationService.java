@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import com.lmoving.intranet.activity.OperationActivityService;
+import com.lmoving.intranet.audit.AuditLogService;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.lmoving.intranet.cargotype.CargoType;
 import com.lmoving.intranet.cargotype.repository.CargoTypeRepository;
 import com.lmoving.intranet.client.Client;
@@ -24,6 +26,7 @@ public class OperationService {
     private final ClientSubclientRepository clientSubclientRepository;
     private final StatusRepository statusRepository;
     private final OperationActivityService activityService;
+    @Autowired private AuditLogService auditLogService;
 
     public OperationService(OperationRepository operationRepository, ClientRepository clientRepository,
             CargoTypeRepository cargoTypeRepository, StatusRepository statusRepository,
@@ -63,8 +66,11 @@ public class OperationService {
             operation.setStatus(initial);
         }
         Operation saved = operationRepository.saveAndFlush(operation);
+        String currentSnapshot = snapshot(saved);
         activityService.registrar(saved.getId(), "CREATED", "OPERACION", saved.getId(),
-            "Se creó la operación " + saved.getOperationNumber(), null, snapshot(saved));
+            "Se creó la operación " + saved.getOperationNumber(), null, currentSnapshot);
+        auditLogService.registrar("OPERACIONES", "OPERACION", saved.getId(), "CREATED",
+            "Se creó la operación " + saved.getOperationNumber(), null, currentSnapshot);
         return toResponse(saved);
     }
 
@@ -78,9 +84,12 @@ public class OperationService {
         String newValue = snapshot(saved);
         if (!java.util.Objects.equals(oldValue, newValue)) {
             boolean statusChanged = !java.util.Objects.equals(oldStatus, newStatus);
-            activityService.registrar(saved.getId(), statusChanged ? "STATUS_CHANGED" : "UPDATED",
-                "OPERACION", saved.getId(), statusChanged ? "Cambió el estado de la operación" : "Se actualizaron los datos de la operación",
-                oldValue, newValue);
+            String action = statusChanged ? "STATUS_CHANGED" : "UPDATED";
+            String description = statusChanged ? "Cambió el estado de la operación" : "Se actualizaron los datos de la operación";
+            activityService.registrar(saved.getId(), action, "OPERACION", saved.getId(),
+                description, oldValue, newValue);
+            auditLogService.registrar("OPERACIONES", "OPERACION", saved.getId(), action,
+                description, oldValue, newValue);
         }
         return toResponse(saved);
     }

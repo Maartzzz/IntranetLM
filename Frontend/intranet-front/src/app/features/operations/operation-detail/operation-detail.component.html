@@ -9,6 +9,7 @@
     <section class="info-card"><div class="section-heading"><h2>Información general</h2></div>
       <div class="info-grid">
         <div><label>Tipo de carga</label><strong>{{ operation.cargoTypeName }} · {{ operation.container ? 'Contenedor (FCL)' : 'Carga suelta (LCL)' }}</strong></div>
+        <div><label>Subcliente</label><strong>{{ operation.subclientName || 'Sin subcliente asignado' }}</strong></div>
         <div><label>Referencia</label><strong>{{ operation.reference || '—' }}</strong></div>
         <div><label>O/S del cliente</label><strong>{{ operation.customerOrderNumber || '—' }}</strong></div>
         <div><label>Cantidad estimada</label><strong>{{ operation.quantity ?? '—' }}</strong></div>
@@ -23,17 +24,20 @@
     <section class="client-order-section">
       <header class="section-heading">
         <div><h2>Orden de Servicio del Cliente</h2><p>Solicitud recibida del cliente y asociada a esta operación.</p></div>
-        @if (!clientServiceOrder && !clientOrderLoading) {
+        @if (!clientServiceOrder && !clientOrderLoading && canCreateClientServiceOrder) {
           <button class="primary-button" type="button" (click)="addClientServiceOrder()">+ Registrar O/S del cliente</button>
+        } @else if (!clientServiceOrder && !clientOrderLoading && operation && !canCreateClientServiceOrder) {
+          <span class="section-hint">La O/S del cliente se habilitará cuando la operación esté en estado Confirmada.</span>
         }
       </header>
       @if (clientOrderLoading) { <p class="feedback">Consultando O/S del cliente...</p> }
       @if (clientOrderError) { <div class="error-message">{{ clientOrderError }} <button class="text-button" type="button" (click)="loadClientServiceOrder()">Reintentar</button></div> }
       @if (clientServiceOrder) {
         <article class="client-order-card">
-          <div class="client-order-top"><div><span class="eyebrow">O/S {{ clientServiceOrder.clientOrderNumber }}</span><h3>{{ clientServiceOrder.serviceType }} · {{ clientServiceOrder.statusName }}</h3></div><span class="status-pill" [style.backgroundColor]="clientServiceOrder.statusColor || '#64748B'">{{ clientServiceOrder.statusName }}</span></div>
+          <div class="client-order-top"><div><span class="eyebrow">O/S {{ clientServiceOrder.clientOrderNumber }}</span><h3>{{ clientServiceOrder.serviceType }} · {{ clientServiceOrder.statusName }}</h3></div><div class="internal-actions"><span class="status-pill" [style.backgroundColor]="clientServiceOrder.statusColor || '#64748B'">{{ clientServiceOrder.statusName }}</span><span class="status-pill">{{ clientServiceOrder.active ? 'Activa' : 'Inactiva' }}</span><button class="action-button action-button--neutral" type="button" (click)="editClientServiceOrder()" [disabled]="!clientServiceOrder.active">Editar</button><button class="action-button action-button--status" type="button" (click)="toggleClientOrderActive()" [disabled]="orderActionLoading">{{ clientServiceOrder.active ? 'Desactivar' : 'Reactivar' }}</button><button class="action-button action-button--danger" type="button" (click)="deleteClientOrder()" [disabled]="orderActionLoading">Eliminar</button></div></div>
           <div class="info-grid">
             <div><label>Referencia</label><strong>{{ clientServiceOrder.reference || '—' }}</strong></div>
+            <div><label>Subcliente de la operación</label><strong>{{ operation.subclientName || 'Sin subcliente asignado' }}</strong></div>
             <div><label>Fecha de recepción</label><strong>{{ clientServiceOrder.receivedDate || '—' }}</strong></div>
             <div><label>Llegada estimada</label><strong>{{ clientServiceOrder.estimatedArrivalDate || '—' }}</strong></div>
             <div><label>Origen</label><strong>{{ clientServiceOrder.origin || '—' }}</strong></div>
@@ -112,6 +116,7 @@
                 <div><label>Programación</label><strong>{{ order.scheduledDate ? (order.scheduledDate | date:'dd/MM/yyyy') : 'Sin programar' }}</strong></div>
               </div>
               @if (order.reference) { <p class="internal-order-reference">Referencia: {{ order.reference }}</p> }
+              <footer class="internal-order-footer"><button class="action-button action-button--neutral" type="button" (click)="editInternalOrder(order)" [disabled]="!order.active">Editar O/S interna</button><button class="action-button action-button--status" type="button" (click)="toggleInternalOrderActive(order)" [disabled]="orderActionLoading">{{ order.active ? 'Desactivar' : 'Reactivar' }}</button><button class="action-button action-button--danger" type="button" (click)="deleteInternalOrder(order)" [disabled]="orderActionLoading">Eliminar</button><span class="status-pill">{{ order.active ? 'Activa' : 'Inactiva' }}</span></footer>
             </article>
           } @empty {
             @if (!internalOrdersLoading && !internalOrdersError) { <div class="empty-state">Todavía no se han generado O/S internas para esta solicitud.</div> }

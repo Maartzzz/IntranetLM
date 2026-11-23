@@ -9,6 +9,8 @@ import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.lmoving.intranet.audit.AuditLogService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -25,6 +27,7 @@ import com.lmoving.intranet.osinterna.schedule.dto.ScheduleOrderResponse;
 @Service
 @Transactional
 public class InternalServiceOrderScheduleService {
+    @Autowired private AuditLogService auditLogService;
     private final InternalServiceOrderRepository orderRepository;
     private final InternalServiceOrderFclRepository fclRepository;
     private final InternalServiceOrderLclRepository lclRepository;
@@ -88,6 +91,8 @@ public class InternalServiceOrderScheduleService {
         LocalDate date = order.getScheduledDate();
         if (!exclusionRepository.existsByInternalServiceOrder_IdAndExcludedDate(orderId, date)) {
             exclusionRepository.save(new InternalServiceOrderScheduleExclusion(order, date));
+        auditLogService.registrar("PROGRAMACION", "OS_INTERNA", orderId, "REMOVED_FROM_BOARD",
+                "Se retiró la O/S interna del tablero para la fecha " + date, date.toString(), null);
         }
     }
 
@@ -104,12 +109,13 @@ public class InternalServiceOrderScheduleService {
         order.setScheduledDate(scheduledDate);
         orderRepository.saveAndFlush(order);
         exclusionRepository.deleteAllByInternalServiceOrder_Id(orderId);
-
         if (!scheduledDate.equals(previousDate)) {
             String event = previousDate == null ? "PROGRAMACION_INICIAL" : "REPROGRAMACION";
             String normalizedReason = reason == null || reason.isBlank()
                     ? "Programación desde el tablero" : reason.trim();
             historyService.registrar(order, event, previousDate, scheduledDate, normalizedReason);
+            auditLogService.registrar("PROGRAMACION", "OS_INTERNA", orderId, event,
+                    normalizedReason, previousDate == null ? null : previousDate.toString(), scheduledDate.toString());
         }
     }
 

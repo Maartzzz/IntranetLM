@@ -1,202 +1,144 @@
-<h2 mat-dialog-title >
-    {{ isEditMode ? 'Editar usuario' : 'Crear usuario' }}
+<h2 mat-dialog-title class="dialog-title">
+  <span class="dialog-kicker">{{ isEditMode ? 'GESTIÓN DE ACCESOS' : 'NUEVO REGISTRO' }}</span>
+  <span class="dialog-heading">{{ isEditMode ? 'Editar usuario' : 'Crear usuario' }}</span>
+  <span class="dialog-subtitle">Completa la información de identificación y acceso al sistema.</span>
 </h2>
 
 <div class="dialog-content">
+  @if (errorMessage) {
+    <div class="error-message" role="alert">
+      <span class="error-indicator" aria-hidden="true">!</span>
+      <span>{{ errorMessage }}</span>
+    </div>
+  }
 
-    @if (errorMessage) {
-        <div class="error-message">
-        {{ errorMessage }}
+  <form [formGroup]="userForm" (ngSubmit)="save()">
+    <section class="form-section">
+      <div class="section-heading">
+        <span class="section-number">01</span>
+        <div>
+          <h3>Credenciales de acceso</h3>
+          <p>Datos para identificar e ingresar al sistema.</p>
         </div>
-    }
+      </div>
 
-    <form
-        [formGroup]="userForm"
-        (ngSubmit)="save()"
-    >
-
+      <div class="field-grid">
         <mat-form-field appearance="outline">
-        <mat-label>Usuario</mat-label>
-
-        <input
-            matInput
-            formControlName="username"
-            autocomplete="off"
-        />
-
-        @if (
-            userForm.controls.username.touched &&
-            userForm.controls.username.hasError('required')
-        ) {
-            <mat-error>
-            El usuario es obligatorio.
-            </mat-error>
-        }
-
+          <mat-label>Usuario</mat-label>
+          <input matInput formControlName="username" autocomplete="off" />
+          @if (userForm.controls.username.touched && userForm.controls.username.hasError('required')) {
+            <mat-error>El usuario es obligatorio.</mat-error>
+          }
         </mat-form-field>
 
-
-    @if (!isEditMode) {
-
-        <mat-form-field appearance="outline">
-
+        @if (!isEditMode) {
+          <mat-form-field appearance="outline">
             <mat-label>Contraseña</mat-label>
-
-            <input
-            matInput
-            type="password"
-            formControlName="password"
-            autocomplete="new-password"
-            />
-
-            @if (
-            userForm.controls.password.touched &&
-            userForm.controls.password.hasError('required')
-            ) {
-            <mat-error>
-                La contraseña es obligatoria.
-            </mat-error>
+            <input matInput type="password" formControlName="password" autocomplete="new-password" />
+            @if (userForm.controls.password.touched && userForm.controls.password.hasError('required')) {
+              <mat-error>La contraseña es obligatoria.</mat-error>
             }
-
-            @if (
-            userForm.controls.password.touched &&
-            userForm.controls.password.hasError('minlength')
-            ) {
-            <mat-error>
-                Mínimo 8 caracteres.
-            </mat-error>
+            @if (userForm.controls.password.touched && userForm.controls.password.hasError('minlength')) {
+              <mat-error>Debe tener al menos 8 caracteres.</mat-error>
             }
+          </mat-form-field>
+        } @else {
+          <div class="field-note">
+            <span class="note-icon" aria-hidden="true">i</span>
+            <span>El nombre de usuario no se puede modificar después de su creación.</span>
+          </div>
+        }
+      </div>
+    </section>
 
-        </mat-form-field>
-
-    }
-
-
-        <mat-form-field appearance="outline">
-        <mat-label>Nombres</mat-label>
-
-        <input
-            matInput
-            formControlName="firstName"
-        />
-
-        </mat-form-field>
-
-
-        <mat-form-field appearance="outline">
-        <mat-label>Apellidos</mat-label>
-
-        <input
-            matInput
-            formControlName="lastName"
-        />
-
-        </mat-form-field>
-
-
-        <mat-form-field appearance="outline">
-        <mat-label>Tipo de documento</mat-label>
-
-        <mat-select formControlName="documentType">
-
-            <mat-option value="DNI">
-            DNI
-            </mat-option>
-
-            <mat-option value="CE">
-            Carné de extranjería
-            </mat-option>
-
-            <mat-option value="PASSPORT">
-            Pasaporte
-            </mat-option>
-
-        </mat-select>
-
-        </mat-form-field>
-
-
-        <mat-form-field appearance="outline">
-        <mat-label>Número de documento</mat-label>
-
-        <input
-            matInput
-            formControlName="documentNumber"
-        />
-
-        </mat-form-field>
-
-
-        <mat-form-field appearance="outline">
-        <mat-label>Teléfono</mat-label>
-
-        <input
-            matInput
-            formControlName="phone"
-        />
-
-        </mat-form-field>
-
-
-        <mat-form-field appearance="outline">
-        <mat-label>Correo electrónico</mat-label>
-
-        <input
-            matInput
-            type="email"
-            formControlName="email"
-        />
-
-        </mat-form-field>
-
-
-        <mat-form-field appearance="outline">
-        <mat-label>Rol</mat-label>
-
-        <mat-select formControlName="role">
-
-            <mat-option value="CHOFER">
-            Conductor
-            </mat-option>
-
-            <mat-option value="SUPERVISOR">
-            Supervisor
-            </mat-option>
-
-            <mat-option value="ADMIN">
-            Administrador
-            </mat-option>
-
-        </mat-select>
-
-        </mat-form-field>
-
-
-        <div class="actions">
-
-        <button
-            mat-button
-            type="button"
-            (click)="cancel()"
-            [disabled]="isSaving"
-        >
-            Cancelar
-        </button>
-
-        <button
-            mat-flat-button
-            type="submit"
-            [disabled]="isSaving"
-        >
-            @if (isSaving) {
-            Guardando...
-            } @else {
-            {{ isEditMode ? 'Actualizar' : 'Crear' }}
-            }
-        </button>
-
+    <section class="form-section">
+      <div class="section-heading">
+        <span class="section-number">02</span>
+        <div>
+          <h3>Información personal</h3>
+          <p>Datos de identificación y contacto del usuario.</p>
         </div>
+      </div>
 
-    </form>
+      <div class="field-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombres</mat-label>
+          <input matInput formControlName="firstName" autocomplete="given-name" />
+          @if (userForm.controls.firstName.touched && userForm.controls.firstName.hasError('required')) {
+            <mat-error>Los nombres son obligatorios.</mat-error>
+          }
+        </mat-form-field>
 
+        <mat-form-field appearance="outline">
+          <mat-label>Apellidos</mat-label>
+          <input matInput formControlName="lastName" autocomplete="family-name" />
+          @if (userForm.controls.lastName.touched && userForm.controls.lastName.hasError('required')) {
+            <mat-error>Los apellidos son obligatorios.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo de documento</mat-label>
+          <mat-select formControlName="documentType">
+            <mat-option value="DNI">DNI</mat-option>
+            <mat-option value="CE">Carné de extranjería</mat-option>
+            <mat-option value="PASSPORT">Pasaporte</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Número de documento</mat-label>
+          <input matInput formControlName="documentNumber" autocomplete="off" />
+          @if (userForm.controls.documentNumber.touched && userForm.controls.documentNumber.hasError('required')) {
+            <mat-error>El número de documento es obligatorio.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Teléfono</mat-label>
+          <input matInput formControlName="phone" type="tel" autocomplete="tel" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Correo electrónico</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          @if (userForm.controls.email.touched && userForm.controls.email.hasError('email')) {
+            <mat-error>Ingresa un correo electrónico válido.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </section>
+
+    <section class="form-section role-section">
+      <div class="section-heading">
+        <span class="section-number">03</span>
+        <div>
+          <h3>Perfil de acceso</h3>
+          <p>Define el rol y el nivel de acceso del usuario.</p>
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="role-field">
+        <mat-label>Rol</mat-label>
+        <mat-select formControlName="role">
+          <mat-option value="CHOFER">Conductor</mat-option>
+          <mat-option value="SUPERVISOR">Supervisor</mat-option>
+          <mat-option value="ADMIN">Administrador</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <div class="actions">
+      <button mat-button type="button" class="cancel-button" (click)="cancel()" [disabled]="isSaving">
+        Cancelar
+      </button>
+      <button mat-flat-button color="primary" type="submit" class="save-button" [disabled]="isSaving">
+        @if (isSaving) {
+          Guardando...
+        } @else {
+          {{ isEditMode ? 'Guardar cambios' : 'Crear usuario' }}
+        }
+      </button>
+    </div>
+  </form>
 </div>

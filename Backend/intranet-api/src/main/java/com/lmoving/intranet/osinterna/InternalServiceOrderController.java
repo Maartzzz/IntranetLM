@@ -33,6 +33,25 @@ public class InternalServiceOrderController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
     public InternalServiceOrderResponse actualizar(@PathVariable Long id,@Valid @RequestBody InternalServiceOrderRequest request){return service.actualizar(id,request);}
 
+
+    @PatchMapping("/{id}/active")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    public InternalServiceOrderResponse cambiarActivo(@PathVariable Long id, @RequestParam boolean active) {
+        return service.cambiarActivo(id, active);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    public void eliminar(@PathVariable Long id) { service.eliminar(id); }
+
+    @PostMapping("/batch")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    public List<InternalServiceOrderResponse> crearLote(@Valid @RequestBody List<@Valid InternalServiceOrderRequest> requests) {
+        return service.crearLote(requests);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")

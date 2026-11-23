@@ -1,29 +1,9 @@
-<h2 mat-dialog-title class="dialog-title">
-    {{ data.title }}
+<h2 mat-dialog-title class="confirm-title">
+  <span class="confirm-icon" aria-hidden="true">?</span>
+  <span>{{ data.title }}</span>
 </h2>
-
-<div mat-dialog-content class="dialog-content">
-    <p>
-        {{ data.message }}
-    </p>
-</div>
-
-<div mat-dialog-actions class="dialog-actions">
-
-    <button
-        mat-button
-        type="button"
-        (click)="cancel()"
-    >
-        {{ data.cancelText }}
-    </button>
-
-    <button
-        mat-flat-button
-        type="button"
-        (click)="confirm()"
-    >
-        {{ data.confirmText }}
-    </button>
-
+<div mat-dialog-content class="confirm-content"><p>{{ data.message }}</p></div>
+<div mat-dialog-actions class="confirm-actions">
+  <button mat-button type="button" class="cancel-button" (click)="cancel()">{{ data.cancelText }}</button>
+  <button mat-flat-button type="button" color="primary" class="confirm-button" (click)="confirm()">{{ data.confirmText }}</button>
 </div>

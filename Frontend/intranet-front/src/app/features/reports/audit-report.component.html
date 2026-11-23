@@ -1,0 +1,129 @@
+<main class="audit-page">
+  <header class="page-header">
+    <div>
+      <div class="eyebrow">REPORTES / CONTROL DE ACTIVIDAD</div>
+      <h1>Reporte de auditoría</h1>
+      <p>Consulta los cambios y acciones registrados en los módulos de IntranetLM.</p>
+    </div>
+    <button class="export-button" type="button" (click)="exportCsv()" [disabled]="filteredRecords.length === 0">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></svg>
+      Exportar CSV
+    </button>
+  </header>
+
+  <section class="filters-panel" aria-label="Filtros del reporte">
+    <div class="filter-grid">
+      <label class="filter-field search-field">
+        <span>Buscar</span>
+        <input type="search" [(ngModel)]="searchTerm" (ngModelChange)="page = 1" placeholder="Descripción, identificador o usuario..." />
+      </label>
+      <label class="filter-field">
+        <span>Módulo</span>
+        <select [(ngModel)]="moduleFilter">
+          <option value="">Todos los módulos</option>
+          @for (module of modules; track module.value) { <option [value]="module.value">{{ module.label }}</option> }
+        </select>
+      </label>
+      <label class="filter-field">
+        <span>Tipo de entidad</span>
+        <select [(ngModel)]="entityTypeFilter" (ngModelChange)="page = 1">
+          <option value="">Todos</option>
+          <option value="OPERACION">Operación</option>
+          <option value="REQUISITO">Requisito</option>
+          <option value="OS_CLIENTE">O/S cliente</option>
+          <option value="OS_INTERNA">O/S interna</option>
+          <option value="USUARIO">Usuario</option>
+          <option value="CONDUCTOR">Conductor</option>
+          <option value="PROGRAMACION">Programación</option>
+        </select>
+      </label>
+      <label class="filter-field">
+        <span>Acción</span>
+        <select [(ngModel)]="actionFilter" (ngModelChange)="page = 1">
+          <option value="">Todas</option>
+          <option value="CREATED">Creación</option>
+          <option value="UPDATED">Actualización</option>
+          <option value="STATUS_CHANGED">Cambio de estado</option>
+          <option value="ACTIVATED">Activación</option>
+          <option value="DEACTIVATED">Desactivación</option>
+        </select>
+      </label>
+      <label class="filter-field">
+        <span>Usuario responsable</span>
+        <input type="text" [(ngModel)]="actorFilter" (ngModelChange)="page = 1" placeholder="Usuario o nombre" />
+      </label>
+      <label class="filter-field">
+        <span>Desde</span>
+        <input type="date" [(ngModel)]="dateFrom" (ngModelChange)="page = 1" />
+      </label>
+      <label class="filter-field">
+        <span>Hasta</span>
+        <input type="date" [(ngModel)]="dateTo" (ngModelChange)="page = 1" />
+      </label>
+    </div>
+    <div class="filter-actions">
+      <span class="filter-note">El reporte muestra hasta los últimos 500 eventos disponibles.</span>
+      <div>
+        <button class="text-button" type="button" (click)="clearFilters()">Limpiar</button>
+        <button class="apply-button" type="button" (click)="applyFilters()" [disabled]="loading">Aplicar filtros</button>
+      </div>
+    </div>
+  </section>
+
+  @if (errorMessage) { <div class="error-message" role="alert">{{ errorMessage }}</div> }
+
+  <section class="report-panel">
+    <div class="report-toolbar">
+      <div><h2>Registro de actividad</h2><p>Eventos ordenados del más reciente al más antiguo.</p></div>
+      <span class="record-count">{{ filteredRecords.length }} registros</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Fecha y hora</th><th>Usuario responsable</th><th>Módulo</th><th>Entidad</th>
+          <th>Identificador</th><th>Acción</th><th>Descripción</th><th class="detail-heading">Detalle</th>
+        </tr></thead>
+        <tbody>
+          @if (loading) {
+            <tr><td colspan="8" class="empty-state"><strong>Cargando registros...</strong></td></tr>
+          } @else if (pagedRecords.length === 0) {
+            <tr><td colspan="8" class="empty-state"><strong>No hay registros para los filtros seleccionados.</strong><span>Prueba modificando los criterios de búsqueda.</span></td></tr>
+          } @else {
+            @for (row of pagedRecords; track row.id) {
+              <tr class="data-row" [class.selected-row]="expandedId === row.id">
+                <td class="date-cell">{{ row.createdAt | date:'dd/MM/yyyy' }}<small>{{ row.createdAt | date:'HH:mm:ss' }}</small></td>
+                <td class="actor-cell"><strong>{{ row.actorName || row.actorUsername }}</strong><small>{{ row.actorUsername }}</small></td>
+                <td>{{ moduleLabel(row.module) }}</td>
+                <td>{{ row.entityType.replaceAll('_', ' ') }}</td>
+                <td><span class="identifier">{{ identifier(row) }}</span></td>
+                <td><span class="action-pill" [attr.data-action]="row.action">{{ actionLabel(row.action) }}</span></td>
+                <td class="description-cell">{{ row.description }}</td>
+                <td class="detail-cell"><button type="button" class="detail-button" (click)="toggleDetail(row.id)" [attr.aria-expanded]="expandedId === row.id">{{ expandedId === row.id ? 'Cerrar' : 'Ver' }}</button></td>
+              </tr>
+              @if (expandedId === row.id) {
+                <tr class="detail-row"><td colspan="8">
+                  <div class="detail-grid">
+                    <div><h3>Valor anterior</h3><pre>{{ valueForDisplay(row.oldValue) }}</pre></div>
+                    <div><h3>Valor nuevo</h3><pre>{{ valueForDisplay(row.newValue) }}</pre></div>
+                  </div>
+                  <div class="detail-meta"><span>Evento #{{ row.id }}</span><span>{{ row.entityKey || (row.entityId !== null ? 'ID ' + row.entityId : 'Sin identificador') }}</span></div>
+                </td></tr>
+              }
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+    <footer class="pagination-bar">
+      <span>Mostrando {{ rangeStart }}–{{ rangeEnd }} de {{ filteredRecords.length }}</span>
+      <div class="pagination-controls">
+        <label>Filas
+          <select [(ngModel)]="pageSize" (ngModelChange)="page = 1"><option [ngValue]="10">10</option><option [ngValue]="20">20</option><option [ngValue]="50">50</option></select>
+        </label>
+        <button type="button" (click)="changePage(-1)" [disabled]="page <= 1" aria-label="Página anterior">‹</button>
+        <span>Página {{ page }} de {{ totalPages }}</span>
+        <button type="button" (click)="changePage(1)" [disabled]="page >= totalPages" aria-label="Página siguiente">›</button>
+      </div>
+    </footer>
+  </section>
+</main>

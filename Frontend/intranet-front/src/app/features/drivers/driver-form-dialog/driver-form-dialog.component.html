@@ -1,182 +1,121 @@
-<h2 mat-dialog-title>
-    Nuevo conductor
+<h2 mat-dialog-title class="dialog-title">
+  <span class="dialog-kicker">GESTIÓN DE CONDUCTORES</span>
+  <span class="dialog-heading">{{ data.driver ? 'Editar datos del conductor' : 'Registrar conductor' }}</span>
+  <span class="dialog-subtitle">Asocia un usuario y registra la información de su licencia de conducir.</span>
 </h2>
 
-    @if (data.users.length === 0) {
-
-    <div class="empty-users">
-        No existen usuarios con el rol de CHOFER disponibles
-        para registrar como conductor.
+@if (!data.driver && data.users.length === 0) {
+  <div class="empty-users" role="status">
+    <span class="empty-icon" aria-hidden="true">i</span>
+    <div>
+      <strong>No hay usuarios disponibles</strong>
+      <p>No existen usuarios con el rol de CHOFER pendientes de registrar como conductor.</p>
     </div>
+  </div>
+}
 
-    }
+<div mat-dialog-content class="dialog-content">
+  <form [formGroup]="form">
+    <section class="form-section">
+      <div class="section-heading">
+        <span class="section-number">01</span>
+        <div>
+          <h3>Usuario asociado</h3>
+          <p>Selecciona la cuenta que tendrá el registro de conductor.</p>
+        </div>
+      </div>
 
-    <div mat-dialog-content class="dialog-content">
-
-    <form [formGroup]="form">
-
-        <div class="form-field">
-
-        <label for="username">
-            Usuario / Conductor
-        </label>
-
-        <select
-            id="username"
-            formControlName="username"
-        >
-
-            <option value="">
-            Seleccionar conductor
-            </option>
-
+      <div class="form-field">
+        <label for="username">Usuario / Conductor</label>
+        @if (data.driver) {
+          <input id="username" type="text" [value]="data.driver.username" disabled />
+          <small class="field-hint">La cuenta asociada no se puede cambiar.</small>
+        } @else {
+          <select id="username" formControlName="username">
+            <option value="">Seleccionar conductor</option>
             @for (user of data.users; track user.username) {
-
-            <option [value]="user.username">
-
-                {{ user.firstName }}
-                {{ user.lastName }}
-                — {{ user.username }}
-
-            </option>
-
+              <option [value]="user.username">
+                {{ user.firstName }} {{ user.lastName }} — {{ user.username }}
+              </option>
             }
-
-        </select>
-
-        @if (
-            form.controls.username.touched &&
-            form.controls.username.invalid
-        ) {
-
-            <span class="error">
-            Debes seleccionar un conductor.
-            </span>
-
+          </select>
         }
-
-        </div>
-
-
-        <div class="form-field">
-
-        <label for="licenseNumber">
-            Número de licencia
-        </label>
-
-        <input
-            id="licenseNumber"
-            type="text"
-            formControlName="licenseNumber"
-            placeholder="Número de licencia"
-        />
-
-        @if (
-            form.controls.licenseNumber.touched &&
-            form.controls.licenseNumber.invalid
-        ) {
-            <span class="error">
-            El número de licencia es obligatorio.
-            </span>
+        @if (form.controls.username.touched && form.controls.username.invalid) {
+          <span class="error">Debes seleccionar un conductor.</span>
         }
+      </div>
+    </section>
 
+    <section class="form-section">
+      <div class="section-heading">
+        <span class="section-number">02</span>
+        <div>
+          <h3>Licencia de conducir</h3>
+          <p>Información que identifica y acredita la licencia.</p>
         </div>
+      </div>
 
+      <div class="field-grid">
+        <div class="form-field">
+          <label for="licenseNumber">Número de licencia <span class="required">*</span></label>
+          <input id="licenseNumber" type="text" formControlName="licenseNumber"
+                 placeholder="Ej. Q12345678" autocomplete="off" />
+          @if (form.controls.licenseNumber.touched && form.controls.licenseNumber.invalid) {
+            <span class="error">El número de licencia es obligatorio.</span>
+          }
+        </div>
 
         <div class="form-field">
-
-        <label for="licenseCategory">
-            Categoría
-        </label>
-
-        <select
-            id="licenseCategory"
-            formControlName="licenseCategory"
-        >
-
-            <option value="">
-            Seleccionar categoría
-            </option>
-
-            <option value="A-IIa">
-            A-IIa
-            </option>
-
-            <option value="A-IIb">
-            A-IIb
-            </option>
-
-            <option value="A-IIIa">
-            A-IIIa
-            </option>
-
-            <option value="A-IIIb">
-            A-IIIb
-            </option>
-
-            <option value="A-IIIc">
-            A-IIIc
-            </option>
-
-        </select>
-
+          <label for="licenseCategory">Categoría <span class="required">*</span></label>
+          <select id="licenseCategory" formControlName="licenseCategory">
+            <option value="">Seleccionar categoría</option>
+            <option value="A-IIa">A-IIa</option>
+            <option value="A-IIb">A-IIb</option>
+            <option value="A-IIIa">A-IIIa</option>
+            <option value="A-IIIb">A-IIIb</option>
+            <option value="A-IIIc">A-IIIc</option>
+          </select>
+          @if (form.controls.licenseCategory.touched && form.controls.licenseCategory.invalid) {
+            <span class="error">Selecciona una categoría.</span>
+          }
         </div>
+      </div>
+    </section>
 
+    <section class="form-section">
+      <div class="section-heading">
+        <span class="section-number">03</span>
+        <div>
+          <h3>Vigencia de la licencia</h3>
+          <p>Indica las fechas de emisión y vencimiento.</p>
+        </div>
+      </div>
 
-        <div class="date-row">
+      <div class="field-grid">
+        <div class="form-field">
+          <label for="licenseIssueDate">Fecha de emisión <span class="required">*</span></label>
+          <input id="licenseIssueDate" type="date" formControlName="licenseIssueDate" />
+          @if (form.controls.licenseIssueDate.touched && form.controls.licenseIssueDate.invalid) {
+            <span class="error">La fecha de emisión es obligatoria.</span>
+          }
+        </div>
 
         <div class="form-field">
-
-            <label for="licenseIssueDate">
-            Fecha de emisión
-            </label>
-
-            <input
-            id="licenseIssueDate"
-            type="date"
-            formControlName="licenseIssueDate"
-            />
-
+          <label for="licenseExpiryDate">Fecha de vencimiento <span class="required">*</span></label>
+          <input id="licenseExpiryDate" type="date" formControlName="licenseExpiryDate" />
+          @if (form.controls.licenseExpiryDate.touched && form.controls.licenseExpiryDate.invalid) {
+            <span class="error">La fecha de vencimiento es obligatoria.</span>
+          }
         </div>
+      </div>
+    </section>
+  </form>
+</div>
 
-
-        <div class="form-field">
-
-            <label for="licenseExpiryDate">
-            Fecha de vencimiento
-            </label>
-
-            <input
-            id="licenseExpiryDate"
-            type="date"
-            formControlName="licenseExpiryDate"
-            />
-
-        </div>
-
-        </div>
-
-    </form>
-
-    </div>
-
-
-    <div mat-dialog-actions class="dialog-actions">
-
-    <button
-        type="button"
-        mat-button
-        (click)="cancel()"
-    >
-        Cancelar
-    </button>
-
-    <button
-        type="button"
-        mat-flat-button
-        (click)="submit()"
-    >
-        Crear conductor
-    </button>
-
+<div mat-dialog-actions class="dialog-actions">
+  <button type="button" mat-button class="cancel-button" (click)="cancel()">Cancelar</button>
+  <button type="button" mat-flat-button color="primary" class="save-button"
+          (click)="submit()" [disabled]="!data.driver && data.users.length === 0">
+    {{ data.driver ? 'Guardar cambios' : 'Registrar conductor' }}
+  </button>
 </div>

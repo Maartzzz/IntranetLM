@@ -1,36 +1,52 @@
 <h2 mat-dialog-title>{{ isEditMode ? 'Editar operación' : 'Nueva operación' }}</h2>
 <div class="dialog-content">
-  @if (loadingOptions) { <p>Cargando clientes y tipos de carga...</p> }
-  @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
+  @if (loadingOptions) { <p class="feedback">Cargando clientes y tipos de carga...</p> }
+  @if (errorMessage) { <div class="error-message" role="alert">{{ errorMessage }}</div> }
   <form [formGroup]="form" (ngSubmit)="save()">
-    <div class="form-grid">
-      <mat-form-field appearance="outline"><mat-label>Cliente</mat-label>
-        <mat-select formControlName="clientId" (selectionChange)="onClientChange($event.value)"><mat-option [value]="0" disabled>Selecciona un cliente</mat-option>
-          @for (client of clients; track client.id) { <mat-option [value]="client.id">{{ client.businessName }}</mat-option> }
-        </mat-select><mat-error>Selecciona un cliente activo.</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Subcliente (opcional)</mat-label>
-        <mat-select formControlName="clientSubclientId" [disabled]="!form.controls.clientId.value || loadingSubclients">
-          <mat-option [value]="null">Sin subcliente</mat-option>
-          @for (relation of subclients; track relation.id) { <mat-option [value]="relation.id">{{ relation.subclientName }}</mat-option> }
-        </mat-select>
-        @if (loadingSubclients) { <mat-hint>Cargando subclientes...</mat-hint> }
-        @else { <mat-hint>Selecciona un subcliente si la operación corresponde a uno.</mat-hint> }
-      </mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Tipo de carga</mat-label>
-        <mat-select formControlName="cargoTypeId"><mat-option [value]="0" disabled>Selecciona un tipo</mat-option>
-          @for (cargo of cargoTypes; track cargo.id) { <mat-option [value]="cargo.id">{{ cargo.name }} · {{ cargo.container ? 'Contenedor' : 'Carga suelta' }}</mat-option> }
-        </mat-select><mat-error>Selecciona un tipo de carga activo.</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Referencia</mat-label><input matInput formControlName="reference" maxlength="150"></mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>O/S del cliente</mat-label><input matInput formControlName="customerOrderNumber" maxlength="100"></mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Origen</mat-label><input matInput formControlName="origin" maxlength="200"></mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Destino</mat-label><input matInput formControlName="destination" maxlength="200"></mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Cantidad estimada</mat-label><input matInput type="number" min="1" formControlName="quantity"><mat-hint>Opcional en esta etapa.</mat-hint></mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Fecha estimada</mat-label><input matInput type="date" formControlName="estimatedDate"></mat-form-field>
-      <mat-form-field appearance="outline" class="full-width"><mat-label>Observaciones</mat-label><textarea matInput rows="3" maxlength="1000" formControlName="observation"></textarea></mat-form-field>
-    </div>
-    @if (selectedCargoType) { <p class="hint">Clasificación: {{ selectedCargoType.container ? 'Contenedor (FCL)' : 'Carga suelta (LCL)' }}.</p> }
+    <section class="form-section">
+      <div class="section-heading">
+        <span class="section-index">01</span>
+        <div><h3>Datos de la operación</h3><p>Identifica al cliente y el tipo de servicio solicitado.</p></div>
+      </div>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" subscriptSizing="fixed"><mat-label>Cliente</mat-label>
+          <mat-select formControlName="clientId" (selectionChange)="onClientChange($event.value)"><mat-option [value]="0" disabled>Selecciona un cliente</mat-option>
+            @for (client of clients; track client.id) { <mat-option [value]="client.id">{{ client.businessName }}</mat-option> }
+          </mat-select><mat-error>Selecciona un cliente activo.</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="fixed"><mat-label>Subcliente (opcional)</mat-label>
+          <mat-select formControlName="clientSubclientId" [disabled]="!form.controls.clientId.value || loadingSubclients">
+            <mat-option [value]="null">Sin subcliente</mat-option>
+            @for (relation of subclients; track relation.id) { <mat-option [value]="relation.id">{{ relation.subclientName }}</mat-option> }
+          </mat-select>
+          @if (loadingSubclients) { <mat-hint>Cargando subclientes...</mat-hint> }
+          @else { <mat-hint>Indicar subcliente si corresponde. </mat-hint> }
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="fixed"><mat-label>Tipo de carga</mat-label>
+          <mat-select formControlName="cargoTypeId"><mat-option [value]="0" disabled>Selecciona un tipo</mat-option>
+            @for (cargo of cargoTypes; track cargo.id) { <mat-option [value]="cargo.id">{{ cargo.name }} · {{ cargo.container ? 'Contenedor' : 'Carga suelta' }}</mat-option> }
+          </mat-select><mat-error>Selecciona un tipo de carga activo.</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="fixed"><mat-label>Referencia</mat-label><input matInput formControlName="reference" maxlength="150"></mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="fixed"><mat-label>O/S del cliente</mat-label><input matInput formControlName="customerOrderNumber" maxlength="100"></mat-form-field>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <div class="section-heading"><span class="section-index">02</span><div><h3>Detalles logísticos</h3><p>Registra el recorrido y la cantidad estimada.</p></div></div>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" subscriptSizing="fixed"><mat-label>Origen</mat-label><input matInput formControlName="origin" maxlength="200"></mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="fixed"><mat-label>Destino</mat-label><input matInput formControlName="destination" maxlength="200"></mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="fixed"><mat-label>Cantidad estimada</mat-label><input matInput type="number" min="1" formControlName="quantity"><mat-hint>Opcional en esta etapa.</mat-hint></mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="fixed"><mat-label>Fecha estimada</mat-label><input matInput type="date" formControlName="estimatedDate"></mat-form-field>
+      </div>
+      @if (selectedCargoType) { <div class="classification-note">Clasificación: <strong>{{ selectedCargoType.container ? 'Contenedor (FCL)' : 'Carga suelta (LCL)' }}</strong></div> }
+    </section>
+
+    <section class="form-section last-section">
+      <div class="section-heading"><span class="section-index">03</span><div><h3>Información adicional</h3><p>Agrega indicaciones relevantes para el seguimiento.</p></div></div>
+      <mat-form-field appearance="outline" subscriptSizing="fixed" class="full-width"><mat-label>Observaciones</mat-label><textarea matInput rows="3" maxlength="1000" formControlName="observation"></textarea></mat-form-field>
+    </section>
     <div class="actions"><button mat-button type="button" (click)="cancel()" [disabled]="isSaving">Cancelar</button>
       <button mat-flat-button color="primary" type="submit" [disabled]="isSaving || loadingOptions">{{ isSaving ? 'Guardando...' : (isEditMode ? 'Guardar cambios' : 'Crear operación') }}</button>
     </div>

@@ -5,10 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { OperationsService } from '../../../core/services/operations.service';
-import { CargoTypeService } from '../../../core/services/cargo-types.service';
 import { CargoType } from '../../../core/models/cargo-types.models';
 import { ClientServiceOrderRequest } from '../../../core/models/client-service-orders.models';
+import { CargoTypeService } from '../../../core/services/cargo-types.service';
+import { OperationsService } from '../../../core/services/operations.service';
 
 export interface ClientServiceOrderDialogData {
   operationId: number;

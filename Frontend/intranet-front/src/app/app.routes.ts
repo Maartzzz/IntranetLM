@@ -29,6 +29,8 @@ import { LocationsComponent } from './features/locations/locations.component';
 import { SubclientsComponent } from './features/subclients/subclients.component';
 import { SchedulingComponent } from './features/scheduling/scheduling.component';
 import { ScheduleDayComponent } from './features/scheduling/schedule-day/schedule-day.component';
+import { AuditReportComponent } from './features/reports/audit-report.component';
+import { reportAccessGuard } from './core/guards/report-access.guard';
 
 export const routes: Routes = [
     {
@@ -43,6 +45,11 @@ export const routes: Routes = [
         {
             path: 'dashboard',
             component: DashboardComponent
+        },
+        {
+            path: 'reports/audit',
+            component: AuditReportComponent,
+            canActivate: [reportAccessGuard]
         },
         {
             path: 'users',

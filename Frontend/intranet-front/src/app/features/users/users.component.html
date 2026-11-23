@@ -1,201 +1,118 @@
 <section class="users-page">
-
-    <div class="page-header">
-
-        <div>
-        <h1>Usuarios</h1>
-        <p>Administración de usuarios de la intranet</p>
-        </div>
-
-        <button class="control-btn" type="button" (click)="openCreateDialog()">
-        + Nuevo usuario
-        </button>
-
+  <header class="page-header">
+    <div class="page-heading">
+      <span class="eyebrow">Administración</span>
+      <h1>Usuarios</h1>
+      <p>Gestiona las cuentas, roles y estados de acceso a IntranetLM.</p>
     </div>
 
-    <div class="filters">
+    <button class="create-button" type="button" (click)="openCreateDialog()">
+      <span aria-hidden="true">+</span>
+      Nuevo usuario
+    </button>
+  </header>
 
+  <section class="filters-panel" aria-label="Filtros de usuarios">
     <div class="search-field">
-
-        <label for="search">
-        Buscar
-        </label>
-
-        <input
-        id="search"
+      <label for="user-search">Buscar usuario</label>
+      <input
+        id="user-search"
         type="text"
         placeholder="Usuario, nombre, apellido o documento..."
         [(ngModel)]="searchTerm"
-        />
-
+      />
     </div>
-
 
     <div class="filter-field">
-
-        <label for="role">
-        Rol
-        </label>
-
-        <select
-        id="role"
-        [(ngModel)]="selectedRole"
-        >
-
-        <option value="ALL">
-            Todos
-        </option>
-
-        <option value="ADMIN">
-            Administrador
-        </option>
-
-        <option value="SUPERVISOR">
-            Supervisor
-        </option>
-
-        <option value="CHOFER">
-            Conductor
-        </option>
-
-        </select>
-
+      <label for="user-role">Rol</label>
+      <select id="user-role" [(ngModel)]="selectedRole">
+        <option value="ALL">Todos los roles</option>
+        <option value="ADMIN">Administrador</option>
+        <option value="SUPERVISOR">Supervisor</option>
+        <option value="CHOFER">Conductor</option>
+      </select>
     </div>
-
 
     <div class="filter-field">
-
-        <label for="status">
-        Estado
-        </label>
-
-        <select
-        id="status"
-        [(ngModel)]="selectedStatus"
-        >
-
-        <option value="ALL">
-            Todos
-        </option>
-
-        <option value="ACTIVE">
-            Activos
-        </option>
-
-        <option value="INACTIVE">
-            Inactivos
-        </option>
-
-        </select>
-
+      <label for="user-status">Estado</label>
+      <select id="user-status" [(ngModel)]="selectedStatus">
+        <option value="ALL">Todos los estados</option>
+        <option value="ACTIVE">Activos</option>
+        <option value="INACTIVE">Inactivos</option>
+      </select>
     </div>
+  </section>
 
-</div>
+  @if (loading) {
+    <div class="feedback-state">Cargando usuarios...</div>
+  }
 
+  @if (errorMessage) {
+    <div class="error-state" role="alert">{{ errorMessage }}</div>
+  }
 
-    @if (loading) {
+  @if (!loading && !errorMessage) {
+    <section class="users-results">
+      <div class="results-heading">
+        <h2>Listado de usuarios</h2>
+        <span>{{ filteredUsers.length }} resultado(s)</span>
+      </div>
 
-        <p>Cargando usuarios...</p>
-
-    }
-
-
-    @if (errorMessage) {
-
-        <p class="error">
-        {{ errorMessage }}
-        </p>
-
-    }
-
-
-    @if (!loading && !errorMessage) {
-
-        <div class="table-container">
-
+      <div class="table-container">
         <table>
-
-            <thead>
-
+          <thead>
             <tr>
-                <th>Usuario</th>
-                <th>Nombre</th>
-                <th>Documento</th>
-                <th>Teléfono</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th>Acciones</th>
+              <th>Usuario</th>
+              <th>Nombre completo</th>
+              <th>Documento</th>
+              <th>Teléfono</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th class="actions-heading">Acciones</th>
             </tr>
-
-            </thead>
-
-            <tbody>
-
+          </thead>
+          <tbody>
             @for (user of filteredUsers; track user.username) {
-
-                <tr>
-
+              <tr>
+                <td class="username-cell">{{ user.username }}</td>
+                <td class="name-cell">{{ user.firstName }} {{ user.lastName }}</td>
+                <td>{{ user.documentType }} {{ user.documentNumber }}</td>
+                <td>{{ user.phone || '-' }}</td>
+                <td><span class="role-pill">{{ user.role }}</span></td>
                 <td>
-                    {{ user.username }}
+                  <span class="status-pill" [class.is-active]="user.active" [class.is-inactive]="!user.active">
+                    <span class="status-dot"></span>
+                    {{ user.active ? 'Activo' : 'Inactivo' }}
+                  </span>
                 </td>
-
                 <td>
-                    {{ user.firstName }}
-                    {{ user.lastName }}
+                  <div class="row-actions">
+                    <button
+                      class="action-button edit-button"
+                      type="button"
+                      (click)="openEditDialog(user)"
+                    >Editar</button>
+                    <button
+                      class="action-button"
+                      [class.deactivate-button]="user.active"
+                      [class.activate-button]="!user.active"
+                      type="button"
+                      (click)="toggleActive(user)"
+                    >{{ user.active ? 'Desactivar' : 'Activar' }}</button>
+                  </div>
                 </td>
-
-                <td>
-                    {{ user.documentType }}
-                    {{ user.documentNumber }}
+              </tr>
+            } @empty {
+              <tr>
+                <td class="empty-cell" colspan="7">
+                  <strong>No se encontraron usuarios</strong>
+                  <span>Prueba cambiando los filtros o el texto de búsqueda.</span>
                 </td>
-
-                <td>
-                    {{ user.phone || '-' }}
-                </td>
-
-                <td>
-                    {{ user.role }}
-                </td>
-
-                <td>
-
-                    @if (user.active) {
-                    <span class="active">
-                        Activo
-                    </span>
-                    } @else {
-                    <span class="inactive">
-                        Inactivo
-                    </span>
-                    }
-
-                </td>
-
-                <td>
-                    <button class = "active-btn" type="button" (click)="toggleActive(user)">
-                        {{ user.active ? 'Desactivar' : 'Activar' }}
-                    </button>
-
-                    <button class = "edit-btn" type="button" (click)="openEditDialog(user)">
-                        Editar
-                    </button>
-                </td>
-
-                </tr>
-
+              </tr>
             }
-
-            </tbody>
-
-        <p class="results-count">
-        {{ filteredUsers.length }}
-        usuario(s) encontrado(s)
-        </p>
-
+          </tbody>
         </table>
-
-        </div>
-
-    }
-
+      </div>
+    </section>
+  }
 </section>

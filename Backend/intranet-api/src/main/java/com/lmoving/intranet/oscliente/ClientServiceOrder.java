@@ -44,6 +44,9 @@ public class ClientServiceOrder {
     @Column(length = 200)
     private String destination;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     @Column(columnDefinition = "TEXT")
     private String observation;
 
@@ -86,6 +89,8 @@ public class ClientServiceOrder {
     public void setEstimatedArrivalDate(LocalDate value) { estimatedArrivalDate = value; }
     public String getOrigin() { return origin; }
     public void setOrigin(String value) { origin = value; }
+    public boolean isActive() { return active; }
+    public void setActive(boolean value) { active = value; }
     public String getDestination() { return destination; }
     public void setDestination(String value) { destination = value; }
     public String getObservation() { return observation; }

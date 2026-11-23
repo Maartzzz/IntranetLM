@@ -1,190 +1,99 @@
-<div class="page-header">
-
+<section class="drivers-page">
+  <header class="page-header">
     <div>
-        <h1>Conductores</h1>
-
-        <p>
-        Administración de conductores y licencias
-        </p>
+      <div class="eyebrow">GESTIÓN DE PERSONAL</div>
+      <h1>Conductores</h1>
+      <p>Administración de conductores y licencias</p>
     </div>
-
-    <button type="button"
-        (click)="openCreateDialog()">
-        + Nuevo conductor
+    <button class="primary-button" type="button" (click)="openCreateDialog()">
+      <span aria-hidden="true">＋</span> Nuevo conductor
     </button>
+  </header>
 
-    </div>
-
-
-    <div class="filters">
-
+  <section class="filters" aria-label="Filtros de conductores">
     <div class="search-field">
-
-        <label for="search">
-        Buscar
-        </label>
-
-        <input
-        id="search"
-        type="text"
-        placeholder="Usuario, nombre, documento o licencia..."
+      <label for="driver-search">Buscar conductor</label>
+      <input
+        id="driver-search"
+        type="search"
+        placeholder="Usuario, nombre, documento o licencia…"
         [(ngModel)]="searchTerm"
-        />
-
+      />
     </div>
-
     <div class="filter-field">
-
-        <label for="status">
-        Estado
-        </label>
-
-        <select
-        id="status"
-        [(ngModel)]="selectedStatus"
-        >
-
-        <option value="ALL">
-            Todos
-        </option>
-
-        <option value="ACTIVE">
-            Activos
-        </option>
-
-        <option value="INACTIVE">
-            Inactivos
-        </option>
-
-        </select>
-
+      <label for="driver-status">Estado</label>
+      <select id="driver-status" [(ngModel)]="selectedStatus">
+        <option value="ALL">Todos los estados</option>
+        <option value="ACTIVE">Activos</option>
+        <option value="INACTIVE">Inactivos</option>
+      </select>
     </div>
+  </section>
 
+  @if (errorMessage) {
+    <div class="error-message" role="alert">{{ errorMessage }}</div>
+  }
+
+  <section class="results-panel" aria-label="Resultados de conductores">
+    <div class="results-toolbar">
+      <div>
+        <h2>Conductores registrados</h2>
+        <p>Consulta los datos de licencia y estado de cada conductor.</p>
+      </div>
+      <span class="results-count">{{ filteredDrivers.length }} resultado(s)</span>
     </div>
-
-
-    @if (errorMessage) {
-
-    <div class="error-message">
-        {{ errorMessage }}
-    </div>
-
-    }
 
     <div class="table-container">
-
-    <table>
-
+      <table>
         <thead>
-
-        <tr>
-
-            <th>Conductor</th>
-            <th>Documento</th>
-            <th>Teléfono</th>
-            <th>Licencia</th>
-            <th>Categoría</th>
-            <th>Vencimiento</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-
-        </tr>
-
+          <tr>
+            <th scope="col">Conductor</th>
+            <th scope="col">Documento</th>
+            <th scope="col">Teléfono</th>
+            <th scope="col">Licencia</th>
+            <th scope="col">Categoría</th>
+            <th scope="col">Vencimiento</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="actions-heading">Acciones</th>
+          </tr>
         </thead>
-
         <tbody>
-
-        @for (
-            driver of filteredDrivers;
-            track driver.username
-        ) {
-
+          @for (driver of filteredDrivers; track driver.username) {
             <tr>
-
-            <td>
-                <strong>
-                {{ driver.firstName }}
-                {{ driver.lastName }}
-                </strong>
-
-                <small>
-                {{ driver.username }}
-                </small>
-            </td>
-
-            <td>
-                {{ driver.documentType }}
-                {{ driver.documentNumber }}
-            </td>
-
-            <td>
-                {{ driver.phone || '-' }}
-            </td>
-
-            <td>
-                {{ driver.licenseNumber }}
-            </td>
-
-            <td>
-                {{ driver.licenseCategory }}
-            </td>
-
-            <td>
-                {{ driver.licenseExpiryDate }}
-            </td>
-
-            <td>
-
-                @if (driver.active) {
-
-                <span class="active">
-                    Activo
+              <td class="driver-cell">
+                <strong>{{ driver.firstName }} {{ driver.lastName }}</strong>
+                <small>{{ driver.username }}</small>
+              </td>
+              <td>{{ driver.documentType }} {{ driver.documentNumber }}</td>
+              <td>{{ driver.phone || '—' }}</td>
+              <td>{{ driver.licenseNumber }}</td>
+              <td>{{ driver.licenseCategory }}</td>
+              <td>{{ driver.licenseExpiryDate }}</td>
+              <td>
+                <span class="status-pill" [class.status-active]="driver.active" [class.status-inactive]="!driver.active">
+                  {{ driver.active ? 'Activo' : 'Inactivo' }}
                 </span>
-
-                } @else {
-
-                <span class="inactive">
-                    Inactivo
-                </span>
-
-                }
-
-            </td>
-
-            <td>
-
-                <button type="button" (click)="openDetailDialog(driver)">
-                Ver
-                </button>
-
-            </td>
-
+              </td>
+              <td class="actions-cell">
+                <div class="row-actions">
+                  <button class="row-action" type="button" (click)="openDetailDialog(driver)">Ver detalle</button>
+                  <button class="row-action" type="button" (click)="openEditDialog(driver)">Editar</button>
+                  <button class="row-action" type="button" (click)="toggleDriverActive(driver)">
+                    {{ driver.active ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
+              </td>
             </tr>
-
-        } @empty {
-
+          } @empty {
             <tr>
-
-            <td
-                colspan="8"
-                class="empty"
-            >
-                No se encontraron conductores.
-            </td>
-
+              <td colspan="8" class="empty-state">
+                <strong>No se encontraron conductores</strong>
+                <span>Prueba con otro término o cambia el filtro de estado.</span>
+              </td>
             </tr>
-
-        }
-
+          }
         </tbody>
-
-        
-
-    <p class="results-count">
-    {{ filteredDrivers.length }}
-    conductor(es) encontrado(s)
-    </p>
-
-    </table>
-
-</div>
+      </table>
+    </div>
+  </section>
+</section>

@@ -6,16 +6,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lmoving.intranet.cic.CicCategoria;
+import com.lmoving.intranet.audit.AuditLogService;
 import com.lmoving.intranet.cic.repository.CicCategoriaRepository;
 
 @Service
 public class CicCategoriaService {
 
     private final CicCategoriaRepository categoriaRepository;
+    private final AuditLogService auditLogService;
 
     public CicCategoriaService(
-            CicCategoriaRepository categoriaRepository) {
+            CicCategoriaRepository categoriaRepository,
+            AuditLogService auditLogService) {
         this.categoriaRepository = categoriaRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional(readOnly = true)
@@ -47,7 +51,11 @@ public class CicCategoriaService {
         categoria.setDescripcion(limpiarDescripcion(descripcion));
         categoria.setActiva(true);
 
-        return categoriaRepository.save(categoria);
+        CicCategoria guardada = categoriaRepository.save(categoria);
+        auditLogService.registrar("CIC", "CIC_CATEGORIA", guardada.getId(), "CREATED",
+                "Se creó la categoría CIC " + guardada.getNombre(),
+                null, valorAuditoria(guardada));
+        return guardada;
     }
 
     @Transactional
@@ -76,14 +84,36 @@ public class CicCategoriaService {
         categoria.setNombre(nombreLimpio);
         categoria.setDescripcion(limpiarDescripcion(descripcion));
 
-        return categoriaRepository.save(categoria);
+        String valorAnterior = valorAuditoria(categoria);
+        CicCategoria guardada = categoriaRepository.save(categoria);
+        auditLogService.registrar("CIC", "CIC_CATEGORIA", guardada.getId(), "UPDATED",
+                "Se actualizó la categoría CIC " + guardada.getNombre(),
+                valorAnterior, valorAuditoria(guardada));
+        return guardada;
     }
 
     @Transactional
     public CicCategoria cambiarEstado(Long id, boolean activa) {
         CicCategoria categoria = obtenerPorId(id);
+        boolean estadoAnterior = categoria.isActiva();
+        if (estadoAnterior == activa) {
+            return categoria;
+        }
         categoria.setActiva(activa);
-        return categoriaRepository.save(categoria);
+        CicCategoria guardada = categoriaRepository.save(categoria);
+        auditLogService.registrar("CIC", "CIC_CATEGORIA", guardada.getId(),
+                activa ? "ACTIVATED" : "DEACTIVATED",
+                (activa ? "Se activó" : "Se desactivó")
+                        + " la categoría CIC " + guardada.getNombre(),
+                Boolean.toString(estadoAnterior), Boolean.toString(guardada.isActiva()));
+        return guardada;
+    }
+
+    private String valorAuditoria(CicCategoria categoria) {
+        return "CicCategoria[id=" + categoria.getId()
+                + ", nombre=" + categoria.getNombre()
+                + ", descripcion=" + categoria.getDescripcion()
+                + ", activa=" + categoria.isActiva() + "]";
     }
 
     private CicCategoria obtenerPorId(Long id) {

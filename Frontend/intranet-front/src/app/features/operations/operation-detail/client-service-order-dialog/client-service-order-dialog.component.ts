@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CargoType } from '../../../../core/models/cargo-types.models';
-import { ClientServiceOrderRequest } from '../../../../core/models/client-service-orders.models';
+import { ClientServiceOrder, ClientServiceOrderRequest } from '../../../../core/models/client-service-orders.models';
 import { CargoTypeService } from '../../../../core/services/cargo-types.service';
 import { OperationsService } from '../../../../core/services/operations.service';
 
@@ -23,6 +23,7 @@ export interface ClientServiceOrderDialogData {
   quantity: number | null;
   cargoTypeId: number;
   observation: string | null;
+  order?: ClientServiceOrder | null;
 }
 
 @Component({
@@ -38,7 +39,8 @@ export class ClientServiceOrderDialogComponent {
   private readonly cargoTypesService = inject(CargoTypeService);
   readonly data = inject<ClientServiceOrderDialogData>(MAT_DIALOG_DATA);
   private readonly dialogRef = inject(MatDialogRef<ClientServiceOrderDialogComponent>);
-  readonly serviceType = this.data.serviceType;
+  readonly serviceType = this.data.order?.serviceType ?? this.data.serviceType;
+  readonly editing = !!this.data.order;
   cargoTypes: CargoType[] = [];
   saving = false;
   loading = false;
@@ -47,26 +49,27 @@ export class ClientServiceOrderDialogComponent {
   readonly form = this.fb.nonNullable.group({
     clientOrderNumber: [this.data.customerOrderNumber ?? '', [Validators.required, Validators.maxLength(80)]],
     reference: [this.data.reference ?? '', Validators.maxLength(120)],
-    receivedDate: [''],
+    receivedDate: [this.data.order?.receivedDate ?? ''],
     estimatedArrivalDate: [this.data.estimatedDate ?? ''],
     origin: [this.data.origin ?? '', Validators.maxLength(200)],
     destination: [this.data.destination ?? '', Validators.maxLength(200)],
     observation: [this.data.observation ?? ''],
     
-    totalPackages: [this.serviceType === 'LCL' ? (this.data.quantity ?? 0) : 0, [Validators.required, Validators.min(0)]],
+    totalPackages: [this.serviceType === 'LCL' ? (this.data.order?.totalPackages ?? this.data.quantity ?? 0) : 0, [Validators.required, Validators.min(0)]],
     fclQuantities: this.fb.array([])
   });
 
   constructor() {
     // Reafirma la precarga desde la operación; los controles permanecen editables.
     this.form.patchValue({
-      clientOrderNumber: this.data.customerOrderNumber ?? '',
-      reference: this.data.reference ?? '',
-      estimatedArrivalDate: this.data.estimatedDate ?? '',
-      origin: this.data.origin ?? '',
-      destination: this.data.destination ?? '',
-      observation: this.data.observation ?? '',
-      totalPackages: this.serviceType === 'LCL' ? (this.data.quantity ?? 0) : 0
+      clientOrderNumber: this.data.order?.clientOrderNumber ?? this.data.customerOrderNumber ?? '',
+      reference: this.data.order?.reference ?? this.data.reference ?? '',
+      receivedDate: this.data.order?.receivedDate ?? '',
+      estimatedArrivalDate: this.data.order?.estimatedArrivalDate ?? this.data.estimatedDate ?? '',
+      origin: this.data.order?.origin ?? this.data.origin ?? '',
+      destination: this.data.order?.destination ?? this.data.destination ?? '',
+      observation: this.data.order?.observation ?? this.data.observation ?? '',
+      totalPackages: this.serviceType === 'LCL' ? (this.data.order?.totalPackages ?? this.data.quantity ?? 0) : 0
     });
 
     if (this.serviceType === 'FCL') {
@@ -77,13 +80,9 @@ export class ClientServiceOrderDialogComponent {
           const initialCargoType = this.cargoTypes.find(item => Number(item.id) === operationCargoTypeId);
 
           this.fclQuantities.clear();
-          this.fclQuantities.push(this.fb.nonNullable.group({
-            cargoTypeId: [initialCargoType ? Number(initialCargoType.id) : operationCargoTypeId, Validators.required],
-            totalQuantity: [
-              this.data.quantity !== null && this.data.quantity > 0 ? Number(this.data.quantity) : 1,
-              [Validators.required, Validators.min(1)]
-            ]
-          }));
+          const existing = this.data.order?.fclQuantities ?? [];
+          const rows = existing.length ? existing : [{ cargoTypeId: initialCargoType ? Number(initialCargoType.id) : operationCargoTypeId, totalQuantity: this.data.quantity !== null && this.data.quantity > 0 ? Number(this.data.quantity) : 1 }];
+          for (const row of rows) this.fclQuantities.push(this.fb.nonNullable.group({ cargoTypeId: [Number(row.cargoTypeId), Validators.required], totalQuantity: [Number(row.totalQuantity), [Validators.required, Validators.min(1)]] }));
         },
         error: error => {
           console.error(error);
@@ -141,12 +140,15 @@ export class ClientServiceOrderDialogComponent {
     };
     this.saving = true;
     this.errorMessage = '';
-    this.operations.createClientServiceOrder(request).subscribe({
+    const saveRequest = this.editing && this.data.order
+      ? this.operations.updateClientServiceOrder(this.data.order.id, request)
+      : this.operations.createClientServiceOrder(request);
+    saveRequest.subscribe({
       next: result => this.dialogRef.close(result),
       error: error => {
         console.error(error);
         this.saving = false;
-        this.errorMessage = error.error?.message || error.error?.detail || 'No se pudo registrar la O/S del cliente.';
+        this.errorMessage = error.error?.message || error.error?.detail || 'No se pudo guardar la O/S del cliente.';
       }
     });
   }

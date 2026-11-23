@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 public interface InternalServiceOrderRepository extends JpaRepository<InternalServiceOrder,Long>{
+	boolean existsByClientServiceOrder_IdAndActiveTrue(Long clientServiceOrderId);
+	boolean existsByClientServiceOrder_Id(Long clientServiceOrderId);
 	
 	List<InternalServiceOrder> findAllByOrderByCreatedAtDesc();
 
@@ -22,7 +24,8 @@ public interface InternalServiceOrderRepository extends JpaRepository<InternalSe
 		LEFT JOIN FETCH o.destination
 		LEFT JOIN FETCH o.provider
 		LEFT JOIN FETCH o.status
-		WHERE o.scheduledDate BETWEEN :startDate AND :endDate
+		WHERE o.active = true
+			AND o.scheduledDate BETWEEN :startDate AND :endDate
 			AND (
 				o.status IS NULL
 				OR LOWER(o.status.name) <> 'cancelada'
@@ -44,7 +47,8 @@ public interface InternalServiceOrderRepository extends JpaRepository<InternalSe
 		LEFT JOIN FETCH o.destination
 		LEFT JOIN FETCH o.provider
 		LEFT JOIN FETCH o.status
-		WHERE (
+		WHERE o.active = true
+		AND (
 			o.scheduledDate IS NULL
 			OR o.scheduledDate < :startDate
 			OR o.scheduledDate > :endDate

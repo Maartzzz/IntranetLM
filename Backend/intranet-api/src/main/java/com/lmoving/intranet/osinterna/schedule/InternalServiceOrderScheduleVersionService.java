@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.lmoving.intranet.audit.AuditLogService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import com.lmoving.intranet.osinterna.schedule.dto.ScheduleVersionDetailResponse;
@@ -21,6 +23,7 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 @Transactional
 public class InternalServiceOrderScheduleVersionService {
+ @Autowired private AuditLogService auditLogService;
  private final InternalServiceOrderScheduleService scheduleService;
  private final InternalServiceOrderScheduleVersionRepository versionRepository;
  private final UserRepository userRepository;
@@ -49,6 +52,9 @@ public class InternalServiceOrderScheduleVersionService {
   Integer nextVersion=versionRepository.findMaxVersionNumber(startDate,endDate)+1;
   var saved=versionRepository.saveAndFlush(new InternalServiceOrderScheduleVersion(
    nextVersion,startDate,endDate,snapshot,username,actorName));
+  auditLogService.registrar("PROGRAMACION", "VERSION_PROGRAMACION", saved.getId(), "VERSION_CREATED",
+   "Se guardó la versión " + nextVersion + " de la programación " + startDate + " a " + endDate,
+   null, "Órdenes programadas: " + snapshot.size());
   return toSummary(saved);
  }
  @Transactional(readOnly=true)

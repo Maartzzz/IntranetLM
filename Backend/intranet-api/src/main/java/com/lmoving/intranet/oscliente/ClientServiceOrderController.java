@@ -26,6 +26,25 @@ public class ClientServiceOrderController {
         return internalServiceOrderService.obtenerDistribucion(id);
     }
 
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    public ClientServiceOrderResponse actualizar(@PathVariable Long id, @Valid @RequestBody ClientServiceOrderRequest request) {
+        return service.actualizar(id, request);
+    }
+
+
+    @PatchMapping("/{id}/active")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    public ClientServiceOrderResponse cambiarActivo(@PathVariable Long id, @RequestParam boolean active) {
+        return service.cambiarActivo(id, active);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    public void eliminar(@PathVariable Long id) { service.eliminar(id); }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
