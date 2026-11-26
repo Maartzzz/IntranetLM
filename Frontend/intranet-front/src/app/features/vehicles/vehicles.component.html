@@ -1,6 +1,187 @@
-<section class="vehicles-page"><header><div><p class="eyebrow">CONFIGURACIÓN</p><h1>Vehículos</h1><p>Administración de unidades y acoplamientos tracto-carreta.</p></div><div class="actions">@if(canEdit){<button (click)="openCoupling()" [disabled]="!tractors.length||!trailers.length">Nuevo acoplamiento</button>}@if(canCreate){<button class="primary" (click)="newVehicle()">Registrar vehículo</button>}</div></header>
-@if(error){<p class="error">{{error}}</p>} @if(success){<p class="success">{{success}}</p>}
-<section class="panel"><h2>Flota registrada</h2>@if(loading){<p>Cargando…</p>}@else{<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Placa</th><th>Marca / modelo</th><th>Capacidad</th><th>Acoplamiento</th><th>Estado</th><th></th></tr></thead><tbody>@for(v of vehicles;track v.id){<tr><td>{{v.type}}</td><td><strong>{{v.plate}}</strong></td><td>{{v.brand||'—'}} {{v.model||''}}</td><td>{{v.capacityDescription||'—'}}</td><td>@if(v.type==='TRACTO'){Carreta: {{v.currentTrailerPlate||'Sin acoplar'}}} @else if(v.type==='CARRETA'){Tracto: {{v.currentTractorPlate||'Sin acoplar'}}} @else {—}</td><td><span [class.inactive]="!v.active">{{v.active?'Activo':'Inactivo'}}</span></td><td>@if(canEdit){<button class="link" (click)="edit(v)">Editar</button>}</td></tr>}</tbody></table></div>}</section>
-<section class="panel"><h2>Historial de acoplamientos</h2><div class="table-wrap"><table><thead><tr><th>Tracto</th><th>Carreta</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Observaciones</th></tr></thead><tbody>@for(c of history;track c.id){<tr><td>{{c.tractorPlate}}</td><td>{{c.trailerPlate}}</td><td>{{c.startAt|date:'dd/MM/yyyy HH:mm'}}</td><td>{{c.endAt?(c.endAt|date:'dd/MM/yyyy HH:mm'):'Vigente'}}</td><td>{{c.reason}}</td><td>{{c.observations||'—'}}</td></tr>}@empty{<tr><td colspan="6">Sin acoplamientos registrados.</td></tr>}</tbody></table></div></section></section>
-@if(showForm){<div class="overlay"><section class="modal"><header><h2>{{editingId?'Editar vehículo':'Registrar vehículo'}}</h2><button (click)="showForm=false">×</button></header><label>Tipo<select [(ngModel)]="form.type"><option value="FURGON">Furgón</option><option value="PICKUP">Pickup</option><option value="TRACTO">Tracto</option><option value="CARRETA">Carreta</option></select></label><label>Placa<input [(ngModel)]="form.plate" maxlength="20"></label><div class="two"><label>Marca<input [(ngModel)]="form.brand"></label><label>Modelo<input [(ngModel)]="form.model"></label></div><label>Capacidad / configuración<input [(ngModel)]="form.capacityDescription"></label><label>Observaciones<textarea [(ngModel)]="form.observations"></textarea></label><label class="check"><input type="checkbox" [(ngModel)]="form.active"> Activo</label><footer><button (click)="showForm=false">Cancelar</button><button class="primary" (click)="save()" [disabled]="!form.plate.trim()">Guardar</button></footer></section></div>}
-@if(showCoupling){<div class="overlay"><section class="modal"><header><h2>Nuevo acoplamiento</h2><button (click)="showCoupling=false">×</button></header><label>Tracto<select [(ngModel)]="coupling.tractorId"><option [ngValue]="null">Seleccionar</option>@for(v of tractors;track v.id){<option [ngValue]="v.id">{{v.plate}}</option>}</select></label><label>Carreta<select [(ngModel)]="coupling.trailerId"><option [ngValue]="null">Seleccionar</option>@for(v of trailers;track v.id){<option [ngValue]="v.id">{{v.plate}}</option>}</select></label><label>Inicio<input type="datetime-local" [(ngModel)]="coupling.startAt"></label><label>Motivo<select [(ngModel)]="coupling.reason"><option value="INCIDENCIA">Incidencia</option><option value="REVISION_TECNICA">Revisión técnica</option><option value="MANTENIMIENTO">Mantenimiento</option><option value="REASIGNACION">Reasignación</option><option value="OTRO">Otro</option></select></label><label>Observaciones<textarea [(ngModel)]="coupling.observations"></textarea></label><footer><button (click)="showCoupling=false">Cancelar</button><button class="primary" (click)="saveCoupling()" [disabled]="!coupling.tractorId||!coupling.trailerId">Guardar acoplamiento</button></footer></section></div>}
+<section class="vehicles-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">CONFIGURACIÓN · FLOTA</p>
+      <h1>Vehículos</h1>
+      <p>Consulta las unidades, sus acoplamientos y los choferes asignados.</p>
+    </div>
+    <div class="actions">
+      <button (click)="openAssignment()" [disabled]="!drivers.length || !assignableVehicles.length">Asignar chofer</button>
+      <button (click)="openCoupling()" [disabled]="!tractors.length || !trailers.length">Nuevo acoplamiento</button>
+      <button class="primary" (click)="newVehicle()">Registrar vehículo</button>
+    </div>
+  </header>
+
+  @if (error) { <p class="feedback error">{{ error }}</p> }
+  @if (success) { <p class="feedback success">{{ success }}</p> }
+  @if (warnings.length) {
+    <section class="notice"><strong>Advertencia operativa</strong>
+      @for (warning of warnings; track warning) { <p>{{ warning }}</p> }
+      <p>La asignación se guardó. Estas advertencias no bloquean la operación.</p>
+    </section>
+  }
+
+  <section class="panel fleet-panel">
+    <div class="section-heading">
+      <div><h2>Flota registrada</h2><p>Filtra las unidades según su tipo y sus relaciones operativas.</p></div>
+      <span class="result-count">{{ filteredVehicles.length }} de {{ vehicles.length }} unidades</span>
+    </div>
+
+    <div class="filters">
+      <label class="search-field">Buscar unidad
+        <input [(ngModel)]="searchText" placeholder="Placa, marca, modelo o capacidad">
+      </label>
+      <label>Tipo de unidad
+        <select [(ngModel)]="filterType" (ngModelChange)="onFilterTypeChange()">
+          <option value="TODOS">Todos los tipos</option><option value="FURGON">Furgón</option><option value="PICKUP">Pickup</option><option value="TRACTO">Tracto</option><option value="CARRETA">Carreta</option>
+        </select>
+      </label>
+      <label>Estado
+        <select [(ngModel)]="filterStatus"><option value="ACTIVOS">Activos</option><option value="INACTIVOS">Inactivos</option><option value="TODOS">Todos</option></select>
+      </label>
+      @if (filterType === 'TRACTO' || filterType === 'CARRETA') {
+        <label>Acoplamiento
+          <select [(ngModel)]="filterRelation"><option value="TODOS">Todos</option><option value="VINCULADO">Con acoplamiento</option><option value="SIN_VINCULO">Sin acoplamiento</option></select>
+        </label>
+      }
+      @if (filterType === 'FURGON' || filterType === 'PICKUP' || filterType === 'TRACTO') {
+        <label>Asignación de chofer
+          <select [(ngModel)]="filterDriverRelation"><option value="TODOS">Todos</option><option value="VINCULADO">Con chofer</option><option value="SIN_VINCULO">Sin chofer</option></select>
+        </label>
+        <label>Chofer
+          <select [(ngModel)]="filterDriverId"><option [ngValue]="null">Todos los choferes</option>@for (driver of drivers; track driver.id) { <option [ngValue]="driver.id">{{ driver.fullName }}</option> }</select>
+        </label>
+      }
+      <button class="subtle" (click)="searchText = ''; filterType = 'TODOS'; filterStatus = 'ACTIVOS'; filterRelation = 'TODOS'; filterDriverRelation = 'TODOS'; filterDriverId = null">Limpiar filtros</button>
+    </div>
+
+    @if (loading) { <p class="empty-state">Cargando flota…</p> }
+    @else {
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Unidad</th><th>Marca / modelo</th><th>Capacidad</th><th>Chofer asignado</th><th>Acoplamiento</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody>
+            @for (v of filteredVehicles; track v.id) {
+              <tr>
+                <td><span class="type-label">{{ v.type }}</span><strong class="plate">{{ v.plate }}</strong></td>
+                <td>{{ v.brand || '—' }} {{ v.model || '' }}</td>
+                <td>{{ v.capacityDescription || '—' }}</td>
+                <td>{{ v.type === 'CARRETA' ? 'No aplica' : driversForVehicle(v.id) }}</td>
+                <td>{{ v.type === 'TRACTO' ? ('Carreta: ' + (v.currentTrailerPlate || 'Sin acoplar')) : v.type === 'CARRETA' ? ('Tracto: ' + (v.currentTractorPlate || 'Sin acoplar')) : 'No aplica' }}</td>
+                <td><span class="status" [class.inactive]="!v.active">{{ v.active ? 'Activo' : 'Inactivo' }}</span></td>
+                <td class="row-actions"><button class="link" (click)="openDetail(v)">Detalle</button><button class="link" (click)="edit(v)">Editar</button></td>
+              </tr>
+            } @empty { <tr><td colspan="7" class="empty-state">No hay unidades que coincidan con los filtros.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <section class="panel">
+    <div class="section-heading"><div><h2>Asignaciones vigentes</h2><p>Un chofer puede tener más de una asignación; las advertencias no bloquean el registro.</p></div></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Chofer</th><th>Licencia</th><th>Vehículo</th><th>Tipo</th><th>Desde</th><th>Motivo</th><th>Observaciones</th><th></th></tr></thead>
+      <tbody>
+        @for (a of activeAssignments; track a.id) {
+          <tr><td>{{ a.driverName }} <small>({{ a.driverUsername }})</small></td><td>{{ a.licenseNumber }}</td><td><strong>{{ a.vehiclePlate }}</strong></td><td>{{ a.vehicleType }}</td><td>{{ a.startAt | date:'dd/MM/yyyy HH:mm' }}</td><td>{{ a.reason }}</td><td>{{ a.observations || '—' }}</td><td><button class="link" (click)="closeAssignment(a)">Finalizar</button></td></tr>
+        } @empty { <tr><td colspan="8" class="empty-state">No hay asignaciones vigentes.</td></tr> }
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading"><div><h2>Historial de asignaciones</h2><p>Registro de cambios de chofer por unidad.</p></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Chofer</th><th>Vehículo</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Observaciones</th></tr></thead>
+      <tbody>@for (a of assignments; track a.id) { <tr><td>{{ a.driverName }}</td><td>{{ a.vehiclePlate }}</td><td>{{ a.startAt | date:'dd/MM/yyyy HH:mm' }}</td><td>{{ a.endAt ? (a.endAt | date:'dd/MM/yyyy HH:mm') : 'Vigente' }}</td><td>{{ a.reason }}</td><td>{{ a.observations || '—' }}</td></tr> } @empty { <tr><td colspan="6" class="empty-state">Sin historial de asignaciones.</td></tr> }</tbody>
+    </table></div>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading"><div><h2>Historial de acoplamientos</h2><p>Relaciones entre tractos y carretas.</p></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Tracto</th><th>Carreta</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Observaciones</th></tr></thead>
+      <tbody>@for (c of history; track c.id) { <tr><td>{{ c.tractorPlate }}</td><td>{{ c.trailerPlate }}</td><td>{{ c.startAt | date:'dd/MM/yyyy HH:mm' }}</td><td>{{ c.endAt ? (c.endAt | date:'dd/MM/yyyy HH:mm') : 'Vigente' }}</td><td>{{ c.reason }}</td><td>{{ c.observations || '—' }}</td></tr> } @empty { <tr><td colspan="6" class="empty-state">Sin acoplamientos registrados.</td></tr> }</tbody>
+    </table></div>
+  </section>
+</section>
+
+@if (showDetail && selectedVehicle) {
+  <div class="overlay" (click)="showDetail = false"><section class="modal detail-modal" (click)="$event.stopPropagation()">
+    <header><div><p class="eyebrow">DETALLE DE UNIDAD</p><h2>{{ selectedVehicle.plate }}</h2></div><button class="close" (click)="showDetail = false">×</button></header>
+    <div class="detail-grid">
+      <div><span>Tipo</span><strong>{{ selectedVehicle.type }}</strong></div><div><span>Estado</span><strong>{{ selectedVehicle.active ? 'Activo' : 'Inactivo' }}</strong></div>
+      <div><span>Marca</span><strong>{{ selectedVehicle.brand || '—' }}</strong></div><div><span>Modelo</span><strong>{{ selectedVehicle.model || '—' }}</strong></div>
+      <div><span>Capacidad / configuración</span><strong>{{ selectedVehicle.capacityDescription || '—' }}</strong></div>
+      <div><span>Observaciones</span><strong>{{ selectedVehicle.observations || '—' }}</strong></div>
+    </div>
+    <section class="relation-card"><h3>Chofer(es) asignado(s)</h3>
+      @if (selectedVehicle.type === 'CARRETA') { <p>No aplica para una carreta.</p> }
+      @else { @for (a of vehicleAssignments(selectedVehicle.id); track a.id) { <div class="relation-row"><div><strong>{{ a.driverName }}</strong><small>{{ a.licenseNumber }} · {{ a.reason }}</small></div><span>Desde {{ a.startAt | date:'dd/MM/yyyy HH:mm' }}</span></div> } @empty { <p>Sin chofer asignado actualmente.</p> } }
+    </section>
+    @if (selectedVehicle.type === 'TRACTO' || selectedVehicle.type === 'CARRETA') {
+      <section class="relation-card"><h3>Acoplamiento vigente</h3>
+        @if (selectedVehicle.type === 'TRACTO') { <p>{{ selectedVehicle.currentTrailerPlate ? 'Carreta asignada: ' + selectedVehicle.currentTrailerPlate : 'Sin carreta acoplada.' }}</p> }
+        @else { <p>{{ selectedVehicle.currentTractorPlate ? 'Tracto asignado: ' + selectedVehicle.currentTractorPlate : 'Sin tracto acoplado.' }}</p> }
+      </section>
+    }
+    <footer><button (click)="showDetail = false">Cerrar</button><button class="primary" (click)="showDetail = false; edit(selectedVehicle)">Editar unidad</button></footer>
+  </section></div>
+}
+
+@if (showForm) {
+  <div class="overlay"><section class="modal vehicle-modal">
+    <header><div><p class="eyebrow">FLOTA</p><h2>{{ editingId ? 'Editar vehículo' : 'Registrar vehículo' }}</h2></div><button class="close" (click)="showForm = false">×</button></header>
+    <div class="form-grid">
+      <label>Tipo de unidad<select [(ngModel)]="form.type"><option value="FURGON">Furgón</option><option value="PICKUP">Pickup</option><option value="TRACTO">Tracto</option><option value="CARRETA">Carreta</option></select></label>
+      <label>Placa<input [(ngModel)]="form.plate" maxlength="20"></label>
+      <label>Marca<input [(ngModel)]="form.brand"></label><label>Modelo<input [(ngModel)]="form.model"></label>
+      <label class="full">Capacidad / configuración<input [(ngModel)]="form.capacityDescription"></label>
+      <label class="full">Observaciones<textarea [(ngModel)]="form.observations"></textarea></label>
+      <label class="check full"><input type="checkbox" [(ngModel)]="form.active"> Unidad activa</label>
+    </div>
+
+    <section class="relation-card form-relations">
+      <div class="section-heading"><div><h3>Relaciones operativas</h3><p>El tipo de unidad orienta las relaciones disponibles, sin imponer asignaciones permanentes.</p></div></div>
+      @if (!editingId) { <p class="muted">Guarda primero la unidad. Después podrás vincular choferes o registrar su acoplamiento sin salir de esta ventana.</p> }
+      @else {
+        @if (form.type !== 'CARRETA') {
+          <div class="assigned-list">
+            <h3>Chofer(es) asignado(s)</h3>
+            @for (a of vehicleAssignments(editingId!); track a.id) { <div class="relation-row"><div><strong>{{ a.driverName }}</strong><small>{{ a.licenseNumber }} · {{ a.reason }}</small></div><span>Vigente</span></div> } @empty { <p>Sin chofer asignado actualmente.</p> }
+          </div>
+          <button type="button" (click)="openAssignment(editingVehicle)">Asignar otro chofer</button>
+        }
+        @if (form.type === 'TRACTO' || form.type === 'CARRETA') {
+          <div class="relation-summary"><span>Acoplamiento vigente</span><strong>{{ form.type === 'TRACTO' ? (editingVehicle?.currentTrailerPlate || 'Sin carreta acoplada') : (editingVehicle?.currentTractorPlate || 'Sin tracto acoplado') }}</strong></div>
+          <button type="button" (click)="openCoupling(editingVehicle)">Registrar / cambiar acoplamiento</button>
+        }
+      }
+    </section>
+    <footer><button (click)="showForm = false">Cerrar</button><button class="primary" (click)="save(false)" [disabled]="!form.plate.trim()">Guardar y continuar</button><button class="primary" (click)="save(true)" [disabled]="!form.plate.trim()">Guardar y cerrar</button></footer>
+  </section></div>
+}
+
+@if (showCoupling) {
+  <div class="overlay relation-overlay"><section class="modal">
+    <header><h2>Nuevo acoplamiento</h2><button class="close" (click)="showCoupling = false">×</button></header>
+    <label>Tracto<select [(ngModel)]="coupling.tractorId"><option [ngValue]="null">Seleccionar</option>@for (v of tractors; track v.id) { <option [ngValue]="v.id">{{ v.plate }}</option> }</select></label>
+    <label>Carreta<select [(ngModel)]="coupling.trailerId"><option [ngValue]="null">Seleccionar</option>@for (v of trailers; track v.id) { <option [ngValue]="v.id">{{ v.plate }}</option> }</select></label>
+    <label>Inicio<input type="datetime-local" [(ngModel)]="coupling.startAt"></label>
+    <label>Motivo<select [(ngModel)]="coupling.reason"><option value="INCIDENCIA">Incidencia</option><option value="REVISION_TECNICA">Revisión técnica</option><option value="MANTENIMIENTO">Mantenimiento</option><option value="REASIGNACION">Reasignación</option><option value="OTRO">Otro</option></select></label>
+    <label>Observaciones<textarea [(ngModel)]="coupling.observations"></textarea></label>
+    <footer><button (click)="showCoupling = false">Cancelar</button><button class="primary" (click)="saveCoupling()" [disabled]="!coupling.tractorId || !coupling.trailerId">Guardar acoplamiento</button></footer>
+  </section></div>
+}
+
+@if (showAssignment) {
+  <div class="overlay relation-overlay"><section class="modal">
+    <header><h2>Asignar chofer a vehículo</h2><button class="close" (click)="showAssignment = false">×</button></header>
+    <p class="help">La asignación no es exclusiva. Se mostrarán advertencias si existen otros vínculos vigentes, pero podrás continuar.</p>
+    <label>Chofer<select [(ngModel)]="assignment.driverId"><option [ngValue]="null">Seleccionar chofer</option>@for (d of drivers; track d.id) { <option [ngValue]="d.id">{{ d.fullName }} — {{ d.username }} ({{ d.licenseNumber }})</option> }</select></label>
+    <label>Vehículo<select [(ngModel)]="assignment.vehicleId"><option [ngValue]="null">Seleccionar vehículo</option>@for (v of assignableVehicles; track v.id) { <option [ngValue]="v.id">{{ v.plate }} — {{ v.type }}</option> }</select></label>
+    <label>Inicio<input type="datetime-local" [(ngModel)]="assignment.startAt"></label>
+    <label>Motivo<select [(ngModel)]="assignment.reason"><option value="ASIGNACION">Asignación</option><option value="TURNO">Cambio de turno</option><option value="REASIGNACION">Reasignación</option><option value="REEMPLAZO">Reemplazo</option><option value="OTRO">Otro</option></select></label>
+    <label>Observaciones<textarea [(ngModel)]="assignment.observations"></textarea></label>
+    <footer><button (click)="showAssignment = false">Cancelar</button><button class="primary" (click)="saveAssignment()" [disabled]="!assignment.driverId || !assignment.vehicleId">Guardar asignación</button></footer>
+  </section></div>
+}
