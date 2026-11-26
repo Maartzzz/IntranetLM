@@ -31,6 +31,7 @@ import {
 } from '../../../core/models/course-materials.models';
 import { EvaluationService } from '../../../core/services/evaluation.service';
 import { PendingEvaluation } from '../../../core/models/evaluation.models';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-learning-course',
@@ -58,6 +59,9 @@ export class LearningCourseComponent
 
   private readonly evaluationService = 
     inject(EvaluationService);
+  private readonly authService = inject(AuthService);
+
+  get canEditEvaluations(): boolean { return this.authService.hasPermission('TRAINING.EVALUATIONS.EDIT'); }
 
 pendingEvaluation: PendingEvaluation | null = null;
 
@@ -305,6 +309,7 @@ pendingEvaluation: PendingEvaluation | null = null;
   }
 
   startEvaluation(): void {
+    if (!this.canEditEvaluations) return;
 
     if (!this.course || !this.canTakeEvaluation) {
       return;
@@ -330,6 +335,7 @@ pendingEvaluation: PendingEvaluation | null = null;
   }
 
 continueEvaluation(): void {
+    if (!this.canEditEvaluations) return;
     if (!this.course || !this.pendingEvaluation) {
       return;
     }

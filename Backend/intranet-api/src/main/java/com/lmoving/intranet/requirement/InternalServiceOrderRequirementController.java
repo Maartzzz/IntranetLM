@@ -15,20 +15,21 @@ public class InternalServiceOrderRequirementController {
     public InternalServiceOrderRequirementController(OperationRequirementService service) { this.service = service; }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('REQUIREMENTS.INTERNAL_ORDER_VIEW')")
     public List<OperationRequirementResponse> listar(@PathVariable Long orderId) {
         return service.listarOssInterna(orderId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    @PreAuthorize("hasAuthority('INTERNAL_ORDERS.CREATE')")
     public OperationRequirementResponse crear(@PathVariable Long orderId,
             @Valid @RequestBody OperationRequirementRequest request) {
         return service.crearOssInterna(orderId, request);
     }
 
     @PutMapping("/{requirementId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    @PreAuthorize("hasAuthority('INTERNAL_ORDERS.EDIT')")
     public OperationRequirementResponse actualizar(@PathVariable Long orderId,
             @PathVariable Long requirementId, @Valid @RequestBody OperationRequirementRequest request) {
         return service.actualizarOssInterna(orderId, requirementId, request);

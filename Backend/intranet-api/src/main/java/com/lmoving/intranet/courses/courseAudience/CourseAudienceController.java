@@ -1,5 +1,6 @@
 package com.lmoving.intranet.courses.courseAudience;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ public class CourseAudienceController {
 		this.audienceService = audienceService;
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.COURSES.VIEW')")
 	@GetMapping
 	public List<CourseAudienceResponse> getByCourse(
 			@PathVariable Long courseId
@@ -30,6 +32,7 @@ public class CourseAudienceController {
 		return audienceService.getByCourse(courseId);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.AUDIENCE.CREATE')")
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public CourseAudienceResponse add(
@@ -43,6 +46,7 @@ public class CourseAudienceController {
 		);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.AUDIENCE.DELETE')")
 	@DeleteMapping("/{audienceId}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void remove(

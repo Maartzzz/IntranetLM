@@ -1,0 +1,51 @@
+<section class="roles-page">
+  <header class="page-header">
+    <div><span class="eyebrow">Administración</span><h1>Roles y permisos</h1><p>Define los permisos que se acumulan para los usuarios asignados a cada rol.</p></div>
+    @if (!formOpen && canCreate) { <button class="primary" type="button" (click)="openCreate()">＋ Nuevo rol</button> }
+  </header>
+
+  @if (error) { <div class="alert error">{{ error }}</div> }
+  @if (success) { <div class="alert success">{{ success }}</div> }
+
+  @if (!formOpen) {
+    <div class="table-wrap">
+      @if (loading) { <div class="empty">Cargando roles...</div> }
+      @else if (!roles.length) { <div class="empty">No hay roles registrados.</div> }
+      @else {
+        <table><thead><tr><th>Rol</th><th>Usuarios</th><th>Permisos</th><th>Estado</th><th></th></tr></thead>
+          <tbody>@for (role of roles; track role.id) {
+            <tr>
+              <td><strong>{{ role.name }}</strong><small>{{ role.code }}@if (role.protectedRole) { · Protegido }</small></td>
+              <td>{{ role.userCount }}</td><td>{{ role.permissionCount }}</td>
+              <td><span class="status" [class.inactive]="!role.active">{{ role.active ? 'Activo' : 'Inactivo' }}</span></td>
+              <td class="actions">@if (canEdit && !role.protectedRole) { <button type="button" class="link" (click)="openEdit(role)">Editar permisos</button> }
+                @if (canChangeStatus && !role.protectedRole) { <button type="button" class="link danger" (click)="toggleActive(role)">{{ role.active ? 'Desactivar' : 'Activar' }}</button> }
+              </td>
+            </tr>
+          }</tbody>
+        </table>
+      }
+    </div>
+  } @else {
+    <div class="editor">
+      <div class="editor-heading"><div><h2>{{ editing ? 'Editar rol' : 'Crear rol' }}</h2><p>Selecciona los permisos que tendrá este rol.</p></div><button class="secondary" type="button" (click)="cancel()">Volver al listado</button></div>
+      <div class="fields">
+        @if (!editing) { <label>Código del rol<input [(ngModel)]="code" maxlength="50" placeholder="Ej. LOGISTICA"></label> }
+        @else { <label>Código del rol<input [value]="editing.code" disabled></label> }
+        <label>Nombre<input [(ngModel)]="name" maxlength="120" placeholder="Nombre visible"></label>
+        <label class="wide">Descripción<textarea [(ngModel)]="description" maxlength="300" rows="2" placeholder="Descripción opcional"></textarea></label>
+      </div>
+      <div class="permissions-heading"><div><h3>Permisos por módulo</h3><p>Selecciona permisos individualmente o todos los permisos de un módulo.</p></div><span>{{ selected.size }} seleccionados</span></div>
+      <div class="module-grid">
+        @for (module of modules; track module.code) {
+          <section class="module-card"><label class="module-title"><input type="checkbox" [checked]="moduleSelected(module.code)" (change)="toggleModule(module.code, $any($event.target).checked)"><strong>{{ module.name }}</strong><small>Seleccionar todos</small></label>
+            <div class="permission-list">@for (permission of module.permissions; track permission.id) {
+              <label class="permission"><input type="checkbox" [checked]="isSelected(permission.id)" (change)="togglePermission(permission.id, $any($event.target).checked)"><span>{{ permission.name }}</span><small>{{ permission.code }}</small></label>
+            }</div>
+          </section>
+        }
+      </div>
+      <div class="form-actions"><button class="secondary" type="button" (click)="cancel()">Cancelar</button><button class="primary" type="button" [disabled]="saving" (click)="save()">{{ saving ? 'Guardando...' : 'Guardar rol' }}</button></div>
+    </div>
+  }
+</section>

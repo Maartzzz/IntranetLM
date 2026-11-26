@@ -32,35 +32,37 @@ public class ClientController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('CLIENTS.VIEW')")
     public ResponseEntity<List<ClientResponse>> listActive() {
         return ResponseEntity.ok(clientService.listActive());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('CLIENTS.VIEW')")
     public ResponseEntity<ClientResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(clientService.getById(id));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('CLIENTS.VIEW')")
     @GetMapping("/admin")
     public ResponseEntity<List<ClientResponse>> listAll() {
         return ResponseEntity.ok(clientService.listAll());
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('CLIENTS.CREATE')")
     @PostMapping
     public ResponseEntity<ClientResponse> create(@Valid @RequestBody ClientRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(clientService.create(request));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('CLIENTS.EDIT')")
     @PutMapping("/{id}")
     public ResponseEntity<ClientResponse> update(
             @PathVariable Long id, @Valid @RequestBody ClientRequest request) {
         return ResponseEntity.ok(clientService.update(id, request));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('CLIENTS.DELETE')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<ClientResponse> changeStatus(
             @PathVariable Long id, @Valid @RequestBody ClientStatusRequest request) {

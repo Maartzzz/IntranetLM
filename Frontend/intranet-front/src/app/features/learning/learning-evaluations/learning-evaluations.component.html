@@ -233,12 +233,14 @@
         <div class="result-actions">
 
             @if (result.passed) {
+                @if (canDownloadOwnCertificate) {
                 <button
                     type="button"
                     class="primary-button"
                     (click)="downloadCertificate()">
                     Descargar certificado
                 </button>
+                }
             }
 
             <button

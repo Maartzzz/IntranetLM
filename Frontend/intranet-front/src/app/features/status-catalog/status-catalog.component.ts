@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../core/auth/auth.service';
 
 interface StatusItem {
   id: number; processCode: string; name: string; description: string | null; color: string | null;
@@ -17,6 +18,10 @@ interface StatusItem {
 })
 export class StatusCatalogComponent implements OnInit {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
+
+  get canCreate(): boolean { return this.authService.hasPermission('CONFIGURATION.STATUSES.CREATE'); }
+  get canEdit(): boolean { return this.authService.hasPermission('CONFIGURATION.STATUSES.EDIT'); }
   readonly processCode = 'OS_INTERNA';
   statuses: StatusItem[] = [];
   loading = false;
@@ -39,6 +44,7 @@ export class StatusCatalogComponent implements OnInit {
     });
   }
   edit(item: StatusItem): void {
+    if (!this.canEdit) return;
     this.editingId = item.id;
     const { id, ...data } = item;
     this.form = { ...data };
@@ -46,6 +52,7 @@ export class StatusCatalogComponent implements OnInit {
   }
   reset(): void { this.editingId = null; this.form = this.emptyForm(); }
   save(): void {
+    if ((this.editingId === null && !this.canCreate) || (this.editingId !== null && !this.canEdit)) return;
     if (!this.form.name.trim() || this.saving) return;
     this.saving = true; this.error = ''; this.success = '';
     const request = this.editingId

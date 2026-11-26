@@ -6,12 +6,16 @@
       <p class="subtitle">Planificación semanal de órdenes de servicio internas.</p>
     </div>
     <div class="header-actions">
+      @if (canViewVersions) {
       <button type="button" class="secondary-button" (click)="toggleHistory()" [disabled]="savingVersion">
         {{ historyOpen ? 'Ocultar histórico' : 'Histórico' }}
       </button>
+      }
+      @if (canCreateVersion) {
       <button type="button" class="primary-button" (click)="saveCurrentVersion()" [disabled]="saving || loading || savingVersion">
         {{ savingVersion ? 'Guardando…' : 'Guardar versión' }}
       </button>
+      }
       <button type="button" class="secondary-button" (click)="goToCurrentWeek()" [disabled]="saving">Semana actual</button>
       <button type="button" class="icon-button" aria-label="Semana anterior" (click)="previousWeek()" [disabled]="saving">‹</button>
       <button type="button" class="icon-button" aria-label="Semana siguiente" (click)="nextWeek()" [disabled]="saving">›</button>
@@ -78,7 +82,7 @@
   @if (versionError) {
     <div class="error-feedback" role="alert">{{ versionError }}</div>
   }
-  @if (historyOpen) {
+  @if (canViewVersions && historyOpen) {
     <section class="history-panel">
       <div class="history-heading">
         <div>
@@ -183,14 +187,14 @@
             [id]="unscheduledListId"
             [cdkDropListData]="unscheduledOrders"
             [cdkDropListConnectedTo]="connectedDropListIds"
-            [cdkDropListDisabled]="saving"
+            [cdkDropListDisabled]="!canEditSchedule || saving"
             (cdkDropListDropped)="onDrop($event)">
             @for (order of unscheduledOrders; track order.id) {
               <article class="order-card available-card"
   cdkDrag
   cdkDragPreviewContainer="global"
   [cdkDragData]="order"
-  [cdkDragDisabled]="saving"
+  [cdkDragDisabled]="!canEditSchedule || saving"
   [class.fcl]="order.serviceType === 'FCL'"
   [class.lcl]="order.serviceType === 'LCL'">
   <div class="drag-card-content">
@@ -235,11 +239,11 @@
             [id]="overdueListId"
             [cdkDropListData]="overdueOrders"
             [cdkDropListConnectedTo]="connectedDropListIds"
-            [cdkDropListDisabled]="saving"
+            [cdkDropListDisabled]="!canEditSchedule || saving"
             (cdkDropListDropped)="onDrop($event)">
             @for (order of overdueOrders; track order.id) {
               <article class="order-card available-card" cdkDrag cdkDragPreviewContainer="global"
-                [cdkDragData]="order" [cdkDragDisabled]="saving"
+                [cdkDragData]="order" [cdkDragDisabled]="!canEditSchedule || saving"
                 [class.fcl]="order.serviceType === 'FCL'" [class.lcl]="order.serviceType === 'LCL'">
                 <div class="drag-card-content">
                   <div class="order-card-top">
@@ -274,14 +278,14 @@
             [id]="otherPeriodListId"
             [cdkDropListData]="otherPeriodOrders"
             [cdkDropListConnectedTo]="connectedDropListIds"
-            [cdkDropListDisabled]="saving"
+            [cdkDropListDisabled]="!canEditSchedule || saving"
             (cdkDropListDropped)="onDrop($event)">
             @for (order of otherPeriodOrders; track order.id) {
               <article class="order-card available-card"
   cdkDrag
   cdkDragPreviewContainer="global"
   [cdkDragData]="order"
-  [cdkDragDisabled]="saving"
+  [cdkDragDisabled]="!canEditSchedule || saving"
   [class.fcl]="order.serviceType === 'FCL'"
   [class.lcl]="order.serviceType === 'LCL'">
   <div class="drag-card-content">
@@ -326,14 +330,14 @@
             [id]="excludedListId"
             [cdkDropListData]="excludedOrders"
             [cdkDropListConnectedTo]="connectedDropListIds"
-            [cdkDropListDisabled]="saving"
+            [cdkDropListDisabled]="!canEditSchedule || saving"
             (cdkDropListDropped)="onDrop($event)">
             @for (order of excludedOrders; track order.id) {
               <article class="order-card available-card"
   cdkDrag
   cdkDragPreviewContainer="global"
   [cdkDragData]="order"
-  [cdkDragDisabled]="saving"
+  [cdkDragDisabled]="!canEditSchedule || saving"
   [class.fcl]="order.serviceType === 'FCL'"
   [class.lcl]="order.serviceType === 'LCL'">
   <div class="drag-card-content">
@@ -394,14 +398,14 @@
                 [id]="getDayListId(day.dateKey)"
                 [cdkDropListData]="day.orders"
                 [cdkDropListConnectedTo]="connectedDropListIds"
-                [cdkDropListDisabled]="saving || day.isSunday"
+                [cdkDropListDisabled]="!canEditSchedule || saving || day.isSunday"
                 (cdkDropListDropped)="onDrop($event, day.dateKey)">
                 @for (order of day.orders; track order.id) {
                   <article class="order-card scheduled-card"
                     cdkDrag
                     cdkDragPreviewContainer="global"
                     [cdkDragData]="order"
-                    [cdkDragDisabled]="saving"
+                    [cdkDragDisabled]="!canEditSchedule || saving"
                     [class.fcl]="order.serviceType === 'FCL'"
                     [class.lcl]="order.serviceType === 'LCL'">
                     <div class="order-card-top">
@@ -420,6 +424,7 @@
                       <div class="order-detail">{{ order.lclDetail?.packages }} bultos</div>
                     }
                     <div class="route-text">{{ order.originName || 'Origen pendiente' }} → {{ order.destinationName || 'Destino pendiente' }}</div>
+                    @if (canEditSchedule) {
                     <label class="status-control">
                       <span>Estado</span>
                       <select [value]="order.statusId ?? ''" (change)="changeOrderStatus(order, $any($event.target).value)"
@@ -431,7 +436,10 @@
                         }
                       </select>
                     </label>
+                    }
+                    @if (canEditSchedule) {
                     <button type="button" class="remove-order-button" (click)="removeFromBoard(order)" [disabled]="saving">Retirar del tablero</button>
+                    }
                     <span class="drag-handle scheduled-handle" aria-label="Arrastrar orden" cdkDragHandle>⠿</span>
                   </article>
                 } @empty {

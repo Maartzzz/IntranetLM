@@ -37,27 +37,16 @@ export class SidebarComponent {
     this.router.navigate(['/login']); 
   }
 
-  isAdmin(): boolean {
-    return this.currentUser?.role === 'ADMIN';
+  hasPermission(permission: string): boolean {
+    return this.authService.hasPermission(permission);
   }
 
-  isDriver(): boolean {
-    return this.currentUser?.role === 'CHOFER';
+  hasAnyPermission(...permissions: string[]): boolean {
+    return this.authService.hasAnyPermission(...permissions);
   }
 
-  isSupervisor(): boolean {
-    return this.currentUser?.role === 'SUPERVISOR';
-  }
+  canAccessOperations(): boolean { return this.hasPermission('OPERATIONS.VIEW'); }
 
-  isOperations(): boolean {
-    return this.currentUser?.role === 'OPERACIONES';
-  }
-
-  canAccessOperations(): boolean {
-    return this.isAdmin() || this.isSupervisor() || this.isOperations();
-  }
-
-  
   aprendizajeExpanded = false;
 
   toggleAprendizaje(): void {

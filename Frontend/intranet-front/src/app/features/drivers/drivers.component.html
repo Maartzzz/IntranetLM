@@ -5,9 +5,9 @@
       <h1>Conductores</h1>
       <p>Administración de conductores y licencias</p>
     </div>
-    <button class="primary-button" type="button" (click)="openCreateDialog()">
+    @if (canCreate) { <button class="primary-button" type="button" (click)="openCreateDialog()">
       <span aria-hidden="true">＋</span> Nuevo conductor
-    </button>
+    </button> }
   </header>
 
   <section class="filters" aria-label="Filtros de conductores">
@@ -77,10 +77,12 @@
               <td class="actions-cell">
                 <div class="row-actions">
                   <button class="row-action" type="button" (click)="openDetailDialog(driver)">Ver detalle</button>
-                  <button class="row-action" type="button" (click)="openEditDialog(driver)">Editar</button>
-                  <button class="row-action" type="button" (click)="toggleDriverActive(driver)">
-                    {{ driver.active ? 'Desactivar' : 'Activar' }}
-                  </button>
+                  @if (canEdit) { <button class="row-action" type="button" (click)="openEditDialog(driver)">Editar</button> }
+                  @if (canChangeStatus) {
+                    <button class="row-action" type="button" (click)="toggleDriverActive(driver)">
+                      {{ driver.active ? 'Desactivar' : 'Activar' }}
+                    </button>
+                  }
                 </div>
               </td>
             </tr>

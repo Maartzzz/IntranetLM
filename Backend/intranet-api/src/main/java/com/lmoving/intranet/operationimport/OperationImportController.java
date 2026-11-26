@@ -16,37 +16,42 @@ import com.lmoving.intranet.operationimport.dto.ImportDtos.*;
 
 @RestController
 @RequestMapping("/api/operation-imports")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
 public class OperationImportController {
     private final OperationImportService service;
     public OperationImportController(OperationImportService service) { this.service = service; }
 
     @PostMapping(value = "/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('OPERATIONS.IMPORT')")
     @ResponseStatus(HttpStatus.CREATED)
     public PreviewResponse preview(@RequestPart("file") MultipartFile file) {
         return service.crearPrevisualizacion(file);
     }
 
     @GetMapping("/{id}/inspect")
+    @PreAuthorize("hasAuthority('OPERATIONS.IMPORT')")
     public PreviewResponse inspect(@PathVariable Long id,
             @RequestParam int sheetIndex, @RequestParam(required = false) Integer headerRow) {
         return service.inspeccionar(id, sheetIndex, headerRow);
     }
 
     @PostMapping("/{id}/analyze")
+    @PreAuthorize("hasAuthority('OPERATIONS.IMPORT')")
     public AnalyzeResponse analyze(@PathVariable Long id, @RequestBody AnalyzeRequest request) {
         return service.analizar(id, request);
     }
 
     @PostMapping("/{id}/execute")
+    @PreAuthorize("hasAuthority('OPERATIONS.IMPORT')")
     public ExecuteResponse execute(@PathVariable Long id, @RequestBody ExecuteRequest request) {
         return service.ejecutar(id, request);
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('OPERATIONS.IMPORT_HISTORY_VIEW')")
     public List<HistoryResponse> history() { return service.historial(); }
 
     @GetMapping("/{id}/file")
+    @PreAuthorize("hasAuthority('OPERATIONS.IMPORT_HISTORY_VIEW')")
     public ResponseEntity<byte[]> originalFile(@PathVariable Long id) {
         OperationImportService.DownloadFile file = service.descargarOriginal(id);
         MediaType type;
@@ -60,13 +65,16 @@ public class OperationImportController {
     }
 
     @GetMapping("/profiles")
+    @PreAuthorize("hasAuthority('OPERATIONS.IMPORT_PROFILE_VIEW')")
     public List<ProfileResponse> profiles() { return service.listarPerfiles(); }
 
     @PostMapping("/profiles")
+    @PreAuthorize("hasAuthority('OPERATIONS.IMPORT_PROFILE_MANAGE')")
     @ResponseStatus(HttpStatus.CREATED)
     public ProfileResponse saveProfile(@RequestBody ProfileRequest request) { return service.guardarPerfil(request); }
 
     @DeleteMapping("/profiles/{id}")
+    @PreAuthorize("hasAuthority('OPERATIONS.IMPORT_PROFILE_MANAGE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProfile(@PathVariable Long id) { service.eliminarPerfil(id); }
 }

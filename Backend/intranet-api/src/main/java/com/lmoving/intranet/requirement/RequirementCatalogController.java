@@ -14,19 +14,20 @@ public class RequirementCatalogController {
     public RequirementCatalogController(RequirementCatalogService service) { this.service = service; }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('REQUIREMENTS.VIEW')")
     public List<RequirementCatalogResponse> listar(@RequestParam(defaultValue = "false") boolean activeOnly) {
         return service.listar(activeOnly);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('REQUIREMENTS.CREATE')")
     public RequirementCatalogResponse crear(@Valid @RequestBody RequirementCatalogRequest request) {
         return service.crear(request);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('REQUIREMENTS.EDIT')")
     public RequirementCatalogResponse actualizar(@PathVariable Long id,
             @Valid @RequestBody RequirementCatalogRequest request) {
         return service.actualizar(id, request);

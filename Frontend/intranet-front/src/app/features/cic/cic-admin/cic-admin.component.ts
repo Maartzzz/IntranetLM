@@ -7,6 +7,7 @@ import { CicCategoria } from '../../../core/models/cic-categoria.models';
 import { CicDocumento } from '../../../core/models/cic-documento.models';
 import { CicCategoriaService } from '../../../core/services/cic-categoria.service';
 import { CicDocumentoService } from '../../../core/services/cic-documento.service';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-cic-admin',
@@ -21,6 +22,7 @@ export class CicAdminComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly categoriaService = inject(CicCategoriaService);
   private readonly documentoService = inject(CicDocumentoService);
+  private readonly authService = inject(AuthService);
 
   categorias: CicCategoria[] = [];
   documentos: CicDocumento[] = [];
@@ -41,6 +43,26 @@ export class CicAdminComponent implements OnInit {
   cargando = true;
   mensaje = '';
   error = '';
+
+  get canCreateCategory(): boolean {
+    return this.authService.hasPermission('CIC.CATEGORIES.CREATE');
+  }
+
+  get canEditCategory(): boolean {
+    return this.authService.hasPermission('CIC.CATEGORIES.EDIT');
+  }
+
+  get canChangeCategoryStatus(): boolean {
+    return this.authService.hasPermission('CIC.CATEGORIES.DELETE');
+  }
+
+  get canCreateDocument(): boolean {
+    return this.authService.hasPermission('CIC.DOCUMENTS.CREATE');
+  }
+
+  get canEditDocument(): boolean {
+    return this.authService.hasPermission('CIC.DOCUMENTS.EDIT');
+  }
 
   ngOnInit(): void {
     const categoriaId = Number(
@@ -97,6 +119,8 @@ export class CicAdminComponent implements OnInit {
   }
 
   guardarCategoria(): void {
+    if (this.categoriaEditandoId === null ? !this.canCreateCategory : !this.canEditCategory) return;
+
     this.mensaje = '';
     this.error = '';
 
@@ -137,6 +161,8 @@ export class CicAdminComponent implements OnInit {
   }
 
   editarCategoria(categoria: CicCategoria): void {
+    if (!this.canEditCategory) return;
+
     this.categoriaEditandoId = categoria.id;
     this.nombreCategoria = categoria.nombre;
     this.descripcionCategoria = categoria.descripcion ?? '';
@@ -146,6 +172,8 @@ export class CicAdminComponent implements OnInit {
   }
 
   cambiarEstadoCategoria(categoria: CicCategoria): void {
+    if (!this.canChangeCategoryStatus) return;
+
     const nuevoEstado = !categoria.activa;
 
     this.categoriaService
@@ -173,6 +201,8 @@ export class CicAdminComponent implements OnInit {
   }
 
   subirDocumento(): void {
+    if (!this.canCreateDocument) return;
+
     this.mensaje = '';
     this.error = '';
 
@@ -222,6 +252,8 @@ export class CicAdminComponent implements OnInit {
     documento: CicDocumento,
     estado: 'BORRADOR' | 'PUBLICADO' | 'ARCHIVADO'
   ): void {
+    if (!this.canEditDocument) return;
+
     this.mensaje = '';
     this.error = '';
 

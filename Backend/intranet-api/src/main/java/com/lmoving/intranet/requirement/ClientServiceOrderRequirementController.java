@@ -15,20 +15,21 @@ public class ClientServiceOrderRequirementController {
     public ClientServiceOrderRequirementController(OperationRequirementService service) { this.service = service; }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('REQUIREMENTS.CUSTOMER_ORDER_VIEW')")
     public List<OperationRequirementResponse> listar(@PathVariable Long orderId) {
         return service.listarOssCliente(orderId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    @PreAuthorize("hasAuthority('CUSTOMER_ORDERS.CREATE')")
     public OperationRequirementResponse crear(@PathVariable Long orderId,
             @Valid @RequestBody OperationRequirementRequest request) {
         return service.crearOssCliente(orderId, request);
     }
 
     @PutMapping("/{requirementId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    @PreAuthorize("hasAuthority('CUSTOMER_ORDERS.EDIT')")
     public OperationRequirementResponse actualizar(@PathVariable Long orderId,
             @PathVariable Long requirementId, @Valid @RequestBody OperationRequirementRequest request) {
         return service.actualizarOssCliente(orderId, requirementId, request);

@@ -24,29 +24,31 @@ public class ProviderController {
     private final ProviderService service;
     public ProviderController(ProviderService service) { this.service = service; }
 
+    @PreAuthorize("hasAuthority('CONFIGURATION.PROVIDERS.VIEW')")
     @GetMapping
     public ResponseEntity<List<ProviderResponse>> listActive() { return ResponseEntity.ok(service.listActive()); }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('CONFIGURATION.PROVIDERS.VIEW')")
     @GetMapping("/admin")
     public ResponseEntity<List<ProviderResponse>> listAll() { return ResponseEntity.ok(service.listAll()); }
 
+    @PreAuthorize("hasAuthority('CONFIGURATION.PROVIDERS.VIEW')")
     @GetMapping("/{id}")
     public ResponseEntity<ProviderResponse> get(@PathVariable Long id) { return ResponseEntity.ok(service.get(id)); }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('CONFIGURATION.PROVIDERS.CREATE')")
     @PostMapping
     public ResponseEntity<ProviderResponse> create(@Valid @RequestBody ProviderRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('CONFIGURATION.PROVIDERS.EDIT')")
     @PutMapping("/{id}")
     public ResponseEntity<ProviderResponse> update(@PathVariable Long id, @Valid @RequestBody ProviderRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('CONFIGURATION.PROVIDERS.DELETE')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<ProviderResponse> changeStatus(@PathVariable Long id, @Valid @RequestBody ProviderStatusRequest request) {
         return ResponseEntity.ok(service.changeStatus(id, request.active()));

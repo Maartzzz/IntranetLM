@@ -40,17 +40,20 @@ public class CicDocumentoController {
 
     // Documentos visibles para cualquier usuario autenticado
 
+    @PreAuthorize("hasAuthority('CIC.DOCUMENTS.VIEW')")
     @GetMapping("/documentos")
     public ResponseEntity<List<CicDocumentoResponse>> listarPublicados() {
         return ResponseEntity.ok(cicService.listarPublicados());
     }
 
+    @PreAuthorize("hasAuthority('CIC.DOCUMENTS.VIEW')")
     @GetMapping("/documentos/{id}")
     public ResponseEntity<CicDocumentoResponse> obtenerPublicado(
             @PathVariable Long id) {
         return ResponseEntity.ok(cicService.obtenerPublicado(id));
     }
 
+    @PreAuthorize("hasAuthority('CIC.DOCUMENTS.VIEW')")
     @GetMapping("/documentos/{id}/archivo")
     public ResponseEntity<Resource> descargarArchivo(
             @PathVariable Long id) {
@@ -78,13 +81,13 @@ public class CicDocumentoController {
 
     // Endpoints exclusivos para administradores
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CIC.DOCUMENTS.VIEW')")
     @GetMapping("/admin/documentos")
     public ResponseEntity<List<CicDocumentoResponse>> listarAdministracion() {
         return ResponseEntity.ok(cicService.listarAdministracion());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CIC.DOCUMENTS.CREATE')")
     @PostMapping(
             value = "/admin/documentos",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -108,7 +111,7 @@ public class CicDocumentoController {
         return ResponseEntity.ok(creado);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CIC.DOCUMENTS.EDIT')")
     @PatchMapping("/admin/documentos/{id}/estado")
     public ResponseEntity<CicDocumentoResponse> cambiarEstado(
             @PathVariable Long id,

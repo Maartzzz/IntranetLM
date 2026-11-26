@@ -17,6 +17,7 @@
       <p>Los campos marcados con * son obligatorios.</p>
     </div>
 
+    @if (canSend) {
     <form #communicationForm="ngForm" (ngSubmit)="submit()">
 
       <div class="form-group">
@@ -119,6 +120,7 @@
       </div>
 
     </form>
+    }
   </section>
 
 </div>

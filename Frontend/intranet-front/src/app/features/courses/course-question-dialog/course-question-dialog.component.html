@@ -63,6 +63,7 @@
 
 								</div>
 
+								@if (canRemove) {
 								<button
 										type="button"
 										class="remove-button"
@@ -75,6 +76,7 @@
 												: 'Quitar'
 										}}
 								</button>
+								}
 
 								</div>
 
@@ -128,6 +130,7 @@
 
 										</div>
 
+										@if (canAssign) {
 										<button
 										type="button"
 										class="add-button"
@@ -142,6 +145,7 @@
 												: 'Agregar'
 										}}
 										</button>
+										}
 
 								</div>
 

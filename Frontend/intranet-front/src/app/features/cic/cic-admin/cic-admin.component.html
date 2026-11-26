@@ -34,6 +34,7 @@
   <!-- Administración de documentos -->
   <section *ngIf="seccion === 'documentos'" class="panel">
 
+    <div *ngIf="canCreateDocument">
     <h2>Agregar documento</h2>
 
     <form (ngSubmit)="subirDocumento()" class="admin-form">
@@ -94,6 +95,7 @@
         {{ guardando ? 'Guardando...' : 'Subir documento' }}
       </button>
     </form>
+    </div>
 
     <hr />
 
@@ -127,7 +129,7 @@
           </span>
         </div>
 
-        <div class="document-actions">
+        <div class="document-actions" *ngIf="canEditDocument">
           <button
             type="button"
             *ngIf="documento.estado !== 'PUBLICADO'"
@@ -171,6 +173,7 @@
   <!-- Administración de categorías -->
   <section *ngIf="seccion === 'categorias'" class="panel">
 
+    <div *ngIf="categoriaEditandoId === null ? canCreateCategory : canEditCategory">
     <h2>
       {{ categoriaEditandoId === null ? 'Agregar categoría' : 'Editar categoría' }}
     </h2>
@@ -214,6 +217,7 @@
         </button>
       </div>
     </form>
+    </div>
 
     <hr />
 
@@ -228,11 +232,12 @@
         </div>
 
         <div class="category-actions">
-          <button type="button" (click)="editarCategoria(categoria)">
+          <button *ngIf="canEditCategory" type="button" (click)="editarCategoria(categoria)">
             Editar
           </button>
 
           <button
+            *ngIf="canChangeCategoryStatus"
             type="button"
             (click)="cambiarEstadoCategoria(categoria)"
           >

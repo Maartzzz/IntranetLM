@@ -16,6 +16,7 @@
       <div><h2>1. Seleccionar archivo</h2><p>Se admiten archivos Excel .xls y .xlsx de hasta 20 MB.</p></div>
       @if (preview) { <button type="button" class="button button-ghost" (click)="reset()">Nueva importación</button> }
     </div>
+    @if (canImport) {
     <label class="file-drop">
       <input type="file" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="onFileChange($event)" />
       <span class="file-icon">↑</span>
@@ -23,6 +24,9 @@
       <span>El archivo original se conservará en el historial de importaciones.</span>
     </label>
     @if (loading) { <div class="loading-line">Procesando archivo…</div> }
+    } @else {
+      <p class="helper-text">No tienes permiso para importar operaciones.</p>
+    }
   </section>
 
   @if (preview) {
@@ -44,6 +48,7 @@
         <label class="field"><span>Fila de encabezados</span>
           <input type="number" min="1" [max]="100" name="headerRow" [(ngModel)]="headerRowInput" (change)="changeHeaderRow()" />
         </label>
+        @if (canViewProfiles || canManageProfiles) {
         <label class="field profile-field"><span>Perfil guardado</span>
           <div class="inline-control">
             <select name="profile" [(ngModel)]="selectedProfileId">
@@ -53,6 +58,7 @@
             <button type="button" class="button button-secondary" [disabled]="!selectedProfileId" (click)="applyProfile()">Aplicar</button>
           </div>
         </label>
+        }
       </div>
 
       <div class="mapping-grid">
@@ -67,10 +73,12 @@
         }
       </div>
 
+      @if (canManageProfiles) {
       <div class="profile-save">
         <label class="field profile-name"><span>Guardar este mapeo como perfil</span><input type="text" maxlength="100" placeholder="Ej. Agencia Aduanas ABC" name="profileName" [(ngModel)]="profileName" /></label>
         <button type="button" class="button button-secondary" [disabled]="!profileName.trim() || !mappingReady" (click)="saveProfile()">Guardar perfil</button>
       </div>
+      }
 
       <div class="section-subheading"><h3>Previsualización del archivo</h3><span>Primeras filas de datos</span></div>
       <div class="table-wrap">
@@ -144,6 +152,7 @@
     </section>
   }
 
+  @if (canViewHistory) {
   <section class="panel history-panel">
     <div class="section-heading"><div><h2>Historial de importaciones</h2><p>Se conserva el archivo original de cada proceso para consulta posterior.</p></div></div>
     <div class="table-wrap">
@@ -162,12 +171,13 @@
         </tbody>
       </table>
     </div>
-    @if (profiles.length) {
+    @if (canViewProfiles && profiles.length) {
       <div class="saved-profiles"><h3>Perfiles guardados</h3>
         @for (profile of profiles; track profile.id) {
-          <div class="profile-chip"><span>{{ profile.name }}</span><button type="button" (click)="deleteProfile(profile)" aria-label="Eliminar perfil">×</button></div>
+          <div class="profile-chip"><span>{{ profile.name }}</span>@if (canManageProfiles) { <button type="button" (click)="deleteProfile(profile)" aria-label="Eliminar perfil">×</button> }</div>
         }
       </div>
     }
   </section>
+  }
 </section>

@@ -13,4 +13,5 @@ export interface CurrentUser {
     firstName: string;
     lastName: string;
     role: string;
+    permissions?: string[];
 }

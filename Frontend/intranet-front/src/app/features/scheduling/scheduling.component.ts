@@ -13,6 +13,7 @@ import {
   ScheduleStatusOption
 } from '../../core/models/schedule.models';
 import { ScheduleGlobalSummary, ScheduleService } from '../../core/services/schedule.service';
+import { AuthService } from '../../core/auth/auth.service';
 
 interface ScheduleDay {
   date: Date;
@@ -34,6 +35,11 @@ export class SchedulingComponent implements OnInit {
   private readonly scheduleService = inject(ScheduleService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
+
+  get canEditSchedule(): boolean { return this.authService.hasPermission('SCHEDULING.EDIT'); }
+  get canCreateVersion(): boolean { return this.authService.hasPermission('SCHEDULING.VERSION_CREATE'); }
+  get canViewVersions(): boolean { return this.authService.hasPermission('SCHEDULING.VERSION_VIEW'); }
 
   startDate = this.getMonday(new Date());
   endDate = this.addDays(this.startDate, 6);
@@ -117,6 +123,7 @@ export class SchedulingComponent implements OnInit {
   }
 
   changeOrderStatus(order: ScheduleOrder, rawStatusId: string): void {
+    if (!this.canEditSchedule) return;
     const statusId = Number(rawStatusId);
     if (!order || !Number.isInteger(statusId) || statusId <= 0 || this.saving || this.statusSavingOrderId !== null) return;
     const target = this.statusOptions.find(status => status.id === statusId);
@@ -174,6 +181,7 @@ export class SchedulingComponent implements OnInit {
   }
 
   onDrop(event: CdkDragDrop<ScheduleOrder[]>, targetDate?: string): void {
+    if (!this.canEditSchedule) return;
     if (this.saving || this.loading) return;
 
     if (event.previousContainer === event.container) {
@@ -230,6 +238,7 @@ export class SchedulingComponent implements OnInit {
   }
 
   removeFromBoard(order: ScheduleOrder): void {
+    if (!this.canEditSchedule) return;
     if (!order || this.saving || this.loading) return;
 
     const confirmed = window.confirm(
@@ -250,6 +259,7 @@ export class SchedulingComponent implements OnInit {
   }
 
   saveCurrentVersion(): void {
+    if (!this.canCreateVersion) return;
     if (this.savingVersion || this.loading || this.saving) return;
     const confirmed = window.confirm(
       `¿Guardar una versión de la programación del ${this.toDateKey(this.startDate)} al ${this.toDateKey(this.endDate)}? Se conservarán ${this.scheduled.length} O/S programadas.`
@@ -275,12 +285,14 @@ export class SchedulingComponent implements OnInit {
   }
 
   toggleHistory(): void {
+    if (!this.canViewVersions) return;
     this.historyOpen = !this.historyOpen;
     this.selectedVersion = null;
     if (this.historyOpen) this.loadVersions();
   }
 
   loadVersions(): void {
+    if (!this.canViewVersions) return;
     this.loadingVersions = true;
     this.versionError = '';
     this.scheduleService.getVersions(this.toDateKey(this.startDate), this.toDateKey(this.endDate))
@@ -298,6 +310,7 @@ export class SchedulingComponent implements OnInit {
   }
 
   viewVersion(version: ScheduleVersionSummary): void {
+    if (!this.canViewVersions) return;
     this.loadingSnapshot = true;
     this.selectedVersion = null;
     this.versionError = '';

@@ -1,5 +1,6 @@
 package com.lmoving.intranet.question;
 
+import com.lmoving.intranet.audit.AuditLogService;
 import com.lmoving.intranet.courses.Courses;
 import com.lmoving.intranet.courses.CoursesRepository;
 import com.lmoving.intranet.question.dto.QuestionImportRow;
@@ -26,6 +27,7 @@ public class QuestionImportService {
     private final QuestionOptionRepository questionOptionRepository;
     private final CourseQuestionRepository courseQuestionRepository;
     private final CoursesRepository courseRepository;
+    private final AuditLogService auditLogService;
 
     public QuestionImportService(
         QuestionExcelReader excelReader,
@@ -33,7 +35,8 @@ public class QuestionImportService {
         QuestionRepository questionRepository,
         QuestionOptionRepository questionOptionRepository,
         CourseQuestionRepository courseQuestionRepository,
-        CoursesRepository courseRepository
+        CoursesRepository courseRepository,
+        AuditLogService auditLogService
     ) {
         this.excelReader = excelReader;
         this.validator = validator;
@@ -41,6 +44,7 @@ public class QuestionImportService {
         this.questionOptionRepository = questionOptionRepository;
         this.courseQuestionRepository = courseQuestionRepository;
         this.courseRepository = courseRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -92,6 +96,9 @@ public class QuestionImportService {
             );
         }
 
+        auditLogService.registrar("APRENDIZAJE", "PREGUNTAS_IMPORTACION", courseId, "IMPORTED",
+            "Se importaron " + rows.size() + " preguntas al curso " + course.getTitle(),
+            null, "cantidad=" + rows.size());
         return rows;
     }
 

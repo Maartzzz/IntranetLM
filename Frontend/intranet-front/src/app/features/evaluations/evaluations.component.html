@@ -54,14 +54,14 @@
 					<h3>{{ course.title }}</h3>
 					<p>{{ course.description }}</p>
 					<p>Nota mínima: {{ course.passingScore }}%</p>
-				</div>
+				</div>@if (canEditEvaluations) {
 
 				<button
 					type="button"
 					class="btn-primary"
 					(click)="startEvaluation(course.id)">
 					Iniciar evaluación →
-				</button>
+				</button>}
 				</article>
 			}
 			</div>
@@ -91,7 +91,7 @@
 				  Iniciada el {{ evaluation.startedAt | date:'dd/MM/yyyy HH:mm' }}
 				</p>
 				<span class="status status-pending">Pendiente</span>
-			  </div>
+			  </div>@if (canEditEvaluations) {
 
 			  <button
 				type="button"
@@ -99,7 +99,7 @@
 				(click)="continueEvaluation(evaluation)">
 				Continuar evaluación
 				<span aria-hidden="true">→</span>
-			  </button>
+			  </button>}
 			</article>
 		  }
 		</div>
@@ -170,13 +170,13 @@
 				  </td>
 
 				  <td>
-					@if (evaluation.passed === true) {
+					@if (evaluation.passed === true) {@if (canDownloadOwnCertificate) {
 					  <button
 						type="button"
 						class="btn-certificate"
 						(click)="downloadCertificate(evaluation)">
 						Certificado
-					  </button>
+					  </button>}
 					} @else {
 					  <span class="unavailable">No disponible</span>
 					}

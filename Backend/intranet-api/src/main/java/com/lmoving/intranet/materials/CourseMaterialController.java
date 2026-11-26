@@ -10,41 +10,50 @@ import org.springframework.web.bind.annotation.*;
 
 import com.lmoving.intranet.materials.dto.CourseMaterialRequest;
 import com.lmoving.intranet.materials.dto.CourseMaterialResponse;
+import com.lmoving.intranet.courses.CourseAccessService;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/courses/{courseId}/materials")
 public class CourseMaterialController {
 
 	private final CourseMaterialService materialService;
+	private final CourseAccessService courseAccessService;
 
 	public CourseMaterialController(
-			CourseMaterialService materialService
+			CourseMaterialService materialService,
+			CourseAccessService courseAccessService
 	) {
 		this.materialService = materialService;
+		this.courseAccessService = courseAccessService;
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.MATERIALS.VIEW')")
 	@GetMapping
 	public List<CourseMaterialResponse> getByCourse(
-			@PathVariable Long courseId
+			@PathVariable Long courseId,
+			Authentication authentication
 	) {
-
+		courseAccessService.ensureCanAccess(courseId, authentication);
 		return materialService.getByCourse(courseId);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.MATERIALS.VIEW')")
 	@GetMapping("/{materialId}")
 	public CourseMaterialResponse getById(
 			@PathVariable Long courseId,
-			@PathVariable Long materialId
+			@PathVariable Long materialId,
+			Authentication authentication
 	) {
-
+		courseAccessService.ensureCanAccess(courseId, authentication);
 		return materialService.getById(
 				courseId,
 				materialId
 		);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.MATERIALS.CREATE')")
 	@PostMapping
-	@PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
 	@ResponseStatus(HttpStatus.CREATED)
 	public CourseMaterialResponse create(
 			@PathVariable Long courseId,
@@ -57,8 +66,8 @@ public class CourseMaterialController {
 		);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.MATERIALS.EDIT')")
 	@PutMapping("/{materialId}")
-	@PreAuthorize("hasRole('ADMIN')")
 	public CourseMaterialResponse update(
 			@PathVariable Long courseId,
 			@PathVariable Long materialId,
@@ -72,8 +81,8 @@ public class CourseMaterialController {
 		);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.MATERIALS.EDIT')")
 	@PatchMapping("/{materialId}/active")
-	@PreAuthorize("hasRole('ADMIN')")
 	public CourseMaterialResponse toggleActive(
 			@PathVariable Long courseId,
 			@PathVariable Long materialId
@@ -85,8 +94,8 @@ public class CourseMaterialController {
 		);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.MATERIALS.DELETE')")
 	@DeleteMapping("/{materialId}")
-	@PreAuthorize("hasRole('ADMIN')")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(
 			@PathVariable Long courseId,

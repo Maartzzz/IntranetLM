@@ -32,30 +32,32 @@ public class CargoTypeController {
         this.cargoTypeService = cargoTypeService;
     }
 
+    @PreAuthorize("hasAuthority('CONFIGURATION.CARGO_TYPES.VIEW')")
     @GetMapping
     public ResponseEntity<List<CargoType>> listActive() {
         return ResponseEntity.ok(cargoTypeService.listActive());
     }
 
+    @PreAuthorize("hasAuthority('CONFIGURATION.CARGO_TYPES.VIEW')")
     @GetMapping("/{id}")
     public ResponseEntity<CargoType> getById(@PathVariable Long id) {
         return ResponseEntity.ok(cargoTypeService.getById(id));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CONFIGURATION.CARGO_TYPES.VIEW')")
     @GetMapping("/admin")
     public ResponseEntity<List<CargoType>> listAll() {
         return ResponseEntity.ok(cargoTypeService.listAll());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CONFIGURATION.CARGO_TYPES.CREATE')")
     @PostMapping
     public ResponseEntity<CargoType> create(@Valid @RequestBody CargoTypeRequest request) {
         CargoType created = cargoTypeService.create(request.name(), request.isContainer());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CONFIGURATION.CARGO_TYPES.EDIT')")
     @PutMapping("/{id}")
     public ResponseEntity<CargoType> update(
             @PathVariable Long id,
@@ -63,7 +65,7 @@ public class CargoTypeController {
         return ResponseEntity.ok(cargoTypeService.update(id, request.name(), request.isContainer()));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CONFIGURATION.CARGO_TYPES.DELETE')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<CargoType> changeStatus(
             @PathVariable Long id,

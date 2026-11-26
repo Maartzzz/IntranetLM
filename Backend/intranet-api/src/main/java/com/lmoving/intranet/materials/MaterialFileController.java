@@ -9,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import com.lmoving.intranet.courses.CourseAccessService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,16 +20,18 @@ public class MaterialFileController {
 
 	private final FileStorageService fileStorageService;
 	private final CourseMaterialService materialService;
+	private final CourseAccessService courseAccessService;
 
 	public MaterialFileController(
 			FileStorageService fileStorageService,
-			CourseMaterialService materialService
+			CourseMaterialService materialService,
+			CourseAccessService courseAccessService
 	) {
 		this.fileStorageService = fileStorageService;
 		this.materialService = materialService;
+		this.courseAccessService = courseAccessService;
 	}
-
-	@PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('TRAINING.MATERIALS.CREATE')")
 	@PostMapping(
 		value = "/upload",
 		consumes = "multipart/form-data"
@@ -47,15 +51,22 @@ public class MaterialFileController {
 		);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.MATERIALS.VIEW')")
 	@GetMapping("/{materialId}/content")
 	public ResponseEntity<Resource> getContent(
-			@PathVariable Long materialId
+			@PathVariable Long materialId,
+			Authentication authentication
 	) {
 
 		CourseMaterial material =
 				materialService.getEntityById(
 						materialId
 				);
+
+		courseAccessService.ensureCanAccess(
+				material.getCourse().getId(),
+				authentication
+		);
 
 		String url = material.getUrl();
 

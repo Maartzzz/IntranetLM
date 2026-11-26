@@ -39,8 +39,7 @@ export class DashboardComponent implements OnInit {
   exhaustedErrorMessage = '';
 
   get canManageEvaluations(): boolean {
-    return this.authService.isAdmin() ||
-          this.authService.isSupervisor();
+    return this.authService.hasPermission('TRAINING.EVALUATIONS.ADMIN');
   }
 
   ngOnInit(): void {

@@ -30,6 +30,7 @@ public class EvaluationController {
         this.evaluationService = evaluationService;
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.EDIT')")
     @PostMapping("/courses/{courseId}/start")
     public ResponseEntity<EvaluationStartResponse> startEvaluation(
         @PathVariable Long courseId,
@@ -43,6 +44,7 @@ public class EvaluationController {
         );
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.EDIT')")
     @PostMapping("/attempts/{attemptId}/submit")
     public ResponseEntity<EvaluationResultResponse> submitEvaluation(
             @PathVariable Long attemptId,
@@ -58,6 +60,7 @@ public class EvaluationController {
         );
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.EDIT')")
     @DeleteMapping("/attempts/{attemptId}")
     public ResponseEntity<Void> cancelEvaluation(
             @PathVariable Long attemptId,
@@ -71,8 +74,8 @@ public class EvaluationController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.ADMIN')")
     @GetMapping("/courses/{courseId}/attempts")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     public ResponseEntity<List<EvaluationAttemptResponse>> getCompletedAttemptsByCourse(
             @PathVariable Long courseId
     ) {
@@ -83,8 +86,8 @@ public class EvaluationController {
     }
 
     
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.ADMIN')")
     @PostMapping("/courses/{courseId}/users/{username}/rehabilitate")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     public ResponseEntity<Void> rehabilitateEvaluation(
             @PathVariable Long courseId,
             @PathVariable String username,
@@ -99,8 +102,8 @@ public class EvaluationController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.ADMIN')")
     @GetMapping("/exhausted")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     public ResponseEntity<List<ExhaustedEvaluationResponse>>
     getExhaustedEvaluations() {
         return ResponseEntity.ok(
@@ -109,6 +112,7 @@ public class EvaluationController {
     }
 
     
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.VIEW')")
     @GetMapping("/pending")
     public ResponseEntity<List<PendingEvaluationResponse>> getPendingEvaluations(
             Principal principal
@@ -120,6 +124,7 @@ public class EvaluationController {
         );
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.EDIT')")
     @GetMapping("/attempts/{attemptId}/resume")
     public ResponseEntity<EvaluationResumeResponse> resumeEvaluation(
             @PathVariable Long attemptId,
@@ -133,6 +138,7 @@ public class EvaluationController {
         );
     }
     
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.EDIT')")
     @PutMapping("/attempts/{attemptId}/answers")
     public ResponseEntity<Void> saveAnswerProgress(
             @PathVariable Long attemptId,
@@ -148,6 +154,7 @@ public class EvaluationController {
         return ResponseEntity.noContent().build();
     }
     
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.VIEW')")
     @GetMapping("/mine")
     public ResponseEntity<List<MyEvaluationResponse>> getMyEvaluations(
             Principal principal
@@ -159,6 +166,7 @@ public class EvaluationController {
         );
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.EVALUATIONS.VIEW')")
     @GetMapping("/available")
     public ResponseEntity<List<CourseResponse>> getAvailableEvaluationCourses(
             Principal principal) {

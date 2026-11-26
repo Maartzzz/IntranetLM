@@ -4,6 +4,7 @@ package com.lmoving.intranet.communication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,7 @@ public class CommunicationController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('COMMUNICATIONS.SEND')")
     public ResponseEntity<CommunicationResponse> submit(
             @Valid @RequestBody CommunicationRequest request,
             Authentication authentication) {

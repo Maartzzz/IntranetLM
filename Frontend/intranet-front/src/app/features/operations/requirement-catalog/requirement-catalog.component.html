@@ -6,7 +6,7 @@
       <p>Administra los requisitos disponibles para las operaciones.</p>
     </div>
 
-    @if (canManage) {
+    @if (canCreate) {
       <button class="primary-button" (click)="openCreate()">
         + Nuevo requisito
       </button>
@@ -113,7 +113,7 @@
           </p>
 
           <div class="card-footer">
-            @if (canManage) {
+            @if (canEdit) {
               <button
                 class="text-button"
                 (click)="openEdit(item)">

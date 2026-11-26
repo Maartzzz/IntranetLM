@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { Certificate } from '../../core/models/certificate.models';
 import { CertificateService } from '../../core/services/certificate.service';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-certificates',
@@ -18,6 +19,9 @@ import { CertificateService } from '../../core/services/certificate.service';
 export class CertificatesComponent implements OnInit {
 
   private readonly certificateService = inject(CertificateService);
+  private readonly authService = inject(AuthService);
+
+  get canDownloadAny(): boolean { return this.authService.hasPermission('CERTIFICATES.DOWNLOAD_ANY'); }
 
   certificates: Certificate[] = [];
   filteredCertificates: Certificate[] = [];
@@ -65,6 +69,7 @@ export class CertificatesComponent implements OnInit {
   }
 
   downloadCertificate(certificate: Certificate): void {
+    if (!this.canDownloadAny) return;
     this.certificateService
       .downloadCertificateAsAdmin(certificate.attemptId)
       .subscribe({

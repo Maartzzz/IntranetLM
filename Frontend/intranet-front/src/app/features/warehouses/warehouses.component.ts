@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { WarehousesService } from '../../core/services/warehouses.service';
 import { Warehouse, WarehouseRequest, WarehouseType, WarehouseLocation } from '../../core/models/warehouses.models';
@@ -30,6 +30,11 @@ export class WarehousesComponent implements OnInit {
   warehouses: Warehouse[] = [];
   locations: WarehouseLocation[] = [];
   canManage = false;
+  get canViewLocations(): boolean { return this.auth.hasPermission('LOCATIONS.VIEW'); }
+  get canCreate(): boolean { return this.auth.hasPermission('WAREHOUSES.CREATE') && this.canViewLocations; }
+  get canEdit(): boolean { return this.auth.hasPermission('WAREHOUSES.EDIT') && this.canViewLocations; }
+  get canChangeStatus(): boolean { return this.auth.hasPermission('WAREHOUSES.DELETE'); }
+  get canCreateLocation(): boolean { return this.auth.hasPermission('LOCATIONS.CREATE'); }
   loading = false;
   saving = false;
   error = '';
@@ -59,7 +64,7 @@ export class WarehousesComponent implements OnInit {
   ngOnInit(): void {
     this.auth.getCurrentUser().subscribe({
       next: user => {
-        this.canManage = user.role === 'ADMIN' || user.role === 'SUPERVISOR';
+        this.canManage = this.auth.hasAnyPermission('WAREHOUSES.CREATE', 'WAREHOUSES.EDIT', 'WAREHOUSES.DELETE');
         this.load();
       },
       error: () => this.error = 'No se pudo validar el usuario actual.'
@@ -70,15 +75,16 @@ export class WarehousesComponent implements OnInit {
     this.loading = true;
     forkJoin({
       warehouses: this.canManage ? this.api.listAll() : this.api.listActive(),
-      locations: this.api.listLocations()
+      locations: this.canViewLocations ? this.api.listLocations() : of([] as WarehouseLocation[])
     }).subscribe({
       next: data => { this.warehouses = data.warehouses; this.locations = data.locations.filter(x => x.active); this.loading = false; },
       error: () => { this.error = 'No se pudieron cargar los almacenes y ubicaciones.'; this.loading = false; }
     });
   }
 
-  openCreate(): void { this.editingId = null; this.form = this.emptyForm(); this.locationMode = 'EXISTING'; this.newLocation = this.emptyLocationForm(); this.showForm = true; this.error = ''; this.success = ''; }
+  openCreate(): void { if (!this.canCreate) return; this.editingId = null; this.form = this.emptyForm(); this.locationMode = 'EXISTING'; this.newLocation = this.emptyLocationForm(); this.showForm = true; this.error = ''; this.success = ''; }
   openEdit(row: Warehouse): void {
+    if (!this.canEdit) return;
     this.editingId = row.id;
     this.form = { locationId: row.locationId, warehouseCode: row.warehouseCode, warehouseName: row.warehouseName,
       warehouseType: row.warehouseType, operatorName: row.operatorName, observations: row.observations };
@@ -89,6 +95,8 @@ export class WarehousesComponent implements OnInit {
   cancel(): void { this.showForm = false; this.editingId = null; this.form = this.emptyForm(); this.locationMode = 'EXISTING'; this.newLocation = this.emptyLocationForm(); }
 
   save(): void {
+    if ((this.editingId === null && !this.canCreate) || (this.editingId !== null && !this.canEdit)) return;
+    if (this.locationMode === 'NEW' && !this.canCreateLocation) return;
     if (!this.form.warehouseCode.trim() || !this.form.warehouseName.trim() ||
         !this.form.operatorName.trim() || !this.form.warehouseType) return;
 
@@ -161,6 +169,7 @@ export class WarehousesComponent implements OnInit {
   }
 
   toggle(row: Warehouse): void {
+    if (!this.canChangeStatus) return;
     this.api.changeStatus(row.id, !row.active).subscribe({
       next: updated => { this.warehouses = this.warehouses.map(x => x.id === updated.id ? updated : x); },
       error: err => this.error = err?.error?.message || 'No se pudo cambiar el estado del almacén.'

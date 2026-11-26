@@ -94,6 +94,7 @@
 				Tienes una evaluación pendiente. Puedes continuar donde la dejaste.
 				</div>
 
+				@if (canEditEvaluations) {
 				<button
 				type="button"
 				class="evaluation-button"
@@ -102,6 +103,7 @@
 				Continuar evaluación →
 
 				</button>
+				}
 
 			</div>
 
@@ -113,6 +115,7 @@
 				✓ Has completado todos los contenidos obligatorios.
 				</div>
 
+				@if (canEditEvaluations) {
 				<button
 				type="button"
 				class="evaluation-button"
@@ -121,6 +124,7 @@
 				Iniciar evaluación →
 
 				</button>
+				}
 
 			</div>
 

@@ -57,12 +57,11 @@ export class LoginComponent {
             .getCurrentUser()
             .subscribe({
               next: () => {
-                if(this.authService.isAdmin())
-                this.router.navigate(['/dashboard']);
-                else if(this.authService.isDriver())
-                  this.router.navigate(['/learning'])
-                  else
-                    this.router.navigate(['/dashboard']);
+                if (this.authService.hasPermission('DASHBOARD.VIEW')) {
+                  this.router.navigate(['/dashboard']);
+                } else {
+                  this.router.navigate(['/learning']);
+                }
 
 
               },

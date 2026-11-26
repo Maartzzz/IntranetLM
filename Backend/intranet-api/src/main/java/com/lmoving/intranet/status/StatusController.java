@@ -1,5 +1,7 @@
 package com.lmoving.intranet.status;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.util.List;
 import java.util.Locale;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ public class StatusController {
         this.processRepository = processRepository;
     }
 
+    @PreAuthorize("hasAuthority('CONFIGURATION.STATUSES.VIEW')")
     @GetMapping
     public List<StatusResponse> listarPorProceso(@RequestParam String processCode) {
         String code = processCode.trim().toUpperCase(Locale.ROOT);
@@ -24,6 +27,7 @@ public class StatusController {
             .stream().map(this::toResponse).toList();
     }
 
+    @PreAuthorize("hasAuthority('CONFIGURATION.STATUSES.CREATE')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public StatusResponse crear(@RequestBody StatusRequest request) {
@@ -40,6 +44,7 @@ public class StatusController {
         return toResponse(statusRepository.save(status));
     }
 
+    @PreAuthorize("hasAuthority('CONFIGURATION.STATUSES.EDIT')")
     @PutMapping("/{id}")
     public StatusResponse actualizar(@PathVariable Long id, @RequestBody StatusRequest request) {
         Status status = statusRepository.findById(id)

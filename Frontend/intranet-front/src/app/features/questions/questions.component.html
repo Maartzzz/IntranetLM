@@ -6,7 +6,7 @@
       <p>Organiza y mantiene las preguntas que se utilizan en las evaluaciones.</p>
     </div>
 
-    <button type="button" class="primary-button" (click)="newQuestion()">
+    <button *ngIf="canCreate" type="button" class="primary-button" (click)="newQuestion()">
       <span aria-hidden="true">+</span>
       Nueva pregunta
     </button>
@@ -26,7 +26,7 @@
         <div class="empty-icon" aria-hidden="true">?</div>
         <h2>El banco todavía está vacío</h2>
         <p>Agrega preguntas para comenzar a configurar las evaluaciones.</p>
-        <button type="button" class="primary-button" (click)="newQuestion()">Crear primera pregunta</button>
+        <button *ngIf="canCreate" type="button" class="primary-button" (click)="newQuestion()">Crear primera pregunta</button>
       </div>
     } @else {
       <div class="list-heading">
@@ -66,11 +66,11 @@
             <footer class="question-footer">
               <span class="answer-hint">✓ La alternativa marcada es la respuesta correcta</span>
               <div class="question-actions">
-                <button type="button" class="action-button edit-button" (click)="editQuestion(question)">Editar</button>
-                <button type="button" class="action-button state-button" (click)="toggleActive(question)">
+                <button *ngIf="canEdit" type="button" class="action-button edit-button" (click)="editQuestion(question)">Editar</button>
+                <button *ngIf="canEdit" type="button" class="action-button state-button" (click)="toggleActive(question)">
                   {{ question.active ? 'Desactivar' : 'Activar' }}
                 </button>
-                <button type="button" class="action-button delete-button" (click)="deleteQuestion(question)">Eliminar</button>
+                <button *ngIf="canDelete" type="button" class="action-button delete-button" (click)="deleteQuestion(question)">Eliminar</button>
               </div>
             </footer>
           </article>

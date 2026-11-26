@@ -16,15 +16,17 @@
 
   <nav class="navigation">
 
-    <a routerLink="/cic" routerLinkActive="active">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5" />
-      </svg>
-      <span>Centro de Información</span>
-    </a>
+    @if (hasPermission('CIC.CATEGORIES.VIEW')) {
+      <a routerLink="/cic" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5" />
+        </svg>
+        <span>Centro de Información</span>
+      </a>
+    }
 
     <!-- Configuración -->
-    @if (isAdmin() || isSupervisor() || isOperations()) {
+    @if (hasAnyPermission('FLEET.VIEW', 'ROLES.VIEW', 'USERS.VIEW', 'CLIENTS.VIEW', 'LOCATIONS.VIEW', 'WAREHOUSES.VIEW', 'CONFIGURATION.CARGO_TYPES.VIEW', 'DRIVERS.VIEW', 'REQUIREMENTS.VIEW')) {
     <div class="nav-section">
     <button
         type="button"
@@ -51,14 +53,23 @@
     @if (configuracionExpanded) {
         <div class="nav-submenu">
 
-        @if (canAccessOperations()) {
+        @if (hasPermission('FLEET.VIEW')) {
             <a routerLink="/vehicles" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14l2-6h14l2 6v5h-3v-2H6v2H3z M7 14h10 M7 17h.01 M17 17h.01"/></svg>
             <span>Vehículos</span>
             </a>
         }
 
-        @if (isAdmin()) {
+        @if (hasPermission('ROLES.VIEW')) {
+            <a routerLink="/roles" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3 20 6v5c0 5-3.4 8.2-8 10-4.6-1.8-8-5-8-10V6z M8 12h8 M12 8v8"/>
+            </svg>
+            <span>Roles y permisos</span>
+            </a>
+        }
+
+        @if (hasPermission('USERS.VIEW')) {
             <a routerLink="/users" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2
@@ -70,7 +81,7 @@
             </a>
         }
 
-        @if (canAccessOperations()) {
+        @if (hasPermission('CLIENTS.VIEW')) {
             <a routerLink="/clients" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 20h18 M5 20V7l7-4 7 4v13 M9 20v-6h6v6 M9 9h.01 M15 9h.01"/>
@@ -79,7 +90,7 @@
             </a>
         }
 
-        @if (canAccessOperations()) {
+        @if (hasPermission('LOCATIONS.VIEW')) {
             <a routerLink="/locations" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z M12 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
@@ -88,7 +99,7 @@
             </a>
         }
 
-        @if (canAccessOperations()) {
+        @if (hasPermission('WAREHOUSES.VIEW')) {
             <a routerLink="/warehouses" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 10 12 3l9 7v10H3z M8 20v-6h8v6 M7 10h.01 M17 10h.01"/>
@@ -97,7 +108,7 @@
             </a>
         }
 
-        @if (canAccessOperations()) {
+        @if (hasPermission('CONFIGURATION.CARGO_TYPES.VIEW')) {
             <a routerLink="/cargo-types" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 7h18v13H3z M3 7l3-4h12l3 4 M8 11h8 M8 15h5"/>
@@ -106,7 +117,7 @@
             </a>
         }
 
-        @if (isAdmin() || isSupervisor()) {
+        @if (hasPermission('DRIVERS.VIEW')) {
             <a routerLink="/drivers" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 6h12v12H3z
@@ -118,7 +129,7 @@
             </a>
         }
 
-        @if (isAdmin() || isSupervisor()) {
+        @if (hasPermission('REQUIREMENTS.VIEW')) {
           <a routerLink="/requirement-catalog" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5"/>
@@ -133,6 +144,7 @@
     }
 
     <!-- Aprendizaje -->
+    @if (hasAnyPermission('DASHBOARD.VIEW', 'TRAINING.MY_COURSES.VIEW', 'TRAINING.COURSES.VIEW', 'TRAINING.QUESTIONS.VIEW', 'CERTIFICATES.VIEW', 'TRAINING.EVALUATIONS.VIEW')) {
     <div class="nav-section">
     <button
         type="button"
@@ -154,7 +166,7 @@
     @if (aprendizajeExpanded) {
         <div class="nav-submenu">
 
-        @if (isAdmin() || isSupervisor()) {
+        @if (hasPermission('DASHBOARD.VIEW')) {
             <a
             routerLink="/dashboard"
             routerLinkActive="active"
@@ -167,53 +179,59 @@
             </a>
         }
 
-        @if (isAdmin() || isSupervisor()) {
+        @if (hasPermission('TRAINING.COURSES.VIEW')) {
             <a routerLink="/courses" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5"/>
             </svg>
             <span>Cursos</span>
             </a>
+        }
 
+        @if (hasPermission('TRAINING.MY_COURSES.VIEW')) {
+            <a routerLink="/learning" routerLinkActive="active">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m2 8 10-5 10 5-10 5z M6 10v6c4 3 8 3 12 0v-6 M22 8v7"/>
+                </svg>
+                <span>Mis Capacitaciones</span>
+            </a>
+        }
+
+        @if (hasPermission('TRAINING.QUESTIONS.VIEW')) {
             <a routerLink="/questions" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9.5 9a3 3 0 1 1 5 2.2c-1.5 1-2.5 1.5-2.5 3.3
-                M12 18h.01 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/>
+                <path d="M9.5 9a3 3 0 1 1 5 2.2c-1.5 1-2.5 1.5-2.5 3.3 M12 18h.01 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/>
             </svg>
             <span>Banco de Preguntas</span>
             </a>
+        }
 
+        @if (hasPermission('CERTIFICATES.VIEW')) {
             <a routerLink="/certificates" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 3h12v13H6z M9 7h6 M9 10h6 M9 13h3
-                M9 16l-2 5 5-2 5 2-2-5"/>
+                <path d="M6 3h12v13H6z M9 7h6 M9 10h6 M9 13h3 M9 16l-2 5 5-2 5 2-2-5"/>
             </svg>
             <span>Certificados</span>
             </a>
         }
 
-        <a routerLink="/learning" routerLinkActive="active">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m2 8 10-5 10 5-10 5z
-                M6 10v6c4 3 8 3 12 0v-6 M22 8v7"/>
-            </svg>
-            <span>Mis Capacitaciones</span>
-        </a>
-
-        <a routerLink="/my-evaluations" routerLinkActive="active">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M8 3h8 M9 3v4l-4 6a7 7 0 0 0 6 10h2a7 7 0 0 0 6-10l-4-6V3 M8 14h8"/>
-            </svg>
-            <span>Evaluaciones</span>
-        </a>
+        @if (hasPermission('TRAINING.EVALUATIONS.VIEW')) {
+            <a routerLink="/my-evaluations" routerLinkActive="active">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M8 3h8 M9 3v4l-4 6a7 7 0 0 0 6 10h2a7 7 0 0 0 6-10l-4-6V3 M8 14h8"/>
+                </svg>
+                <span>Evaluaciones</span>
+            </a>
+        }
 
         </div>
     }
     </div>
+    }
 
 
     <!-- Operaciones: sección independiente dentro del mismo layout -->
-    @if (canAccessOperations()) {
+    @if (hasAnyPermission('OPERATIONS.VIEW', 'OPERATIONS.IMPORT', 'CONFIGURATION.STATUSES.VIEW', 'HISTORY.VIEW', 'SCHEDULING.VIEW')) {
       <div class="nav-section">
         <button
           type="button"
@@ -233,19 +251,23 @@
 
         @if (operacionesExpanded) {
           <div class="nav-submenu">
-            <a routerLink="/operations" routerLinkActive="active">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5"/>
-              </svg>
-              <span>Operaciones</span>
-            </a>
-            <a routerLink="/operations/import" routerLinkActive="active">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4" />
-              </svg>
-              <span>Importar desde Excel</span>
-            </a>
-            @if (isAdmin()) {
+            @if (hasPermission('OPERATIONS.VIEW')) {
+              <a routerLink="/operations" routerLinkActive="active">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5"/>
+                </svg>
+                <span>Operaciones</span>
+              </a>
+            }
+            @if (hasPermission('OPERATIONS.IMPORT')) {
+              <a routerLink="/operations/import" routerLinkActive="active">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4" />
+                </svg>
+                <span>Importar desde Excel</span>
+              </a>
+            }
+            @if (hasPermission('CONFIGURATION.STATUSES.VIEW')) {
               <a routerLink="/status-catalog" routerLinkActive="active">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M4 5h16v14H4z M8 9h8 M8 13h5 M8 17h3"/>
@@ -253,7 +275,7 @@
                 <span>Catálogo de estados</span>
               </a>
             }
-            @if (isAdmin() || isSupervisor()) {
+            @if (hasPermission('HISTORY.VIEW')) {
               <a routerLink="/operations/history" routerLinkActive="active">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M3 12a9 9 0 1 0 3-6.7L3 8 M3 3v5h5 M12 7v5l3 2"/>
@@ -261,23 +283,53 @@
                 <span>Histórico de operaciones</span>
               </a>
             }
-            <a routerLink="/scheduling" routerLinkActive="active">
+            @if (hasPermission('SCHEDULING.VIEW')) {
+              <a routerLink="/scheduling" routerLinkActive="active">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 5h16v16H4z M8 3v4 M16 3v4 M4 10h16 M8 14h3 M8 18h6"/>
+                </svg>
+                <span>Programación</span>
+              </a>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @if (hasPermission('AUDIT.VIEW')) {
+      <div class="nav-section">
+        <button
+          type="button"
+          class="nav-section-button"
+          (click)="toggleReportes()"
+          [attr.aria-expanded]="reportesExpanded">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 3h14v18H5z M8 7h8 M8 11h8 M8 15h5 M8 19h8" />
+          </svg>
+          <span>Reportes</span>
+          <span class="nav-arrow">{{ reportesExpanded ? '−' : '+' }}</span>
+        </button>
+        @if (reportesExpanded) {
+          <div class="nav-submenu">
+            <a routerLink="/reports/audit" routerLinkActive="active">
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 5h16v16H4z M8 3v4 M16 3v4 M4 10h16 M8 14h3 M8 18h6"/>
+                <path d="M5 3h14v18H5z M8 7h8 M8 11h8 M8 15h5 M8 19h8" />
               </svg>
-              <span>Programación</span>
+              <span>Auditoría</span>
             </a>
           </div>
         }
       </div>
     }
 
-    <a routerLink="/communication" routerLinkActive="active">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5a9 9 0 0 1-.9-4A8.5 8.5 0 0 1 12.5 3h.5a8.5 8.5 0 0 1 8 8z" />
-      </svg>
-      <span>Sugerencias y Quejas</span>
-    </a>
+    @if (hasPermission('COMMUNICATIONS.SEND')) {
+      <a routerLink="/communication" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5a9 9 0 0 1-.9-4A8.5 8.5 0 0 1 12.5 3h.5a8.5 8.5 0 0 1 8 8z" />
+        </svg>
+        <span>Sugerencias y Quejas</span>
+      </a>
+    }
 
   </nav>
 

@@ -23,6 +23,7 @@ public class CertificateController {
 	}
 
 	@GetMapping("/attempts/{attemptId}")
+	@PreAuthorize("hasAuthority('CERTIFICATES.DOWNLOAD_OWN')")
 	public ResponseEntity<byte[]> downloadCertificate(
 			@PathVariable Long attemptId,
 			Principal principal
@@ -57,7 +58,7 @@ public class CertificateController {
 	}
 
 	@GetMapping("/attempts/{attemptId}/download")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAuthority('CERTIFICATES.DOWNLOAD_ANY')")
 	public ResponseEntity<byte[]> downloadCertificateAsAdmin(
 			@PathVariable Long attemptId
 	) {
@@ -87,7 +88,7 @@ public class CertificateController {
 	}
 
 	@GetMapping
-	@PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+	@PreAuthorize("hasAuthority('CERTIFICATES.VIEW')")
 	public ResponseEntity<List<CertificateResponse>> getActiveCertificates() {
 		return ResponseEntity.ok(
 				certificateService.getActiveCertificates()

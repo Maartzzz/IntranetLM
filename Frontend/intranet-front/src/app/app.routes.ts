@@ -16,7 +16,7 @@ import { CertificatesComponent } from './features/certificates/certificates.comp
 import { CommunicationComponent } from './features/communication/communication.component';
 import { CicLibraryComponent } from './features/cic/cic-library/cic-library.component';
 import { CicCategoryComponent } from './features/cic/cic-category/cic-category.component';
-import { adminGuard } from './core/guards/admin.guard';
+import { permissionGuard } from './core/guards/permission.guard';
 import { CicAdminComponent } from './features/cic/cic-admin/cic-admin.component';
 import { EvaluationsComponent } from './features/evaluations/evaluations.component';
 import { OperationsHomeComponent } from './features/operations/operations-home.component';
@@ -33,6 +33,8 @@ import { ScheduleDayComponent } from './features/scheduling/schedule-day/schedul
 import { OperationImportComponent } from './features/operations/operation-import/operation-import.component';
 import { StatusCatalogComponent } from './features/status-catalog/status-catalog.component';
 import { VehiclesComponent } from './features/vehicles/vehicles.component';
+import { RolesComponent } from './features/roles/roles.component';
+import { AuditReportComponent } from './features/reports/audit-report.component';
 
 export const routes: Routes = [
     {
@@ -46,127 +48,196 @@ export const routes: Routes = [
         children: [
         {
             path: 'dashboard',
-            component: DashboardComponent
+            component: DashboardComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['DASHBOARD.VIEW'] }
         },
         {
             path: 'users',
-            component: UsersComponent
+            component: UsersComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['USERS.VIEW'] }
+        },
+        {
+            path: 'roles',
+            component: RolesComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['ROLES.VIEW'] }
         },
         {   
             path: 'drivers',
-            component: DriversComponent
+            component: DriversComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['DRIVERS.VIEW'] }
         },
         {
             path: 'courses',
-            component: CoursesComponent
+            component: CoursesComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['TRAINING.COURSES.VIEW'] }
         },
         {
             path: 'courses/:courseId/materials',
-            component: MaterialsComponent
+            component: MaterialsComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['TRAINING.MATERIALS.VIEW'] }
         },
         {
 
             path: 'questions',
-            component: QuestionsComponent
-
+            component: QuestionsComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['TRAINING.QUESTIONS.VIEW'] }
         },
         {
             path: 'learning',
-            component: LearningComponent
+            component: LearningComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['TRAINING.MY_COURSES.VIEW'] }
         },
         {
             path: 'learning/courses/:courseId',
-            component: LearningCourseComponent
+            component: LearningCourseComponent,
+            canActivate: [permissionGuard],
+            data: { allPermissions: ['TRAINING.MY_COURSES.VIEW', 'TRAINING.MATERIALS.VIEW', 'TRAINING.PROGRESS.VIEW', 'TRAINING.EVALUATIONS.VIEW'] }
         },
         {   
 
             path: 'learning/courses/:courseId/material/:materialId',
-            component: LearningMaterialViewerComponent
-
+            component: LearningMaterialViewerComponent,
+            canActivate: [permissionGuard],
+            data: { allPermissions: ['TRAINING.MY_COURSES.VIEW', 'TRAINING.MATERIALS.VIEW', 'TRAINING.PROGRESS.VIEW'] }
         },
         {
             path: 'learning/courses/:courseId/evaluation',
-            component: LearningEvaluationComponent
+            component: LearningEvaluationComponent,
+            canActivate: [permissionGuard],
+            data: { allPermissions: ['TRAINING.MY_COURSES.VIEW', 'TRAINING.EVALUATIONS.EDIT'] }
         },
         {
             path: 'certificates',
-            component: CertificatesComponent
+            component: CertificatesComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['CERTIFICATES.VIEW'] }
         },
         {
             path: 'my-evaluations',
-            component: EvaluationsComponent
+            component: EvaluationsComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['TRAINING.EVALUATIONS.VIEW'] }
         },
         {
             path: 'communication',
-            component: CommunicationComponent
+            component: CommunicationComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['COMMUNICATIONS.SEND'] }
+        },
+        {
+            path: 'reports/audit',
+            component: AuditReportComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['AUDIT.VIEW'] }
         },
         {
             path: 'operations',
-            component: OperationsHomeComponent
+            component: OperationsHomeComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['OPERATIONS.VIEW'] }
         },
         {
             path: 'operations/import',
-            component: OperationImportComponent
+            component: OperationImportComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['OPERATIONS.IMPORT'] }
         },
         {
             path: 'operations/history',
             component: OperationHistoryComponent,
-            canActivate: [adminGuard]
+            canActivate: [permissionGuard],
+            data: { permissions: ['HISTORY.VIEW'] }
         },
         {
             path: 'scheduling/day/:date',
-            component: ScheduleDayComponent
+            component: ScheduleDayComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['SCHEDULING.VIEW'] }
         },
         {
             path: 'scheduling',
-            component: SchedulingComponent
+            component: SchedulingComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['SCHEDULING.VIEW'] }
         },
-        { path: 'vehicles', component: VehiclesComponent },
+        {
+            path: 'vehicles', component: VehiclesComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['FLEET.VIEW'] }
+        },
         {
             path: 'status-catalog',
             component: StatusCatalogComponent,
-            canActivate: [adminGuard]
+            canActivate: [permissionGuard],
+            data: { permissions: ['CONFIGURATION.STATUSES.VIEW'] }
         },
         {
             path: 'operations/:id',
-            component: OperationDetailComponent
+            component: OperationDetailComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['OPERATIONS.VIEW'] }
         },
         {
         path: 'requirement-catalog',
-        component: RequirementCatalogComponent
+        component: RequirementCatalogComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['REQUIREMENTS.VIEW'] }
         },
         {
             path: 'clients',
-            component: ClientsComponent
+            component: ClientsComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['CLIENTS.VIEW'] }
         },
         {
             path: 'subclients',
-            component: SubclientsComponent
+            component: SubclientsComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['CLIENTS.VIEW'] }
         },
         {
             path: 'warehouses',
-            component: WarehousesComponent
+            component: WarehousesComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['WAREHOUSES.VIEW'] }
         },
         {
             path: 'cargo-types',
-            component: CargoTypesComponent
+            component: CargoTypesComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['CONFIGURATION.CARGO_TYPES.VIEW'] }
         },
         {
             path: 'locations',
-            component: LocationsComponent
+            component: LocationsComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['LOCATIONS.VIEW'] }
         },
         {
             path: 'cic',
-            component: CicCategoryComponent
+            component: CicCategoryComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['CIC.CATEGORIES.VIEW'] }
         },
         {
             path: 'cic/category/:id',
-            component: CicLibraryComponent
+            component: CicLibraryComponent,
+            canActivate: [permissionGuard],
+            data: { permissions: ['CIC.DOCUMENTS.VIEW'] }
         },
         {
             path: 'cic/admin',
             component: CicAdminComponent,
-            canActivate: [adminGuard]
+            canActivate: [permissionGuard],
+            data: { permissions: ['CIC.CATEGORIES.CREATE', 'CIC.CATEGORIES.EDIT', 'CIC.CATEGORIES.DELETE', 'CIC.DOCUMENTS.CREATE', 'CIC.DOCUMENTS.EDIT'] }
         }]
     },
     {

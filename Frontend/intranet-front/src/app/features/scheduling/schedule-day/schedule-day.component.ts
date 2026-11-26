@@ -7,6 +7,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DirectInternalOrderDialogComponent } from './direct-internal-order-dialog.component';
 import { VehiclesService, FleetVehicle } from '../../../core/services/vehicles.service';
 import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../../core/auth/auth.service';
 
 type ServiceFilter = 'ALL' | 'FCL' | 'LCL';
 
@@ -24,6 +25,10 @@ export class ScheduleDayComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly vehiclesApi = inject(VehiclesService);
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
+
+  get canAssignVehicle(): boolean { return this.authService.hasPermission('FLEET.EDIT'); }
+  get canCreateInternalOrder(): boolean { return this.authService.hasPermission('INTERNAL_ORDERS.CREATE'); }
   vehicles: FleetVehicle[] = [];
 
   dateKey = '';
@@ -86,6 +91,7 @@ export class ScheduleDayComponent implements OnInit {
   }
 
   assignVehicle(order: ScheduleOrder, value: string): void {
+    if (!this.canAssignVehicle) return;
     const vehicleId = value ? Number(value) : null;
     this.http.patch(`/api/internal-service-orders/${order.id}/vehicle`, { vehicleId }).subscribe({
       next: () => this.loadDay(),
@@ -94,6 +100,7 @@ export class ScheduleDayComponent implements OnInit {
   }
 
   openCreateInternalOrder(): void {
+    if (!this.canCreateInternalOrder) return;
     const dialogRef = this.dialog.open(DirectInternalOrderDialogComponent, {
       width: '760px', maxWidth: '96vw', maxHeight: '92vh',
       data: { scheduledDate: this.dateKey },

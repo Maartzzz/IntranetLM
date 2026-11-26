@@ -25,11 +25,14 @@ export class CargoTypesComponent implements OnInit {
   loading = false;
   errorMessage = '';
   canManage = false;
+  get canCreate(): boolean { return this.authService.hasPermission('CONFIGURATION.CARGO_TYPES.CREATE'); }
+  get canEdit(): boolean { return this.authService.hasPermission('CONFIGURATION.CARGO_TYPES.EDIT'); }
+  get canChangeStatus(): boolean { return this.authService.hasPermission('CONFIGURATION.CARGO_TYPES.DELETE'); }
 
   ngOnInit(): void {
     this.authService.getCurrentUser().subscribe({
       next: user => {
-        this.canManage = user.role === 'ADMIN';
+        this.canManage = this.authService.hasAnyPermission('CONFIGURATION.CARGO_TYPES.CREATE', 'CONFIGURATION.CARGO_TYPES.EDIT', 'CONFIGURATION.CARGO_TYPES.DELETE');
         this.loadCargoTypes();
       },
       error: () => this.errorMessage = 'No se pudo validar el usuario actual.'
@@ -67,8 +70,8 @@ export class CargoTypesComponent implements OnInit {
     });
   }
 
-  openCreateDialog(): void { this.openForm({ mode: 'create' }); }
-  openEditDialog(item: CargoType): void { this.openForm({ mode: 'edit', cargoType: item }); }
+  openCreateDialog(): void { if (!this.canCreate) return; this.openForm({ mode: 'create' }); }
+  openEditDialog(item: CargoType): void { if (!this.canEdit) return; this.openForm({ mode: 'edit', cargoType: item }); }
 
   private openForm(data: { mode: 'create' | 'edit'; cargoType?: CargoType }): void {
     this.dialog.open(CargoTypeFormDialogComponent, {
@@ -77,6 +80,7 @@ export class CargoTypesComponent implements OnInit {
   }
 
   toggleActive(item: CargoType): void {
+    if (!this.canChangeStatus) return;
     const nextStatus = !item.active;
     const action = nextStatus ? 'activar' : 'desactivar';
     if (!window.confirm(`¿Deseas ${action} el tipo de carga "${item.name}"?`)) return;

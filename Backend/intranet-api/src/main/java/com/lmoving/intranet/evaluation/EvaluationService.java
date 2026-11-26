@@ -1,5 +1,6 @@
 package com.lmoving.intranet.evaluation;
 
+import com.lmoving.intranet.audit.AuditLogService;
 import com.lmoving.intranet.courses.CoursesRepository;
 import com.lmoving.intranet.courses.courseAudience.CourseAudience;
 import com.lmoving.intranet.courses.courseAudience.CourseAudienceRepository;
@@ -53,6 +54,7 @@ public class EvaluationService {
     private final CourseAudienceRepository courseAudienceRepository;
     private final EvaluationRoundRepository evaluationRoundRepository;
     private final CourseAudienceService courseAudienceService;
+    private final AuditLogService auditLogService;
 
     public EvaluationService(
         CoursesRepository courseRepository,
@@ -63,7 +65,8 @@ public class EvaluationService {
         CourseMaterialProgressService progressService,
         EvaluationAnswerRepository evaluationAnswerRepository, 
         CourseAudienceRepository courseAudienceRepository, 
-        EvaluationRoundRepository evaluationRoundRepository, CourseAudienceService courseAudienceService
+        EvaluationRoundRepository evaluationRoundRepository, CourseAudienceService courseAudienceService,
+        AuditLogService auditLogService
     ) {
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
@@ -75,6 +78,7 @@ public class EvaluationService {
         this.courseAudienceRepository = courseAudienceRepository;
         this.evaluationRoundRepository = evaluationRoundRepository;
         this.courseAudienceService = courseAudienceService;
+        this.auditLogService = auditLogService;
     }
 
     public EvaluationStartResponse startEvaluation(
@@ -194,6 +198,9 @@ public class EvaluationService {
         attempt.setRound(round);
 
         attempt = evaluationAttemptRepository.save(attempt);
+        auditLogService.registrarComoUsuario(username, "APRENDIZAJE", "EVALUACION", attempt.getId(),
+            "STARTED", "El usuario inició una evaluación del curso " + course.getTitle(), null,
+            "courseId=" + courseId + "; round=" + round.getRoundNumber());
 
         for (Question question : selectedQuestions) {
 
@@ -376,6 +383,9 @@ public class EvaluationService {
         attempt.setPassed(passed);
     
         evaluationAttemptRepository.save(attempt);
+        auditLogService.registrarComoUsuario(username, "APRENDIZAJE", "EVALUACION", attempt.getId(),
+            passed ? "PASSED" : "FAILED", "El usuario finalizó la evaluación del curso " + attempt.getCourse().getTitle(),
+            null, "score=" + score + "; correctAnswers=" + correctAnswers + "; totalQuestions=" + totalQuestions);
     
         return new EvaluationResultResponse(
                 attempt.getId(),
@@ -428,6 +438,9 @@ public class EvaluationService {
             );
         }
 
+        auditLogService.registrarComoUsuario(username, "APRENDIZAJE", "EVALUACION", attemptId,
+            "CANCELLED", "El usuario canceló una evaluación en curso",
+            "courseId=" + attempt.getCourse().getId(), null);
         evaluationAttemptRepository.delete(attempt);
     }
 
@@ -547,7 +560,12 @@ public class EvaluationService {
         newRound.setAuthorizedBy(authorizer);
         newRound.setAuthorizedAt(LocalDateTime.now());
 
-        return evaluationRoundRepository.save(newRound);
+        EvaluationRound savedRound = evaluationRoundRepository.save(newRound);
+        auditLogService.registrarComoUsuario(authorizerUsername, "APRENDIZAJE", "EVALUACION_RONDA", savedRound.getId(),
+            "REHABILITATED", "Se rehabilitó la evaluación del usuario " + targetUsername
+                + " para el curso " + currentRound.getCourse().getTitle(),
+            "round=" + currentRound.getRoundNumber(), "round=" + savedRound.getRoundNumber());
+        return savedRound;
     }
 
     @Transactional(readOnly = true)

@@ -1,5 +1,6 @@
 package com.lmoving.intranet.question;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.lmoving.intranet.question.dto.QuestionRequest;
 import com.lmoving.intranet.question.dto.QuestionResponse;
 import jakarta.validation.Valid;
@@ -19,16 +20,19 @@ public class QuestionController {
         this.questionService = questionService;
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.VIEW')")
     @GetMapping
     public ResponseEntity<List<QuestionResponse>> getAll() {
         return ResponseEntity.ok(questionService.getAll());
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.VIEW')")
     @GetMapping("/{id}")
     public ResponseEntity<QuestionResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(questionService.getById(id));
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.CREATE')")
     @PostMapping
     public ResponseEntity<QuestionResponse> create(
         @Valid @RequestBody QuestionRequest request
@@ -38,6 +42,7 @@ public class QuestionController {
             .body(questionService.create(request));
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.EDIT')")
     @PutMapping("/{id}")
     public ResponseEntity<QuestionResponse> update(
         @PathVariable Long id,
@@ -48,6 +53,7 @@ public class QuestionController {
         );
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.EDIT')")
     @PatchMapping("/{id}/toggle-active")
     public ResponseEntity<QuestionResponse> toggleActive(
         @PathVariable Long id
@@ -57,6 +63,7 @@ public class QuestionController {
         );
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.DELETE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         questionService.delete(id);

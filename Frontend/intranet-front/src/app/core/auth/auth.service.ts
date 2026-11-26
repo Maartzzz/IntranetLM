@@ -60,16 +60,12 @@ export class AuthService {
     return this.currentUser;
   }
 
-  isAdmin(): boolean {
-    return this.currentUser?.role === 'ADMIN';
+  hasPermission(permission: string): boolean {
+    return this.currentUser?.permissions?.includes(permission) ?? false;
   }
 
-  isDriver(): boolean {
-    return this.currentUser?.role === 'CHOFER';
-  }
-
-  isSupervisor(): boolean {
-    return this.currentUser?.role === 'SUPERVISOR';
+  hasAnyPermission(...permissions: string[]): boolean {
+    return permissions.some(permission => this.hasPermission(permission));
   }
 
   logout(): void {

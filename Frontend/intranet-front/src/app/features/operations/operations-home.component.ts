@@ -11,6 +11,7 @@ import { Operation, Status } from '../../core/models/operations.models';
 import { ClientServiceOrder } from '../../core/models/client-service-orders.models';
 import { ClientServiceOrderDistribution, InternalServiceOrder } from '../../core/models/internal-service-orders.models';
 import { OperationFormDialogComponent } from './operation-form-dialog/operation-form-dialog.component';
+import { AuthService } from '../../core/auth/auth.service';
 
 type OperationBoardFilter = 'ALL' | 'WITHOUT_CLIENT_ORDER' | 'WITHOUT_INTERNAL_ORDERS' | 'PARTIAL' | 'COMPLETE';
 
@@ -33,6 +34,10 @@ interface OperationBoardSummary {
 export class OperationsHomeComponent implements OnInit {
   private readonly service = inject(OperationsService);
   private readonly dialog = inject(MatDialog);
+  private readonly authService = inject(AuthService);
+
+  get canCreate(): boolean { return this.authService.hasPermission('OPERATIONS.CREATE'); }
+  get canEdit(): boolean { return this.authService.hasPermission('OPERATIONS.EDIT'); }
 
   operations: Operation[] = [];
   statuses: Status[] = [];
@@ -231,6 +236,7 @@ export class OperationsHomeComponent implements OnInit {
   }
 
   onDrop(event: CdkDragDrop<Operation[]>, targetStatus: Status): void {
+    if (!this.canEdit) return;
     const operation = event.item.data as Operation;
 
     if (!operation || operation.statusId === targetStatus.id ||
@@ -242,6 +248,7 @@ export class OperationsHomeComponent implements OnInit {
   }
 
   private changeOperationStatus(operation: Operation, targetStatus: Status): void {
+    if (!this.canEdit) return;
     const previousStatusId = operation.statusId;
     this.updatingOperationId = operation.id;
     this.errorMessage = '';
@@ -280,10 +287,12 @@ export class OperationsHomeComponent implements OnInit {
   }
 
   openCreate(): void {
+    if (!this.canCreate) return;
     this.openForm('create');
   }
 
   openEdit(operation: Operation, event: Event): void {
+    if (!this.canEdit) return;
     event.preventDefault();
     event.stopPropagation();
     this.openForm('edit', operation);

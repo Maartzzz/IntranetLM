@@ -15,14 +15,16 @@ public class InternalServiceOrderScheduleVersionController {
  public InternalServiceOrderScheduleVersionController(InternalServiceOrderScheduleVersionService service){this.service=service;}
  @PostMapping
  @ResponseStatus(HttpStatus.CREATED)
- @PreAuthorize("hasAnyRole('ADMIN','SUPERVISOR','OPERACIONES')")
+ @PreAuthorize("hasAuthority('SCHEDULING.VERSION_CREATE')")
  public ScheduleVersionSummaryResponse guardar(@RequestParam LocalDate startDate,@RequestParam LocalDate endDate) {
   return service.guardar(startDate,endDate);
  }
  @GetMapping
+ @PreAuthorize("hasAuthority('SCHEDULING.VERSION_VIEW')")
  public List<ScheduleVersionSummaryResponse> listar(@RequestParam LocalDate startDate,@RequestParam LocalDate endDate) {
   return service.listar(startDate,endDate);
  }
  @GetMapping("/{versionId}")
+ @PreAuthorize("hasAuthority('SCHEDULING.VERSION_VIEW')")
  public ScheduleVersionDetailResponse obtener(@PathVariable Long versionId){return service.obtener(versionId);}
 }

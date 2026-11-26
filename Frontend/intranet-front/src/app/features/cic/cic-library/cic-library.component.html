@@ -14,7 +14,7 @@
 
     <h1>{{ categoria.nombre }}</h1>
 
-	<div class="admin-actions" *ngIf="esAdmin && categoria">
+	<div class="admin-actions" *ngIf="canCreateDocument && categoria">
 		<button
 			type="button"
 			class="admin-button"

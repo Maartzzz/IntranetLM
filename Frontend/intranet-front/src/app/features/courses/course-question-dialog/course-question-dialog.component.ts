@@ -26,6 +26,7 @@ import {
 import {
   CourseQuestionsService
 } from '../../../core/services/course-question.service';
+import { AuthService } from '../../../core/auth/auth.service';
 
 interface CourseQuestionsDialogData {
   courseId: number;
@@ -51,6 +52,8 @@ export class CourseQuestionsDialogComponent
   private readonly courseQuestionsService =
     inject(CourseQuestionsService);
 
+  private readonly authService = inject(AuthService);
+
   readonly dialogRef =
     inject(
       MatDialogRef<CourseQuestionsDialogComponent>
@@ -70,6 +73,14 @@ export class CourseQuestionsDialogComponent
     @Inject(MAT_DIALOG_DATA)
     public data: CourseQuestionsDialogData
   ) {}
+
+  get canAssign(): boolean {
+    return this.authService.hasPermission('TRAINING.QUESTIONS.ASSIGN');
+  }
+
+  get canRemove(): boolean {
+    return this.authService.hasPermission('TRAINING.QUESTIONS.REMOVE');
+  }
 
   ngOnInit(): void {
     this.loadQuestions();
@@ -155,6 +166,8 @@ export class CourseQuestionsDialogComponent
     question: Question
   ): void {
 
+    if (!this.canAssign) return;
+
     if (
       this.isAssigned(question.id) ||
       this.savingQuestionId !== null
@@ -203,6 +216,8 @@ export class CourseQuestionsDialogComponent
   removeQuestion(
     question: Question
   ): void {
+
+    if (!this.canRemove) return;
 
     if (
       !this.isAssigned(question.id) ||

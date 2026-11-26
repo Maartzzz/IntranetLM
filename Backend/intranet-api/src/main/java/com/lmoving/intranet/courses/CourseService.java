@@ -2,6 +2,8 @@ package com.lmoving.intranet.courses;
 
 import java.util.List;
 
+import com.lmoving.intranet.audit.AuditLogService;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +16,11 @@ import com.lmoving.intranet.courses.dto.CourseResponse;
 public class CourseService {
 
 	private final CoursesRepository courseRepository;
+	private final AuditLogService auditLogService;
 
-	public CourseService(CoursesRepository courseRepository) {
+	public CourseService(CoursesRepository courseRepository, AuditLogService auditLogService) {
 		this.courseRepository = courseRepository;
+		this.auditLogService = auditLogService;
 	}
 
 	@Transactional(readOnly = true)
@@ -60,8 +64,10 @@ public class CourseService {
 
 		Courses saved =
 				courseRepository.save(course);
-
-		return toResponse(saved);
+		CourseResponse response = toResponse(saved);
+			auditLogService.registrar("APRENDIZAJE", "CURSO", saved.getId(), "CREATED",
+				"Se creó el curso " + saved.getTitle(), null, response.toString());
+		return response;
 	}
 	
 	@Transactional
@@ -77,6 +83,7 @@ public class CourseService {
 								"Curso no encontrado"
 						)
 				);
+		CourseResponse previous = toResponse(course);
 
 		course.setTitle(request.title());
 		course.setDescription(request.description());
@@ -88,7 +95,10 @@ public class CourseService {
 			course.setActive(request.active());
 		}
 
-		return toResponse(course);
+		CourseResponse updated = toResponse(course);
+		auditLogService.registrar("APRENDIZAJE", "CURSO", course.getId(), "UPDATED",
+			"Se actualizaron los datos del curso " + course.getTitle(), previous.toString(), updated.toString());
+		return updated;
 	}
 
 	@Transactional
@@ -102,9 +112,14 @@ public class CourseService {
 						)
 				);
 
-		course.setActive(!course.isActive());
-
-		return toResponse(course);
+		boolean previousActive = course.isActive();
+		course.setActive(!previousActive);
+		CourseResponse updated = toResponse(course);
+		auditLogService.registrar("APRENDIZAJE", "CURSO", course.getId(),
+				updated.active() ? "ACTIVATED" : "DEACTIVATED",
+				(updated.active() ? "Se activó el curso " : "Se desactivó el curso ") + course.getTitle(),
+				String.valueOf(previousActive), String.valueOf(updated.active()));
+		return updated;
 	}
 
 	private CourseResponse toResponse(

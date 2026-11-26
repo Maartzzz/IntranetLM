@@ -1,5 +1,6 @@
 package com.lmoving.intranet.question;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class CourseQuestionController {
         this.questionImportService = questionImportService;
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.VIEW')")
     @GetMapping
     public ResponseEntity<List<Question>> getQuestionsByCourse(
         @PathVariable Long courseId
@@ -32,6 +34,7 @@ public class CourseQuestionController {
         );
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.ASSIGN')")
     @PostMapping("/{questionId}")
     public ResponseEntity<Void> assignQuestion(
         @PathVariable Long courseId,
@@ -42,6 +45,7 @@ public class CourseQuestionController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.REMOVE')")
     @DeleteMapping("/{questionId}")
     public ResponseEntity<Void> removeQuestion(
         @PathVariable Long courseId,
@@ -52,6 +56,7 @@ public class CourseQuestionController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.IMPORT')")
     @PostMapping("/import")
     public ResponseEntity<?> importQuestions(
         @PathVariable Long courseId,
@@ -89,6 +94,7 @@ public class CourseQuestionController {
         }
     }
 
+    @PreAuthorize("hasAuthority('TRAINING.QUESTIONS.VIEW')")
     @GetMapping("/import/template")
     public ResponseEntity<byte[]> downloadTemplate() {
 

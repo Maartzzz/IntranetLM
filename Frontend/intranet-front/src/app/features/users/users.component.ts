@@ -7,6 +7,7 @@ import { UserFormDialog } from './user-form-dialog/user-form-dialog.component';
 import { FormsModule } from '@angular/forms';
 import { ConfirmDialog } from './confirm-dialog/confirm-dialog.component';
 import { MatButton } from '@angular/material/button';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-users',
@@ -22,11 +23,24 @@ export class UsersComponent implements OnInit {
   selectedStatus = 'ACTIVE';
 
   private readonly userService = inject(UserService);
+  private readonly authService = inject(AuthService);
   private readonly dialog = inject(MatDialog);
 
   users: User[] = [];
   loading = false;
   errorMessage = '';
+
+  get canCreate(): boolean {
+    return this.authService.hasPermission('USERS.CREATE');
+  }
+
+  get canEdit(): boolean {
+    return this.authService.hasPermission('USERS.EDIT');
+  }
+
+  get canChangeStatus(): boolean {
+    return this.authService.hasPermission('USERS.DELETE');
+  }
 
   ngOnInit(): void {
     this.loadUsers();
@@ -60,6 +74,8 @@ export class UsersComponent implements OnInit {
   }
 
   openCreateDialog(): void {
+    if (!this.canCreate) return;
+
 
     const dialogRef = this.dialog.open(UserFormDialog, {
       width: '600px',
@@ -77,6 +93,8 @@ export class UsersComponent implements OnInit {
   }
 
   openEditDialog(user: User): void {
+    if (!this.canEdit) return;
+
 
     const dialogRef = this.dialog.open(
       UserFormDialog,
@@ -100,6 +118,8 @@ export class UsersComponent implements OnInit {
   }
 
 toggleActive(user: User): void {
+  if (!this.canChangeStatus) return;
+
 
   const newStatus = !user.active;
 
@@ -172,8 +192,8 @@ toggleActive(user: User): void {
         user.documentNumber.toLowerCase().includes(search) ||
         user.phone?.toLowerCase().includes(search);
 
-      const matchesRole = this.selectedRole === 'ALL' ||  
-        user.role === this.selectedRole;
+      const assignedRoles = user.roles?.length ? user.roles.map(role => role.code) : [user.role];
+      const matchesRole = this.selectedRole === 'ALL' || assignedRoles.includes(this.selectedRole);
 
       const matchesStatus = this.selectedStatus === 'ALL' ||
         (this.selectedStatus === 'ACTIVE' && user.active) ||

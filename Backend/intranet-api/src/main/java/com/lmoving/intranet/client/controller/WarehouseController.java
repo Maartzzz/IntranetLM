@@ -16,11 +16,11 @@ import jakarta.validation.constraints.NotNull;
 public class WarehouseController {
     private final WarehouseService service;
     public WarehouseController(WarehouseService service) { this.service = service; }
-    @GetMapping public ResponseEntity<List<WarehouseResponse>> listActive() { return ResponseEntity.ok(service.listActive()); }
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')") @GetMapping("/admin") public ResponseEntity<List<WarehouseResponse>> listAll() { return ResponseEntity.ok(service.listAll()); }
-    @GetMapping("/{id}") public ResponseEntity<WarehouseResponse> get(@PathVariable Long id) { return ResponseEntity.ok(service.get(id)); }
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')") @PostMapping public ResponseEntity<WarehouseResponse> create(@Valid @RequestBody WarehouseRequest request) { return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request)); }
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')") @PutMapping("/{id}") public ResponseEntity<WarehouseResponse> update(@PathVariable Long id, @Valid @RequestBody WarehouseRequest request) { return ResponseEntity.ok(service.update(id, request)); }
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')") @PatchMapping("/{id}/status") public ResponseEntity<WarehouseResponse> changeStatus(@PathVariable Long id, @Valid @RequestBody StatusRequest request) { return ResponseEntity.ok(service.changeStatus(id, request.active())); }
+    @GetMapping @PreAuthorize("hasAuthority('WAREHOUSES.VIEW')") public ResponseEntity<List<WarehouseResponse>> listActive() { return ResponseEntity.ok(service.listActive()); }
+    @PreAuthorize("hasAuthority('WAREHOUSES.VIEW')") @GetMapping("/admin") public ResponseEntity<List<WarehouseResponse>> listAll() { return ResponseEntity.ok(service.listAll()); }
+    @GetMapping("/{id}") @PreAuthorize("hasAuthority('WAREHOUSES.VIEW')") public ResponseEntity<WarehouseResponse> get(@PathVariable Long id) { return ResponseEntity.ok(service.get(id)); }
+    @PreAuthorize("hasAuthority('WAREHOUSES.CREATE')") @PostMapping public ResponseEntity<WarehouseResponse> create(@Valid @RequestBody WarehouseRequest request) { return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request)); }
+    @PreAuthorize("hasAuthority('WAREHOUSES.EDIT')") @PutMapping("/{id}") public ResponseEntity<WarehouseResponse> update(@PathVariable Long id, @Valid @RequestBody WarehouseRequest request) { return ResponseEntity.ok(service.update(id, request)); }
+    @PreAuthorize("hasAuthority('WAREHOUSES.DELETE')") @PatchMapping("/{id}/status") public ResponseEntity<WarehouseResponse> changeStatus(@PathVariable Long id, @Valid @RequestBody StatusRequest request) { return ResponseEntity.ok(service.changeStatus(id, request.active())); }
     public record StatusRequest(@NotNull Boolean active) {}
 }

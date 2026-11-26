@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuditLog } from '../../core/models/audit-log.models';
 import { AuditService } from '../../core/services/audit.service';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-audit-report',
@@ -13,6 +14,9 @@ import { AuditService } from '../../core/services/audit.service';
 })
 export class AuditReportComponent implements OnInit {
   private readonly auditService = inject(AuditService);
+  private readonly authService = inject(AuthService);
+
+  get canExport(): boolean { return this.authService.hasPermission('AUDIT.EXPORT'); }
 
   records: AuditLog[] = [];
   loading = false;
@@ -34,7 +38,9 @@ export class AuditReportComponent implements OnInit {
     { value: 'OS_INTERNA', label: 'O/S interna' },
     { value: 'USUARIOS', label: 'Usuarios' },
     { value: 'CONDUCTORES', label: 'Conductores' },
-    { value: 'PROGRAMACION', label: 'Programación' }
+    { value: 'PROGRAMACION', label: 'Programación' },
+    { value: 'APRENDIZAJE', label: 'Aprendizaje' },
+    { value: 'SEGURIDAD', label: 'Seguridad' }
   ];
 
   ngOnInit(): void { this.load(); }
@@ -125,7 +131,9 @@ export class AuditReportComponent implements OnInit {
       RESCHEDULED: 'Reprogramación', REMOVED_FROM_SCHEDULE: 'Retiro de programación',
       VERSION_CREATED: 'Versión creada', PROGRAMACION_INICIAL: 'Programación inicial',
       REPROGRAMACION: 'Reprogramación', REMOVED_FROM_BOARD: 'Retiro del tablero', DELETED: 'Eliminación',
-      CANCELLED: 'Cancelación'
+      CANCELLED: 'Cancelación', ASSIGNED: 'Asignación', REMOVED: 'Retiro', IMPORTED: 'Importación',
+      STARTED: 'Inicio de evaluación', PASSED: 'Evaluación aprobada', FAILED: 'Evaluación no aprobada',
+      REHABILITATED: 'Rehabilitación', LOGIN_SUCCESS: 'Inicio de sesión', LOGIN_FAILURE: 'Acceso fallido'
     };
     return labels[action] ?? action.replaceAll('_', ' ');
   }
@@ -137,6 +145,7 @@ export class AuditReportComponent implements OnInit {
   }
 
   exportCsv(): void {
+    if (!this.canExport) return;
     const headers = ['Fecha y hora', 'Usuario', 'Módulo', 'Entidad', 'Identificador', 'Acción', 'Descripción', 'Valor anterior', 'Valor nuevo'];
     const rows = this.filteredRecords.map(row => [row.createdAt, `${row.actorName} (${row.actorUsername})`,
       this.moduleLabel(row.module), row.entityType, this.identifier(row), this.actionLabel(row.action),

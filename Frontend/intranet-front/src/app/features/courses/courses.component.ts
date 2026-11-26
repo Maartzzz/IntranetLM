@@ -34,6 +34,7 @@ import { CourseDetailDialog } from './course-detail-dialog/course-detail-dialog.
 import { CourseAudienceService } from '../../core/services/course-audience.service';
 import { Router } from '@angular/router';
 import { CourseQuestionsDialogComponent } from './course-question-dialog/course-question-dialog.component';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-courses',
@@ -51,6 +52,8 @@ export class CoursesComponent implements OnInit {
 
   private readonly courseService =
     inject(CourseService);
+
+  private readonly authService = inject(AuthService);
 
   private readonly courseAudienceService =
     inject(CourseAudienceService);
@@ -70,6 +73,38 @@ export class CoursesComponent implements OnInit {
   loading = false;
 
   errorMessage = '';
+
+  get canCreate(): boolean {
+    return this.authService.hasPermission('TRAINING.COURSES.CREATE');
+  }
+
+  get canEdit(): boolean {
+    return this.authService.hasPermission('TRAINING.COURSES.EDIT');
+  }
+
+  get canDelete(): boolean {
+    return this.authService.hasPermission('TRAINING.COURSES.DELETE');
+  }
+
+  get canAssignAudience(): boolean {
+    return this.authService.hasPermission('TRAINING.AUDIENCE.CREATE');
+  }
+
+  get canRemoveAudience(): boolean {
+    return this.authService.hasPermission('TRAINING.AUDIENCE.DELETE');
+  }
+
+  get canAssignQuestions(): boolean {
+    return this.authService.hasPermission('TRAINING.QUESTIONS.ASSIGN');
+  }
+
+  get canRemoveQuestions(): boolean {
+    return this.authService.hasPermission('TRAINING.QUESTIONS.REMOVE');
+  }
+
+  get canManageMaterials(): boolean {
+    return this.authService.hasPermission('TRAINING.MATERIALS.VIEW');
+  }
 
   ngOnInit(): void {
     this.loadCourses();
@@ -150,6 +185,8 @@ export class CoursesComponent implements OnInit {
     audienceRoles: string[];
   }): void {
 
+    if (!this.canCreate) return;
+
     this.loading = true;
     this.errorMessage = '';
 
@@ -159,10 +196,12 @@ export class CoursesComponent implements OnInit {
 
         next: createdCourse => {
 
-          this.saveAudiences(
-            createdCourse.id,
-            result.audienceRoles
-          );
+          if (this.canAssignAudience && result.audienceRoles.length) {
+            this.saveAudiences(createdCourse.id, result.audienceRoles);
+          } else {
+            this.loading = false;
+            this.loadCourses();
+          }
 
         },
 
@@ -187,6 +226,8 @@ export class CoursesComponent implements OnInit {
     courseId: number,
     roles: string[]
   ): void {
+
+    if (!this.canAssignAudience) return;
 
     if (roles.length === 0) {
 
@@ -238,6 +279,8 @@ export class CoursesComponent implements OnInit {
   }
 
   openCreateDialog(): void {
+    if (!this.canCreate) return;
+
 
     const dialogRef = this.dialog.open(
       CourseFormDialog,
@@ -264,6 +307,8 @@ export class CoursesComponent implements OnInit {
     id: number,
     request: CourseRequest
   ): void {
+
+    if (!this.canEdit) return;
 
     this.loading = true;
     this.errorMessage = '';
@@ -297,6 +342,8 @@ export class CoursesComponent implements OnInit {
   }
 
   openEditDialog(course: Course): void {
+    if (!this.canEdit) return;
+
 
     const dialogRef = this.dialog.open(
       CourseFormDialog,
@@ -319,10 +366,9 @@ export class CoursesComponent implements OnInit {
           result.course
         );
 
-        this.updateAudiences(
-          course.id,
-          result.audienceRoles
-        );
+        if (this.canAssignAudience || this.canRemoveAudience) {
+          this.updateAudiences(course.id, result.audienceRoles);
+        }
       }
     );
   }
@@ -331,6 +377,8 @@ export class CoursesComponent implements OnInit {
       courseId: number,
       selectedRoles: string[]
     ): void {
+
+      if (!this.canAssignAudience && !this.canRemoveAudience) return;
 
       this.courseAudienceService
         .getByCourse(courseId)
@@ -353,7 +401,7 @@ export class CoursesComponent implements OnInit {
                   !selectedRoles.includes(audience.role)
               );
 
-            rolesToAdd.forEach(role => {
+            (this.canAssignAudience ? rolesToAdd : []).forEach(role => {
 
               this.courseAudienceService
                 .add(courseId, {
@@ -374,7 +422,7 @@ export class CoursesComponent implements OnInit {
 
             });
 
-            audiencesToRemove.forEach(audience => {
+            (this.canRemoveAudience ? audiencesToRemove : []).forEach(audience => {
 
               this.courseAudienceService
                 .remove(
@@ -411,6 +459,8 @@ export class CoursesComponent implements OnInit {
     }
 
   toggleActive(course: Course): void {
+
+    if (!this.canDelete) return;
 
     this.courseService
       .toggleActive(course.id)
@@ -457,6 +507,8 @@ export class CoursesComponent implements OnInit {
 
   openMaterials(courseId: number): void {
 
+    if (!this.canManageMaterials) return;
+
     this.router.navigate([
       '/courses',
       courseId,
@@ -465,6 +517,8 @@ export class CoursesComponent implements OnInit {
   }
 
   openQuestions(course: Course): void {
+
+    if (!this.canAssignQuestions && !this.canRemoveQuestions) return;
     this.dialog.open(
       CourseQuestionsDialogComponent,
       {

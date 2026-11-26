@@ -1,12 +1,12 @@
 <section class="warehouses-page">
   <header class="page-heading">
     <div><p class="eyebrow">Configuración</p><h1>Almacenes</h1><p class="subtitle">Administra almacenes de terceros vinculados a ubicaciones físicas.</p></div>
-    @if (canManage) { <button class="primary-button" type="button" (click)="openCreate()">＋ Nuevo almacén</button> }
+    @if (canCreate) { <button class="primary-button" type="button" (click)="openCreate()">＋ Nuevo almacén</button> }
   </header>
   @if (error) { <div class="alert error">{{ error }}</div> }
   @if (success) { <div class="alert success">{{ success }}</div> }
 
-  @if (showForm && canManage) {
+  @if (showForm && ((editingId === null && canCreate) || (editingId !== null && canEdit))) {
     <section class="panel">
       <div class="panel-title"><div><h2>{{ editingId === null ? 'Registrar almacén' : 'Editar almacén' }}</h2><p>Selecciona una ubicación existente o registra una nueva sin salir de este formulario.</p></div><button class="text-button" type="button" (click)="cancel()">Cerrar</button></div>
       <div class="form-grid">
@@ -14,7 +14,9 @@
           <span class="field-label">Ubicación física *</span>
           <div class="choice-tabs">
             <button type="button" class="text-button" [class.selected-choice]="locationMode === 'EXISTING'" (click)="locationMode = 'EXISTING'">Seleccionar existente</button>
+            @if (canCreateLocation) {
             <button type="button" class="text-button" [class.selected-choice]="locationMode === 'NEW'" (click)="locationMode = 'NEW'">Registrar nueva ubicación</button>
+            }
           </div>
           @if (locationMode === 'EXISTING') {
             <select [(ngModel)]="form.locationId">
@@ -55,7 +57,10 @@
             <p class="location">{{ row.locationName }} · {{ row.address }}{{ row.district ? ' · ' + row.district : '' }}{{ row.province ? ', ' + row.province : '' }}</p>
             <div class="details"><span><b>Tipo:</b> {{ typeLabel(row.warehouseType) }}</span><span><b>Operador:</b> {{ row.operatorName }}</span></div>
             @if (row.observations) { <p class="observations">{{ row.observations }}</p> }
-            @if (canManage) { <div class="actions"><button class="text-button" type="button" (click)="openEdit(row)">Editar</button><button class="text-button" type="button" (click)="toggle(row)">{{ row.active ? 'Desactivar' : 'Reactivar' }}</button></div> }
+            @if (canEdit || canChangeStatus) { <div class="actions">
+              @if (canEdit) { <button class="text-button" type="button" (click)="openEdit(row)">Editar</button> }
+              @if (canChangeStatus) { <button class="text-button" type="button" (click)="toggle(row)">{{ row.active ? 'Desactivar' : 'Reactivar' }}</button> }
+            </div> }
           </article>
         }
       </div>

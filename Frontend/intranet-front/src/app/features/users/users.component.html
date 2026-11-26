@@ -6,10 +6,12 @@
       <p>Gestiona las cuentas, roles y estados de acceso a IntranetLM.</p>
     </div>
 
+    @if (canCreate) {
     <button class="create-button" type="button" (click)="openCreateDialog()">
       <span aria-hidden="true">+</span>
       Nuevo usuario
     </button>
+    }
   </header>
 
   <section class="filters-panel" aria-label="Filtros de usuarios">
@@ -30,6 +32,7 @@
         <option value="ADMIN">Administrador</option>
         <option value="SUPERVISOR">Supervisor</option>
         <option value="CHOFER">Conductor</option>
+        <option value="OPERACIONES">Operaciones</option>
       </select>
     </div>
 
@@ -78,7 +81,7 @@
                 <td class="name-cell">{{ user.firstName }} {{ user.lastName }}</td>
                 <td>{{ user.documentType }} {{ user.documentNumber }}</td>
                 <td>{{ user.phone || '-' }}</td>
-                <td><span class="role-pill">{{ user.role }}</span></td>
+                <td>@if (user.roles.length) { @for (role of user.roles; track role.code) { <span class="role-pill">{{ role.name }}</span> } } @else { <span class="role-pill">{{ user.role }}</span> }</td>
                 <td>
                   <span class="status-pill" [class.is-active]="user.active" [class.is-inactive]="!user.active">
                     <span class="status-dot"></span>
@@ -87,11 +90,14 @@
                 </td>
                 <td>
                   <div class="row-actions">
+                    @if (canEdit) {
                     <button
                       class="action-button edit-button"
                       type="button"
                       (click)="openEditDialog(user)"
                     >Editar</button>
+                    }
+                    @if (canChangeStatus) {
                     <button
                       class="action-button"
                       [class.deactivate-button]="user.active"
@@ -99,6 +105,7 @@
                       type="button"
                       (click)="toggleActive(user)"
                     >{{ user.active ? 'Desactivar' : 'Activar' }}</button>
+                    }
                   </div>
                 </td>
               </tr>

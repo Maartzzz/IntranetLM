@@ -21,6 +21,8 @@ export class RequirementCatalogComponent implements OnInit {
   requirements: RequirementCatalog[] = [];
 
   canManage = false;
+  get canCreate(): boolean { return this.authService.hasPermission('REQUIREMENTS.CREATE'); }
+  get canEdit(): boolean { return this.authService.hasPermission('REQUIREMENTS.EDIT'); }
   loading = false;
   saving = false;
 
@@ -43,7 +45,7 @@ export class RequirementCatalogComponent implements OnInit {
     this.authService.getCurrentUser().subscribe({
       next: user => {
         this.canManage =
-          user?.role === 'ADMIN' || user?.role === 'SUPERVISOR';
+          this.authService.hasAnyPermission('REQUIREMENTS.CREATE', 'REQUIREMENTS.EDIT');
       },
       error: error => console.error('Error al consultar usuario:', error)
     });
@@ -87,6 +89,7 @@ export class RequirementCatalogComponent implements OnInit {
   }
 
   openCreate(): void {
+    if (!this.canCreate) return;
     this.editingId = null;
     this.form = {
       name: '',
@@ -100,6 +103,7 @@ export class RequirementCatalogComponent implements OnInit {
   }
 
   openEdit(item: RequirementCatalog): void {
+    if (!this.canEdit) return;
     this.editingId = item.id;
     this.form = {
       name: item.name,
@@ -118,7 +122,7 @@ export class RequirementCatalogComponent implements OnInit {
   }
 
   save(): void {
-    if (!this.canManage || this.saving) return;
+    if ((this.editingId === null && !this.canCreate) || (this.editingId !== null && !this.canEdit) || this.saving) return;
 
     const name = this.form.name.trim();
 
@@ -162,7 +166,7 @@ export class RequirementCatalogComponent implements OnInit {
   }
 
   toggleStatus(item: RequirementCatalog): void {
-    if (!this.canManage) return;
+    if (!this.canEdit) return;
 
     const request: RequirementCatalogRequest = {
       name: item.name,

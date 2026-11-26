@@ -30,13 +30,16 @@ export class SubclientsComponent implements OnInit {
   loadingRelations = false;
   saving = false;
   canManage = false;
+  get canCreateCompany(): boolean { return this.authService.hasPermission('CLIENTS.CREATE'); }
+  get canManageRelations(): boolean { return this.authService.hasPermission('CLIENTS.CREATE'); }
+  get canChangeRelationStatus(): boolean { return this.authService.hasPermission('CLIENTS.DELETE'); }
   errorMessage = '';
   successMessage = '';
 
   ngOnInit(): void {
     this.authService.getCurrentUser().subscribe({
       next: user => {
-        this.canManage = user.role === 'ADMIN' || user.role === 'SUPERVISOR';
+        this.canManage = this.authService.hasAnyPermission('CLIENTS.CREATE', 'CLIENTS.EDIT', 'CLIENTS.DELETE');
         this.loadClients();
       },
       error: () => this.errorMessage = 'No se pudo validar el usuario actual.'
@@ -119,7 +122,7 @@ export class SubclientsComponent implements OnInit {
   }
 
   openCreateCompany(): void {
-    if (!this.canManage) return;
+    if (!this.canCreateCompany) return;
     const dialogRef = this.dialog.open(ClientFormDialogComponent, {
       width: '560px',
       maxWidth: '95vw',
@@ -135,7 +138,7 @@ export class SubclientsComponent implements OnInit {
   }
 
   addSubclient(): void {
-    if (!this.canManage || this.selectedClientId === null || this.selectedSubclientId === null) {
+    if (!this.canManageRelations || this.selectedClientId === null || this.selectedSubclientId === null) {
       return;
     }
 
@@ -162,7 +165,7 @@ export class SubclientsComponent implements OnInit {
   }
 
   reactivateRelation(relation: ClientSubclient): void {
-    if (!this.canManage) return;
+    if (!this.canChangeRelationStatus) return;
     this.relationService.changeStatus(relation.id, true).subscribe({
       next: updated => { this.relations = this.relations.map(item => item.id === updated.id ? updated : item); this.successMessage = 'La relación fue reactivada.'; },
       error: error => { this.errorMessage = error?.error?.detail || 'No se pudo reactivar la relación.'; }
@@ -170,7 +173,7 @@ export class SubclientsComponent implements OnInit {
   }
 
   deactivateRelation(relation: ClientSubclient): void {
-    if (!this.canManage || !window.confirm(`¿Deseas retirar a "${relation.subclientName}" de los subclientes de este cliente?`)) {
+    if (!this.canChangeRelationStatus || !window.confirm(`¿Deseas retirar a "${relation.subclientName}" de los subclientes de este cliente?`)) {
       return;
     }
 

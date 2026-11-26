@@ -45,8 +45,12 @@ export class CicCategoryComponent implements OnInit {
       }
     });
   }
-  get esAdmin(): boolean {
-    return this.authService.isAdmin();
+  get canManageCategories(): boolean {
+    return this.authService.hasAnyPermission(
+      'CIC.CATEGORIES.CREATE',
+      'CIC.CATEGORIES.EDIT',
+      'CIC.CATEGORIES.DELETE'
+    );
   }
 
   obtenerDescripcion(nombre: string): string {
@@ -63,6 +67,7 @@ export class CicCategoryComponent implements OnInit {
   }
 
   irAAdministrarCategorias(): void {
+    if (!this.canManageCategories) return;
     this.router.navigate(['/cic/admin']);
   }
   

@@ -7,7 +7,7 @@
   @if (success) { <div class="feedback success">{{ success }}</div> }
   <div class="status-layout">
     <section class="status-list">
-      <div class="section-title"><h2>Estados registrados</h2><button type="button" (click)="reset()">Nuevo estado</button></div>
+      <div class="section-title"><h2>Estados registrados</h2>@if (canCreate) { <button type="button" (click)="reset()">Nuevo estado</button> }</div>
       @if (loading) { <p>Cargando catálogo…</p> }
       @for (item of statuses; track item.id) {
         <article class="status-item">
@@ -22,10 +22,11 @@
               @if (!item.active) { <span>Inactivo</span> }
             </div>
           </div>
-          <button type="button" class="secondary" (click)="edit(item)">Editar</button>
+          @if (canEdit) { <button type="button" class="secondary" (click)="edit(item)">Editar</button> }
         </article>
       } @empty { @if (!loading) { <p>No hay estados registrados.</p> } }
     </section>
+    @if ((editingId === null && canCreate) || (editingId !== null && canEdit)) {
     <section class="status-editor">
       <h2>{{ editingId ? 'Editar estado' : 'Nuevo estado' }}</h2>
       <label>Nombre<input [(ngModel)]="form.name" maxlength="80"></label>
@@ -39,5 +40,6 @@
       <div class="actions"><button type="button" class="secondary" (click)="reset()">Limpiar</button>
         <button type="button" (click)="save()" [disabled]="saving || !form.name.trim()">{{ saving ? 'Guardando…' : 'Guardar estado' }}</button></div>
     </section>
+    }
   </div>
 </section>

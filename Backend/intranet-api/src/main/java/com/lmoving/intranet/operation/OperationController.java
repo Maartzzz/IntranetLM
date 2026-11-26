@@ -13,20 +13,22 @@ public class OperationController {
     public OperationController(OperationService operationService) { this.operationService = operationService; }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('OPERATIONS.VIEW')")
     public List<OperationResponse> listar(@RequestParam(required = false) Long clientId) {
         return clientId == null ? operationService.listarTodas() : operationService.listarPorCliente(clientId);
     }
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('OPERATIONS.VIEW')")
     public OperationResponse obtener(@PathVariable Long id) { return operationService.obtener(id); }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    @PreAuthorize("hasAuthority('OPERATIONS.CREATE')")
     public OperationResponse crear(@Valid @RequestBody OperationRequest request) {
         return operationService.crear(request);
     }
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    @PreAuthorize("hasAuthority('OPERATIONS.EDIT')")
     public OperationResponse actualizar(@PathVariable Long id, @Valid @RequestBody OperationRequest request) {
         return operationService.actualizar(id, request);
     }

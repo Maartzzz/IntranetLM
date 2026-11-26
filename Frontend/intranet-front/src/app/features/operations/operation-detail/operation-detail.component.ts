@@ -10,6 +10,7 @@ import { Operation, OperationRequirement, RequirementCatalog, Status } from '../
 import { OperationActivity } from '../../../core/models/operation-activity.models';
 import { RequirementFormDialogComponent } from './requirement-form-dialog/requirement-form-dialog.component';
 import { InternalServiceOrderDialogComponent } from './internal-service-order-dialog/internal-service-order-dialog.component';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-operation-detail', standalone: true, imports: [RouterLink, DatePipe],
@@ -19,6 +20,20 @@ export class OperationDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly service = inject(OperationsService);
   private readonly dialog = inject(MatDialog);
+  private readonly authService = inject(AuthService);
+
+  get canViewClientOrder(): boolean { return this.authService.hasPermission('CUSTOMER_ORDERS.VIEW'); }
+  get canViewInternalOrder(): boolean { return this.authService.hasPermission('INTERNAL_ORDERS.VIEW'); }
+  get canViewRequirements(): boolean { return this.authService.hasPermission('REQUIREMENTS.OPERATION_VIEW'); }
+  get canCreateClientOrder(): boolean { return this.authService.hasPermission('CUSTOMER_ORDERS.CREATE'); }
+  get canEditClientOrder(): boolean { return this.authService.hasPermission('CUSTOMER_ORDERS.EDIT'); }
+  get canDeleteClientOrder(): boolean { return this.authService.hasPermission('CUSTOMER_ORDERS.DELETE'); }
+  get canCreateInternalOrder(): boolean { return this.authService.hasPermission('INTERNAL_ORDERS.CREATE'); }
+  get canEditInternalOrder(): boolean { return this.authService.hasPermission('INTERNAL_ORDERS.EDIT'); }
+  get canDeleteInternalOrder(): boolean { return this.authService.hasPermission('INTERNAL_ORDERS.DELETE'); }
+  get canCreateRequirement(): boolean { return this.authService.hasPermission('REQUIREMENTS.CREATE'); }
+  get canEditRequirement(): boolean { return this.authService.hasPermission('REQUIREMENTS.EDIT'); }
+  get canViewActivity(): boolean { return this.authService.hasPermission('OPERATIONS.ACTIVITY_VIEW'); }
   operationId = 0;
   operation: Operation | null = null;
   requirements: OperationRequirement[] = [];
@@ -60,7 +75,11 @@ export class OperationDetailComponent implements OnInit {
 
 
   loadClientServiceOrder(): void {
-    if (!this.operation) return;
+    if (!this.canViewClientOrder || !this.operation) {
+      this.clientServiceOrder = null;
+      this.clientOrderLoading = false;
+      return;
+    }
     this.clientOrderLoading = true;
     this.clientOrderError = '';
     this.service.getClientServiceOrders(this.operation.clientId).subscribe({
@@ -84,7 +103,11 @@ export class OperationDetailComponent implements OnInit {
   }
 
   loadInternalOrders(): void {
-    if (!this.operation) return;
+    if (!this.canViewInternalOrder || !this.operation) {
+      this.internalOrders = [];
+      this.internalOrdersLoading = false;
+      return;
+    }
     this.internalOrdersLoading = true;
     this.internalOrdersError = '';
     this.service.getInternalServiceOrders(this.operation.clientId).subscribe({
@@ -101,7 +124,7 @@ export class OperationDetailComponent implements OnInit {
   }
 
   loadDistribution(): void {
-    if (!this.clientServiceOrder) return;
+    if (!this.canViewClientOrder || !this.clientServiceOrder) return;
     this.distributionLoading = true;
     this.distributionError = '';
     this.service.getClientServiceOrderDistribution(this.clientServiceOrder.id).subscribe({
@@ -124,6 +147,7 @@ export class OperationDetailComponent implements OnInit {
   }
 
   get canGenerateInternalOrders(): boolean {
+    if (!this.canCreateInternalOrder) return false;
     if (!this.distribution || this.distributionLoading || !this.clientServiceOrder || !this.clientServiceOrder.active) {
       return false;
     }
@@ -136,7 +160,7 @@ export class OperationDetailComponent implements OnInit {
   }
 
   get canCreateClientServiceOrder(): boolean {
-    return !!this.operation && !this.clientServiceOrder
+    return this.canCreateClientOrder && !!this.operation && !this.clientServiceOrder
       && (this.operation.statusName ?? '').trim().toLocaleLowerCase() === 'confirmada';
   }
 
@@ -165,20 +189,20 @@ export class OperationDetailComponent implements OnInit {
   }
 
   editClientServiceOrder(): void {
-    if (!this.operation || !this.clientServiceOrder) return;
+    if (!this.canEditClientOrder || !this.operation || !this.clientServiceOrder) return;
     const order = this.clientServiceOrder;
     const dialogRef = this.dialog.open(ClientServiceOrderDialogComponent, { width: '680px', maxWidth: 'calc(100vw - 28px)', data: { operationId: this.operation.id, clientId: order.clientId, clientName: order.clientName, serviceType: order.serviceType, reference: order.reference, origin: order.origin, destination: order.destination, estimatedDate: order.estimatedArrivalDate, customerOrderNumber: order.clientOrderNumber, quantity: order.totalPackages, cargoTypeId: order.fclQuantities[0]?.cargoTypeId ?? this.operation.cargoTypeId, observation: order.observation, order } });
     dialogRef.afterClosed().subscribe(saved => { if (saved) { this.loadClientServiceOrder(); this.loadActivity(); } });
   }
 
   editInternalOrder(order: InternalServiceOrder): void {
-    if (!this.clientServiceOrder || !this.distribution || !this.clientServiceOrder.active) return;
+    if (!this.canEditInternalOrder || !this.clientServiceOrder || !this.distribution || !this.clientServiceOrder.active) return;
     const dialogRef = this.dialog.open(InternalServiceOrderDialogComponent, { width: '900px', maxWidth: 'calc(100vw - 28px)', data: { clientOrder: this.clientServiceOrder, distribution: this.distribution, clientSubclientId: this.operation?.clientSubclientId ?? null, order } });
     dialogRef.afterClosed().subscribe(saved => { if (saved) { this.loadInternalOrders(); this.loadDistribution(); this.loadActivity(); } });
   }
 
   toggleClientOrderActive(): void {
-    if (!this.clientServiceOrder || this.orderActionLoading) return;
+    if (!this.canEditClientOrder || !this.clientServiceOrder || this.orderActionLoading) return;
     const next = !this.clientServiceOrder.active;
     if (!confirm(`¿${next ? 'Reactivar' : 'Desactivar'} la O/S del cliente ${this.clientServiceOrder.clientOrderNumber}?`)) return;
     this.orderActionLoading = true; this.orderActionError = '';
@@ -189,7 +213,7 @@ export class OperationDetailComponent implements OnInit {
   }
 
   deleteClientOrder(): void {
-    if (!this.clientServiceOrder || this.orderActionLoading) return;
+    if (!this.canDeleteClientOrder || !this.clientServiceOrder || this.orderActionLoading) return;
     if (!confirm(`¿Eliminar físicamente la O/S del cliente ${this.clientServiceOrder.clientOrderNumber}? Esta acción no se puede deshacer.`)) return;
     this.orderActionLoading = true; this.orderActionError = '';
     this.service.deleteClientServiceOrder(this.clientServiceOrder.id).subscribe({
@@ -199,7 +223,7 @@ export class OperationDetailComponent implements OnInit {
   }
 
   toggleInternalOrderActive(order: InternalServiceOrder): void {
-    if (this.orderActionLoading) return;
+    if (!this.canEditInternalOrder || this.orderActionLoading) return;
     const next = !order.active;
     if (!confirm(`¿${next ? 'Reactivar' : 'Desactivar'} la O/S interna #${order.internalOrderNumber}?`)) return;
     this.orderActionLoading = true; this.orderActionError = '';
@@ -210,7 +234,7 @@ export class OperationDetailComponent implements OnInit {
   }
 
   deleteInternalOrder(order: InternalServiceOrder): void {
-    if (this.orderActionLoading) return;
+    if (!this.canDeleteInternalOrder || this.orderActionLoading) return;
     if (!confirm(`¿Eliminar físicamente la O/S interna #${order.internalOrderNumber}? Esta acción no se puede deshacer.`)) return;
     this.orderActionLoading = true; this.orderActionError = '';
     this.service.deleteInternalServiceOrder(order.id).subscribe({
@@ -220,7 +244,7 @@ export class OperationDetailComponent implements OnInit {
   }
 
   createInternalOrders(): void {
-    if (!this.clientServiceOrder || !this.distribution || !this.clientServiceOrder.active) return;
+    if (!this.canCreateInternalOrder || !this.clientServiceOrder || !this.distribution || !this.clientServiceOrder.active) return;
     const dialogRef = this.dialog.open(InternalServiceOrderDialogComponent, {
       width: '900px', maxWidth: 'calc(100vw - 28px)',
       data: {
@@ -240,6 +264,10 @@ export class OperationDetailComponent implements OnInit {
   }
 
   loadRequirements(): void {
+    if (!this.canViewRequirements) {
+      this.requirements = [];
+      return;
+    }
     this.requirementError = '';
     this.service.getRequirements(this.operationId).subscribe({
       next: data => this.requirements = data,
@@ -248,6 +276,11 @@ export class OperationDetailComponent implements OnInit {
   }
 
   loadActivity(): void {
+    if (!this.canViewActivity) {
+      this.activities = [];
+      this.activityLoading = false;
+      return;
+    }
     this.activityLoading = true;
     this.activityError = '';
     this.service.getActivity(this.operationId).subscribe({
@@ -269,8 +302,8 @@ export class OperationDetailComponent implements OnInit {
     return entityType === 'REQUISITO' ? 'Requisito' : 'Operación';
   }
 
-  addRequirement(): void { this.openRequirementForm('create'); }
-  editRequirement(item: OperationRequirement): void { this.openRequirementForm('edit', item); }
+  addRequirement(): void { if (this.canCreateRequirement) this.openRequirementForm('create'); }
+  editRequirement(item: OperationRequirement): void { if (this.canEditRequirement) this.openRequirementForm('edit', item); }
   private openRequirementForm(mode: 'create' | 'edit', requirement?: OperationRequirement): void {
     this.dialog.open(RequirementFormDialogComponent, {
       width: '620px', maxWidth: 'calc(100vw - 28px)', data: { mode, operationId: this.operationId, requirement, catalog: this.catalog, statuses: this.requirementStatuses }

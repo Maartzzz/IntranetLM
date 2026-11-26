@@ -1,5 +1,6 @@
 package com.lmoving.intranet.question;
 
+import com.lmoving.intranet.audit.AuditLogService;
 import com.lmoving.intranet.courses.Courses;
 import com.lmoving.intranet.courses.CoursesRepository;
 import org.springframework.stereotype.Service;
@@ -14,15 +15,18 @@ public class CourseQuestionService {
     private final CourseQuestionRepository courseQuestionRepository;
     private final QuestionRepository questionRepository;
     private final CoursesRepository courseRepository;
+    private final AuditLogService auditLogService;
 
     public CourseQuestionService(
         CourseQuestionRepository courseQuestionRepository,
         QuestionRepository questionRepository,
-        CoursesRepository courseRepository
+        CoursesRepository courseRepository,
+        AuditLogService auditLogService
     ) {
         this.courseQuestionRepository = courseQuestionRepository;
         this.questionRepository = questionRepository;
         this.courseRepository = courseRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional(readOnly = true)
@@ -55,6 +59,9 @@ public class CourseQuestionService {
         courseQuestion.setQuestion(question);
 
         courseQuestionRepository.save(courseQuestion);
+        auditLogService.registrar("APRENDIZAJE", "PREGUNTA_CURSO", null, courseId + ":" + questionId,
+            "ASSIGNED", "Se asignó la pregunta " + questionId + " al curso " + course.getTitle(),
+            null, "courseId=" + courseId + "; questionId=" + questionId);
     }
 
     public void removeQuestion(Long courseId, Long questionId) {
@@ -75,6 +82,9 @@ public class CourseQuestionService {
             courseId,
             questionId
         );
+        auditLogService.registrar("APRENDIZAJE", "PREGUNTA_CURSO", null, courseId + ":" + questionId,
+            "REMOVED", "Se retiró la pregunta " + questionId + " del curso " + courseId,
+            "courseId=" + courseId + "; questionId=" + questionId, null);
     }
 
     private Courses findCourse(Long courseId) {

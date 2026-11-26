@@ -44,8 +44,8 @@ export class CicLibraryComponent implements OnInit {
     });
   }
 
-  get esAdmin(): boolean {
-    return this.authService.isAdmin();
+  get canCreateDocument(): boolean {
+    return this.authService.hasPermission('CIC.DOCUMENTS.CREATE');
   }
 
   private cargarCategoria(id: number): void {
@@ -127,6 +127,8 @@ export class CicLibraryComponent implements OnInit {
   }
 
   agregarDocumento(): void {
+    if (!this.canCreateDocument) return;
+
     if (this.categoria) {
       this.router.navigate(
         ['/cic/admin'],

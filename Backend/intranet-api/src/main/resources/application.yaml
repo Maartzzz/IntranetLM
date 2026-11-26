@@ -27,8 +27,8 @@ spring:
     mail:
         host: ${MAIL_HOST:logisticsmoving.net}
         port: ${MAIL_PORT:465}
-        username: ${MAIL_USERNAME:operaciones1@logisticsmoving.net}
-        password: ${MAIL_PASSWORD:eOd8NocF4aco}
+        username: ${MAIL_USERNAME:}
+        password: ${MAIL_PASSWORD:}
         properties:
             mail:
                 smtp:
@@ -49,8 +49,7 @@ jwt:
 app:
     upload:
         dir: ${APP_UPLOAD_DIR:uploads/materials}
-
-        cors:
-            allowed-origin: ${APP_CORS_ALLOWED_ORIGIN:http://localhost:4200}
+    cors:
+        allowed-origin: ${APP_CORS_ALLOWED_ORIGIN:http://localhost:4200}
     communication:
         recipient: ${COMMUNICATION_RECIPIENT:sistemas1@logisticsmoving.net}

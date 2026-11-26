@@ -10,13 +10,13 @@
     </p>
   </header>
 
-  <div class="admin-actions" *ngIf="esAdmin">
+  <div class="admin-actions" *ngIf="canManageCategories">
         <button
             type="button"
             class="admin-button"
             (click)="irAAdministrarCategorias()"
         >
-            + Agregar categoría
+            Administrar categorías
         </button>
     </div>
 

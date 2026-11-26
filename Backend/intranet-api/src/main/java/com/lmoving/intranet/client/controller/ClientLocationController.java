@@ -14,9 +14,9 @@ import jakarta.validation.constraints.NotNull;
 public class ClientLocationController {
  private final ClientLocationService service;
  public ClientLocationController(ClientLocationService service){this.service=service;}
- @GetMapping public ResponseEntity<List<ClientLocationResponse>> list(@PathVariable Long clientId){return ResponseEntity.ok(service.list(clientId));}
- @PreAuthorize("hasAnyRole('ADMIN','SUPERVISOR')") @PostMapping public ResponseEntity<ClientLocationResponse> create(@PathVariable Long clientId,@Valid @RequestBody LocationRequest request){return ResponseEntity.status(HttpStatus.CREATED).body(service.create(clientId,request));}
- @PreAuthorize("hasAnyRole('ADMIN','SUPERVISOR')") @PutMapping("/{locationId}") public ResponseEntity<ClientLocationResponse> update(@PathVariable Long clientId,@PathVariable Long locationId,@Valid @RequestBody LocationRequest request){return ResponseEntity.ok(service.update(clientId,locationId,request));}
- @PreAuthorize("hasAnyRole('ADMIN','SUPERVISOR')") @PatchMapping("/{locationId}/status") public ResponseEntity<ClientLocationResponse> status(@PathVariable Long clientId,@PathVariable Long locationId,@Valid @RequestBody StatusRequest request){return ResponseEntity.ok(service.status(clientId,locationId,request.active()));}
+ @GetMapping @PreAuthorize("hasAuthority('LOCATIONS.VIEW')") public ResponseEntity<List<ClientLocationResponse>> list(@PathVariable Long clientId){return ResponseEntity.ok(service.list(clientId));}
+ @PreAuthorize("hasAuthority('LOCATIONS.CREATE')") @PostMapping public ResponseEntity<ClientLocationResponse> create(@PathVariable Long clientId,@Valid @RequestBody LocationRequest request){return ResponseEntity.status(HttpStatus.CREATED).body(service.create(clientId,request));}
+ @PreAuthorize("hasAuthority('LOCATIONS.EDIT')") @PutMapping("/{locationId}") public ResponseEntity<ClientLocationResponse> update(@PathVariable Long clientId,@PathVariable Long locationId,@Valid @RequestBody LocationRequest request){return ResponseEntity.ok(service.update(clientId,locationId,request));}
+ @PreAuthorize("hasAuthority('LOCATIONS.DELETE')") @PatchMapping("/{locationId}/status") public ResponseEntity<ClientLocationResponse> status(@PathVariable Long clientId,@PathVariable Long locationId,@Valid @RequestBody StatusRequest request){return ResponseEntity.ok(service.status(clientId,locationId,request.active()));}
  public record StatusRequest(@NotNull Boolean active){}
 }

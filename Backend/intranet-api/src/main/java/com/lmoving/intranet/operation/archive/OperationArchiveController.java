@@ -11,6 +11,7 @@ public class OperationArchiveController {
     public OperationArchiveController(OperationArchiveService service) { this.service = service; }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('HISTORY.VIEW')")
     public List<OperationArchiveResponse> list(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String search) {
@@ -18,7 +19,7 @@ public class OperationArchiveController {
     }
 
     @PostMapping("/{id}/restore")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAuthority('HISTORY.RESTORE')")
     public OperationArchiveResponse restore(@PathVariable Long id) {
         return service.restore(id);
     }

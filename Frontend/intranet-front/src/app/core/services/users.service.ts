@@ -13,7 +13,7 @@ export interface UserRequest {
     documentType: string;
     documentNumber: string;
     phone: string | null;
-    role: string;
+    roles: string[];
 }
 
 export interface UpdateUserRequest {
@@ -23,7 +23,7 @@ export interface UpdateUserRequest {
     documentType: string;
     documentNumber: string;
     phone: string | null;
-    role: string;
+    roles: string[];
 }
 
 @Injectable({

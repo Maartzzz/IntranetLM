@@ -5,9 +5,11 @@
       <h1>Operaciones</h1>
       <p>Organiza y supervisa las operaciones según su estado.</p>
     </div>
-    <button class="primary-button" type="button" (click)="openCreate()">
-      <span aria-hidden="true">＋</span> Nueva operación
-    </button>
+    @if (canCreate) {
+      <button class="primary-button" type="button" (click)="openCreate()">
+        <span aria-hidden="true">＋</span> Nueva operación
+      </button>
+    }
   </header>
 
   <section class="board-toolbar" aria-label="Herramientas del tablero">
@@ -81,7 +83,7 @@
                   class="operation-card"
                   cdkDrag
                   [cdkDragData]="operation"
-                  [cdkDragDisabled]="updatingOperationId !== null"
+                  [cdkDragDisabled]="!canEdit || updatingOperationId !== null"
                   [routerLink]="['/operations', operation.id]"
                   [class.card-updating]="updatingOperationId === operation.id"
                 >
@@ -168,7 +170,9 @@
 
                   <footer class="card-footer">
                     <span>Ver detalle ↗</span>
-                    <button type="button" class="edit-button" (click)="openEdit(operation, $event)">Editar</button>
+                    @if (canEdit) {
+                      <button type="button" class="edit-button" (click)="openEdit(operation, $event)">Editar</button>
+                    }
                   </footer>
 
                   <div class="drag-hint" aria-hidden="true">⠿ Arrastrar para cambiar estado</div>

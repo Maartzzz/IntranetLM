@@ -20,6 +20,7 @@ import {
   UserService
 } from '../../../core/services/users.service';
 import { User } from '../../../core/models/users.models';
+import { RolesService, RoleItem } from '../../../core/services/roles.service';
 
 export interface UserFormDialogData {
   mode: 'create' | 'edit';
@@ -43,6 +44,9 @@ export class UserFormDialog implements OnInit {
 
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
+  private readonly rolesService = inject(RolesService);
+  availableRoles: RoleItem[] = [];
+  rolesLoading = false;
   private readonly data = inject<UserFormDialogData>(MAT_DIALOG_DATA);
 
   private readonly dialogRef =
@@ -53,6 +57,11 @@ export class UserFormDialog implements OnInit {
   }
 
   ngOnInit(): void {
+    this.rolesLoading = true;
+    this.rolesService.getRoles().subscribe({
+      next: roles => { this.availableRoles = roles.filter(role => role.active); this.rolesLoading = false; },
+      error: () => { this.errorMessage = 'No se pudieron cargar los roles disponibles.'; this.rolesLoading = false; }
+    });
 
     if (!this.isEditMode || !this.data.user)
       return;
@@ -67,7 +76,7 @@ export class UserFormDialog implements OnInit {
       documentType: user.documentType,
       documentNumber: user.documentNumber,
       phone: user.phone ?? '',
-      role: user.role
+      roles: (user.roles?.length ? user.roles.map(role => role.code) : [user.role])
     });
 
     this.userForm.controls.username.disable();
@@ -137,9 +146,9 @@ export class UserFormDialog implements OnInit {
       Validators.maxLength(20)
     ],
 
-    role: [
-      'CHOFER',
-      Validators.required
+    roles: [
+      ['CHOFER'],
+      [Validators.required]
     ]
 
   });
@@ -168,7 +177,7 @@ export class UserFormDialog implements OnInit {
       documentType: formValue.documentType,
       documentNumber: formValue.documentNumber,
       phone: formValue.phone || null,
-      role: formValue.role
+      roles: formValue.roles
     };
 
     this.userService
@@ -214,7 +223,7 @@ export class UserFormDialog implements OnInit {
     documentType: formValue.documentType,
     documentNumber: formValue.documentNumber,
     phone: formValue.phone || null,
-    role: formValue.role
+    roles: formValue.roles
   };
 
   this.userService

@@ -37,7 +37,7 @@
       }
     </div>
 
-    @if (canManage && selectedClientId !== null) {
+    @if (canManageRelations && selectedClientId !== null) {
       <div class="add-panel">
         <div class="section-heading">
           <div>
@@ -61,13 +61,17 @@
             </select>
           </div>
           <div class="add-actions">
+            @if (canCreateCompany) {
             <button class="secondary-button" type="button" (click)="openCreateCompany()" [disabled]="saving">
               Registrar empresa
             </button>
+            }
+            @if (canManageRelations) {
             <button class="primary-button" type="button" (click)="addSubclient()"
               [disabled]="saving || selectedSubclientId === null">
               {{ saving ? 'Guardando...' : 'Agregar subcliente' }}
             </button>
+            }
           </div>
         </div>
         @if (availableSubclients.length === 0) {
@@ -96,7 +100,7 @@
               <th>Subcliente</th>
               <th>Documento</th>
               <th>Estado de relación</th>
-              @if (canManage) { <th>Acciones</th> }
+              @if (canChangeRelationStatus) { <th>Acciones</th> }
             </tr>
           </thead>
           <tbody>
@@ -105,12 +109,12 @@
                 <td><strong>{{ relation.subclientName }}</strong><small>ID relación: {{ relation.id }}</small></td>
                 <td>{{ getSubclientDocument(relation.subclientId) }}</td>
                 <td><span class="status" [class.active]="relation.active">{{ relation.active ? 'Activa' : 'Inactiva' }}</span></td>
-                @if (canManage) {
+                @if (canChangeRelationStatus) {
                   <td>@if (relation.active) { <button class="text-button deactivate" type="button" (click)="deactivateRelation(relation)">Desactivar</button> } @else { <button class="text-button" type="button" (click)="reactivateRelation(relation)">Reactivar</button> }</td>
                 }
               </tr>
             } @empty {
-              <tr><td [attr.colspan]="canManage ? 4 : 3" class="empty">Esta empresa todavía no tiene relaciones comerciales registradas.</td></tr>
+              <tr><td [attr.colspan]="canChangeRelationStatus ? 4 : 3" class="empty">Esta empresa todavía no tiene relaciones comerciales registradas.</td></tr>
             }
           </tbody>
         </table>

@@ -14,20 +14,21 @@ public class OperationRequirementController {
     public OperationRequirementController(OperationRequirementService service) { this.service = service; }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('REQUIREMENTS.OPERATION_VIEW')")
     public List<OperationRequirementResponse> listar(@PathVariable Long operationId) {
         return service.listar(operationId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    @PreAuthorize("hasAuthority('OPERATIONS.CREATE')")
     public OperationRequirementResponse crear(@PathVariable Long operationId,
             @Valid @RequestBody OperationRequirementRequest request) {
         return service.crear(operationId, request);
     }
 
     @PutMapping("/{requirementId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    @PreAuthorize("hasAuthority('OPERATIONS.EDIT')")
     public OperationRequirementResponse actualizar(@PathVariable Long operationId,
             @PathVariable Long requirementId, @Valid @RequestBody OperationRequirementRequest request) {
         return service.actualizar(operationId, requirementId, request);

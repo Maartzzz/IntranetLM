@@ -2,6 +2,8 @@
 
 	import java.util.List;
 
+	import com.lmoving.intranet.audit.AuditLogService;
+
 	import org.springframework.stereotype.Service;
 	import org.springframework.transaction.annotation.Transactional;
 
@@ -16,13 +18,16 @@
 
 		private final CourseMaterialRepository materialRepository;
 		private final CoursesRepository coursesRepository;
+		private final AuditLogService auditLogService;
 
 		public CourseMaterialService(
 				CourseMaterialRepository materialRepository,
-				CoursesRepository coursesRepository
+				CoursesRepository coursesRepository,
+				AuditLogService auditLogService
 		) {
 			this.materialRepository = materialRepository;
 			this.coursesRepository = coursesRepository;
+			this.auditLogService = auditLogService;
 		}
 
 		@Transactional(readOnly = true)
@@ -83,8 +88,10 @@
 
 			CourseMaterial saved =
 					materialRepository.save(material);
-
-			return toResponse(saved);
+			CourseMaterialResponse response = toResponse(saved);
+			auditLogService.registrar("APRENDIZAJE", "MATERIAL", saved.getId(), "CREATED",
+					"Se creó el material " + saved.getTitle() + " en el curso " + course.getTitle(), null, snapshot(saved));
+			return response;
 		}
 
 		public CourseMaterialResponse update(
@@ -95,6 +102,7 @@
 
 			CourseMaterial material =
 					findMaterial(courseId, materialId);
+			String previous = snapshot(material);
 
 			material.setTitle(request.getTitle());
 			material.setDescription(
@@ -105,7 +113,10 @@
 			material.setRequired(request.isRequired());
 			material.setActive(request.isActive());
 
-			return toResponse(material);
+			CourseMaterialResponse updated = toResponse(material);
+			auditLogService.registrar("APRENDIZAJE", "MATERIAL", material.getId(), "UPDATED",
+					"Se actualizaron los datos del material " + material.getTitle(), previous, snapshot(material));
+			return updated;
 		}
 
 		public CourseMaterialResponse toggleActive(
@@ -116,11 +127,14 @@
 			CourseMaterial material =
 					findMaterial(courseId, materialId);
 
-			material.setActive(
-					!material.isActive()
-			);
-
-			return toResponse(material);
+			boolean previousActive = material.isActive();
+			material.setActive(!previousActive);
+			CourseMaterialResponse updated = toResponse(material);
+			auditLogService.registrar("APRENDIZAJE", "MATERIAL", material.getId(),
+					updated.isActive() ? "ACTIVATED" : "DEACTIVATED",
+					(updated.isActive() ? "Se activó el material " : "Se desactivó el material ") + material.getTitle(),
+					String.valueOf(previousActive), String.valueOf(updated.isActive()));
+			return updated;
 		}
 
 		public void delete(
@@ -130,8 +144,17 @@
 
 			CourseMaterial material =
 					findMaterial(courseId, materialId);
-
+			String previous = snapshot(material);
+			String title = material.getTitle();
 			materialRepository.delete(material);
+			auditLogService.registrar("APRENDIZAJE", "MATERIAL", materialId, "DELETED",
+					"Se eliminó el material " + title, previous, null);
+		}
+
+		private String snapshot(CourseMaterial material) {
+			return "title=" + material.getTitle() + "; type=" + material.getType()
+					+ "; required=" + material.isRequired() + "; active=" + material.isActive()
+					+ "; courseId=" + material.getCourse().getId();
 		}
 
 		private CourseMaterial findMaterial(

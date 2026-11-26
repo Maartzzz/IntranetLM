@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.lmoving.intranet.dashboard.dto.DashboardResponse;
 
 @RestController
-@PreAuthorize ("hasRole('ADMIN')")
 @RequestMapping("/api/dashboard")
 public class DashboardController {
 
@@ -22,6 +21,7 @@ public class DashboardController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('DASHBOARD.VIEW')")
     public ResponseEntity<DashboardResponse> getDashboard() {
 
         return ResponseEntity.ok(

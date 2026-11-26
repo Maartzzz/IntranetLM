@@ -17,6 +17,7 @@ import {
 } from '../../core/services/question.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { QuestionFormDialogComponent } from './question-form-dialog/question-form-dialog.component';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-questions',
@@ -31,6 +32,7 @@ import { QuestionFormDialogComponent } from './question-form-dialog/question-for
 export class QuestionsComponent implements OnInit {
 
   private readonly questionService = inject(QuestionService);
+  private readonly authService = inject(AuthService);
 
   questions: Question[] = [];
 
@@ -38,6 +40,18 @@ export class QuestionsComponent implements OnInit {
   errorMessage = '';
   
   private readonly dialog = inject(MatDialog);
+
+  get canCreate(): boolean {
+    return this.authService.hasPermission('TRAINING.QUESTIONS.CREATE');
+  }
+
+  get canEdit(): boolean {
+    return this.authService.hasPermission('TRAINING.QUESTIONS.EDIT');
+  }
+
+  get canDelete(): boolean {
+    return this.authService.hasPermission('TRAINING.QUESTIONS.DELETE');
+  }
 
   ngOnInit(): void {
     this.loadQuestions();
@@ -64,6 +78,8 @@ export class QuestionsComponent implements OnInit {
   }
 
   newQuestion(): void {
+    if (!this.canCreate) return;
+
     const dialogRef = this.dialog.open(
       QuestionFormDialogComponent,
       {
@@ -83,6 +99,8 @@ export class QuestionsComponent implements OnInit {
   }
 
   editQuestion(question: Question): void {
+    if (!this.canEdit) return;
+
     const dialogRef = this.dialog.open(
       QuestionFormDialogComponent,
       {
@@ -102,6 +120,8 @@ export class QuestionsComponent implements OnInit {
   }
 
   toggleActive(question: Question): void {
+    if (!this.canEdit) return;
+
     this.questionService
       .toggleActive(question.id)
       .subscribe({
@@ -121,6 +141,8 @@ export class QuestionsComponent implements OnInit {
   }
 
   deleteQuestion(question: Question): void {
+    if (!this.canDelete) return;
+
     const confirmed = window.confirm(
       `¿Deseas eliminar la pregunta "${question.questionText}"?`
     );

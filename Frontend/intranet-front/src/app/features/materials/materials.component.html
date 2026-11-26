@@ -10,6 +10,7 @@
 		</p>
 		</div>
 
+		@if (canCreate) {
 		<button
 		mat-flat-button
 		type="button"
@@ -18,6 +19,7 @@
 		<mat-icon>add</mat-icon>
 		Nuevo material
 		</button>
+		}
 
 	</div>
 
@@ -56,6 +58,7 @@
 			Este curso todavía no tiene materiales registrados.
 		</p>
 
+		@if (canCreate) {
 		<button
 			mat-flat-button
 			type="button"
@@ -64,6 +67,7 @@
 			<mat-icon>add</mat-icon>
 			Agregar material
 		</button>
+		}
 
 		</div>
 
@@ -149,27 +153,17 @@
 				</mat-icon>
 				</button>
 
-				<button
-				mat-icon-button
-				type="button"
-				aria-label="Editar material"
-				(click)="editMaterial(material)"
-				>
-				<mat-icon>
-					edit
-				</mat-icon>
+				@if (canEdit) {
+				<button mat-icon-button type="button" aria-label="Editar material" (click)="editMaterial(material)">
+				<mat-icon>edit</mat-icon>
 				</button>
+				}
 
-				<button
-				mat-icon-button
-				type="button"
-				aria-label="Eliminar material"
-				(click)="deleteMaterial(material)"
-				>
-				<mat-icon>
-					delete
-				</mat-icon>
+				@if (canDelete) {
+				<button mat-icon-button type="button" aria-label="Eliminar material" (click)="deleteMaterial(material)">
+				<mat-icon>delete</mat-icon>
 				</button>
+				}
 
 			</div>
 

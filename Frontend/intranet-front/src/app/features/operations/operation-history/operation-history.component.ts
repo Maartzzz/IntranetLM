@@ -3,6 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { AuthService } from '../../../core/auth/auth.service';
 
 interface ArchivedOperation {
   id: number;
@@ -30,6 +31,10 @@ interface ArchivedOperation {
 export class OperationHistoryComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+
+  get canRestore(): boolean { return this.authService.hasPermission('HISTORY.RESTORE'); }
+  get canExport(): boolean { return this.authService.hasPermission('HISTORY.EXPORT'); }
 
   rows: ArchivedOperation[] = [];
   loading = false;
@@ -64,6 +69,7 @@ export class OperationHistoryComponent implements OnInit {
   closeDetail(): void { this.selectedOperation = null; this.selectedOrders = null; }
 
   restore(row: ArchivedOperation): void {
+    if (!this.canRestore) return;
     if (this.restoringId !== null || !window.confirm(`¿Restaurar la operación ${row.operationNumber}?`)) return;
     this.restoringId = row.id;
     this.http.post(`/api/operations/archive/${row.id}/restore`, {}).subscribe({
@@ -74,6 +80,7 @@ export class OperationHistoryComponent implements OnInit {
 
 
   exportCsv(): void {
+    if (!this.canExport) return;
     const headers = ['N.º Operación', 'Referencia', 'Cliente', 'O/S del cliente',
       'O/S internas', 'Tipo de carga', 'Fecha estimada', 'Estado final', 'Fecha de archivo', 'Motivo'];
     const values = this.rows.map(row => [

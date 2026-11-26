@@ -71,7 +71,8 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
-            .cors( cors -> {})
+            .cors(cors -> {})
+            .headers(headers -> headers.frameOptions(frame -> frame.deny()))
 
             .sessionManagement(session ->
                 session.sessionCreationPolicy(
@@ -102,64 +103,9 @@ public class SecurityConfig {
             )
             
             .authorizeHttpRequests(auth -> auth
-
-                .requestMatchers("/api/auth/**", "/error").permitAll()
-
-                .requestMatchers(
-                    HttpMethod.GET,
-                    "/api/drivers"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/drivers"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
-                .requestMatchers(
-                    HttpMethod.GET,
-                    "/api/drivers/*"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/drivers/*"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/courses/**"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
-                .requestMatchers(
-                    HttpMethod.PUT,
-                    "/api/courses/**"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
-                .requestMatchers(
-                    HttpMethod.DELETE,
-                    "/api/courses/**"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/questions/**"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
-                .requestMatchers(
-                    HttpMethod.PUT,
-                    "/api/questions/**"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
-                .requestMatchers(
-                    HttpMethod.PATCH,
-                    "/api/questions/**"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
-                .requestMatchers(
-                    HttpMethod.DELETE,
-                    "/api/questions/**"
-                ).hasAnyRole("ADMIN", "SUPERVISOR")
-
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated()
             )
 

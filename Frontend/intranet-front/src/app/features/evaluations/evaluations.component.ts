@@ -5,6 +5,7 @@ import { EvaluationService } from '../../core/services/evaluation.service';
 import { MyEvaluationResponse } from '../../core/models/evaluation.models';
 import { CourseService } from '../../core/services/courses.service';
 import { Course } from '../../core/models/courses.models';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-my-evaluations',
@@ -18,6 +19,10 @@ export class EvaluationsComponent implements OnInit {
   private readonly evaluationService = inject(EvaluationService);
   private readonly router = inject(Router);
   private readonly courseService = inject(CourseService);
+  private readonly authService = inject(AuthService);
+
+  get canEditEvaluations(): boolean { return this.authService.hasPermission('TRAINING.EVALUATIONS.EDIT'); }
+  get canDownloadOwnCertificate(): boolean { return this.authService.hasPermission('CERTIFICATES.DOWNLOAD_OWN'); }
 
   courses: Course[] = [];
   loadingCourses = false;
@@ -65,6 +70,7 @@ export class EvaluationsComponent implements OnInit {
   }
 
   continueEvaluation(evaluation: MyEvaluationResponse): void {
+    if (!this.canEditEvaluations) return;
     this.router.navigate(
       ['/learning/courses', evaluation.courseId, 'evaluation'],
       {
@@ -91,6 +97,7 @@ loadCourses(): void {
 }
 
   startEvaluation(courseId: number): void {
+    if (!this.canEditEvaluations) return;
     this.evaluationService.startEvaluation(courseId).subscribe({
       next: response => {
         this.router.navigate(
@@ -109,6 +116,7 @@ loadCourses(): void {
   }
 
   downloadCertificate(evaluation: MyEvaluationResponse): void {
+    if (!this.canDownloadOwnCertificate) return;
     if (
       evaluation.completedAt === null ||
       evaluation.passed !== true

@@ -21,12 +21,15 @@
       @if (operation.observation) { <div class="observation"><label>Observaciones</label><p>{{ operation.observation }}</p></div> }
     </section>
 
+    @if (canViewClientOrder) {
     <section class="client-order-section">
       <header class="section-heading">
         <div><h2>Orden de Servicio del Cliente</h2><p>Solicitud recibida del cliente y asociada a esta operación.</p></div>
         @if (!clientServiceOrder && !clientOrderLoading && canCreateClientServiceOrder) {
-          <button class="primary-button" type="button" (click)="addClientServiceOrder()">+ Registrar O/S del cliente</button>
-        } @else if (!clientServiceOrder && !clientOrderLoading && operation && !canCreateClientServiceOrder) {
+          @if (canCreateClientOrder) {
+            <button class="primary-button" type="button" (click)="addClientServiceOrder()">+ Registrar O/S del cliente</button>
+          }
+        } @else if (!clientServiceOrder && !clientOrderLoading && operation && canCreateClientOrder && !canCreateClientServiceOrder) {
           <span class="section-hint">La O/S del cliente se habilitará cuando la operación esté en estado Confirmada.</span>
         }
       </header>
@@ -34,7 +37,7 @@
       @if (clientOrderError) { <div class="error-message">{{ clientOrderError }} <button class="text-button" type="button" (click)="loadClientServiceOrder()">Reintentar</button></div> }
       @if (clientServiceOrder) {
         <article class="client-order-card">
-          <div class="client-order-top"><div><span class="eyebrow">O/S {{ clientServiceOrder.clientOrderNumber }}</span><h3>{{ clientServiceOrder.serviceType }} · {{ clientServiceOrder.statusName }}</h3></div><div class="internal-actions"><span class="status-pill" [style.backgroundColor]="clientServiceOrder.statusColor || '#64748B'">{{ clientServiceOrder.statusName }}</span><span class="status-pill">{{ clientServiceOrder.active ? 'Activa' : 'Inactiva' }}</span><button class="action-button action-button--neutral" type="button" (click)="editClientServiceOrder()" [disabled]="!clientServiceOrder.active">Editar</button><button class="action-button action-button--status" type="button" (click)="toggleClientOrderActive()" [disabled]="orderActionLoading">{{ clientServiceOrder.active ? 'Desactivar' : 'Reactivar' }}</button><button class="action-button action-button--danger" type="button" (click)="deleteClientOrder()" [disabled]="orderActionLoading">Eliminar</button></div></div>
+          <div class="client-order-top"><div><span class="eyebrow">O/S {{ clientServiceOrder.clientOrderNumber }}</span><h3>{{ clientServiceOrder.serviceType }} · {{ clientServiceOrder.statusName }}</h3></div><div class="internal-actions"><span class="status-pill" [style.backgroundColor]="clientServiceOrder.statusColor || '#64748B'">{{ clientServiceOrder.statusName }}</span><span class="status-pill">{{ clientServiceOrder.active ? 'Activa' : 'Inactiva' }}</span>@if (canEditClientOrder) { <button class="action-button action-button--neutral" type="button" (click)="editClientServiceOrder()" [disabled]="!clientServiceOrder.active">Editar</button><button class="action-button action-button--status" type="button" (click)="toggleClientOrderActive()" [disabled]="orderActionLoading">{{ clientServiceOrder.active ? 'Desactivar' : 'Reactivar' }}</button> } @if (canDeleteClientOrder) { <button class="action-button action-button--danger" type="button" (click)="deleteClientOrder()" [disabled]="orderActionLoading">Eliminar</button> }</div></div>
           <div class="info-grid">
             <div><label>Referencia</label><strong>{{ clientServiceOrder.reference || '—' }}</strong></div>
             <div><label>Subcliente de la operación</label><strong>{{ operation.subclientName || 'Sin subcliente asignado' }}</strong></div>
@@ -54,13 +57,16 @@
         <div class="empty-state">Esta operación todavía no tiene una O/S del cliente registrada.</div>
       }
     </section>
+    }
 
-    @if (clientServiceOrder) {
+    @if (canViewInternalOrder && clientServiceOrder) {
       <section class="internal-orders-section">
         <header class="section-heading">
           <div><h2>Órdenes de Servicio Internas</h2><p>Órdenes generadas a partir de la O/S {{ clientServiceOrder.clientOrderNumber }}.</p></div>
           <div class="internal-actions">
-            <button class="primary-button" type="button" (click)="createInternalOrders()" [disabled]="!canGenerateInternalOrders">+ Generar O/S internas</button>
+            @if (canCreateInternalOrder) {
+              <button class="primary-button" type="button" (click)="createInternalOrders()" [disabled]="!canGenerateInternalOrders">+ Generar O/S internas</button>
+            }
             <button class="secondary-button" type="button" (click)="loadInternalOrders(); loadDistribution()" [disabled]="internalOrdersLoading || distributionLoading">
               {{ internalOrdersLoading || distributionLoading ? 'Actualizando...' : 'Actualizar' }}
             </button>
@@ -116,7 +122,7 @@
                 <div><label>Programación</label><strong>{{ order.scheduledDate ? (order.scheduledDate | date:'dd/MM/yyyy') : 'Sin programar' }}</strong></div>
               </div>
               @if (order.reference) { <p class="internal-order-reference">Referencia: {{ order.reference }}</p> }
-              <footer class="internal-order-footer"><button class="action-button action-button--neutral" type="button" (click)="editInternalOrder(order)" [disabled]="!order.active">Editar O/S interna</button><button class="action-button action-button--status" type="button" (click)="toggleInternalOrderActive(order)" [disabled]="orderActionLoading">{{ order.active ? 'Desactivar' : 'Reactivar' }}</button><button class="action-button action-button--danger" type="button" (click)="deleteInternalOrder(order)" [disabled]="orderActionLoading">Eliminar</button><span class="status-pill">{{ order.active ? 'Activa' : 'Inactiva' }}</span></footer>
+              <footer class="internal-order-footer">@if (canEditInternalOrder) { <button class="action-button action-button--neutral" type="button" (click)="editInternalOrder(order)" [disabled]="!order.active">Editar O/S interna</button><button class="action-button action-button--status" type="button" (click)="toggleInternalOrderActive(order)" [disabled]="orderActionLoading">{{ order.active ? 'Desactivar' : 'Activar' }}</button> } @if (canDeleteInternalOrder) { <button class="action-button action-button--danger" type="button" (click)="deleteInternalOrder(order)" [disabled]="orderActionLoading">Eliminar</button> }<span class="status-pill">{{ order.active ? 'Activa' : 'Inactiva' }}</span></footer>
             </article>
           } @empty {
             @if (!internalOrdersLoading && !internalOrdersError) { <div class="empty-state">Todavía no se han generado O/S internas para esta solicitud.</div> }
@@ -125,8 +131,11 @@
       </section>
     }
 
+    @if (canViewRequirements) {
     <section class="requirements-section"><header class="section-heading"><div><h2>Requisitos</h2><p>Seguimiento independiente de los requisitos de esta operación.</p></div>
-      <button class="primary-button" type="button" (click)="addRequirement()">+ Agregar requisito</button>
+      @if (canCreateRequirement) {
+        <button class="primary-button" type="button" (click)="addRequirement()">+ Agregar requisito</button>
+      }
     </header>
     @if (requirementError) { <div class="error-message">{{ requirementError }}</div> }
     <div class="requirements-grid">
@@ -134,12 +143,14 @@
         <article class="requirement-card"><div class="requirement-top"><h3>{{ item.requirementName }}</h3><span class="status-pill" [style.backgroundColor]="item.statusColor || '#64748B'">{{ item.statusName }}</span></div>
           <p><label>Responsable externo</label><strong>{{ item.externalResponsible || 'No indicado' }}</strong></p>
           @if (item.comment) { <p class="comment">{{ item.comment }}</p> }
-          <footer><small>Registrado: {{ item.registeredAt | date:'dd/MM/yyyy HH:mm' }}</small><button class="text-button" type="button" (click)="editRequirement(item)">Editar</button></footer>
+          <footer><small>Registrado: {{ item.registeredAt | date:'dd/MM/yyyy HH:mm' }}</small>@if (canEditRequirement) { <button class="text-button" type="button" (click)="editRequirement(item)">Editar</button> }</footer>
         </article>
       } @empty { @if (!requirementError) { <div class="empty-state">Aún no hay requisitos registrados para esta operación.</div> } }
     </div>
     </section>
+    }
 
+    @if (canViewActivity) {
     <section class="activity-section">
       <header class="section-heading">
         <div><h2>Historial de actividad</h2><p>Registro cronológico de los cambios realizados en esta operación y sus requisitos.</p></div>
@@ -172,5 +183,6 @@
         </div>
       }
     </section>
+    }
   }
 </section>

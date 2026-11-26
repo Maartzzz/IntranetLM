@@ -1,5 +1,6 @@
 package com.lmoving.intranet.question;
 
+import com.lmoving.intranet.audit.AuditLogService;
 import com.lmoving.intranet.question.dto.QuestionOptionRequest;
 import com.lmoving.intranet.question.dto.QuestionOptionResponse;
 import com.lmoving.intranet.question.dto.QuestionRequest;
@@ -15,13 +16,16 @@ public class QuestionService {
 
     private final QuestionRepository questionRepository;
     private final QuestionOptionRepository questionOptionRepository;
+    private final AuditLogService auditLogService;
 
     public QuestionService(
         QuestionRepository questionRepository,
-        QuestionOptionRepository questionOptionRepository
+        QuestionOptionRepository questionOptionRepository,
+        AuditLogService auditLogService
     ) {
         this.questionRepository = questionRepository;
         this.questionOptionRepository = questionOptionRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional(readOnly = true)
@@ -49,13 +53,17 @@ public class QuestionService {
 
         saveOptions(question, request.options());
 
-        return toResponse(question);
+        QuestionResponse created = toResponse(question);
+        auditLogService.registrar("APRENDIZAJE", "PREGUNTA", question.getId(), "CREATED",
+            "Se creó una pregunta del banco de preguntas", null, created.toString());
+        return created;
     }
 
     public QuestionResponse update(Long id, QuestionRequest request) {
         validateCorrectOption(request.options());
 
         Question question = findQuestion(id);
+        QuestionResponse previous = toResponse(question);
 
         question.setQuestionText(request.questionText());
         question.setActive(request.active());
@@ -66,20 +74,31 @@ public class QuestionService {
 
         saveOptions(question, request.options());
 
-        return toResponse(question);
+        QuestionResponse updated = toResponse(question);
+        auditLogService.registrar("APRENDIZAJE", "PREGUNTA", question.getId(), "UPDATED",
+            "Se actualizaron el enunciado o las opciones de una pregunta", previous.toString(), updated.toString());
+        return updated;
     }
 
     public QuestionResponse toggleActive(Long id) {
         Question question = findQuestion(id);
 
-        question.setActive(!question.isActive());
-
-        return toResponse(questionRepository.save(question));
+        boolean previousActive = question.isActive();
+        question.setActive(!previousActive);
+        Question saved = questionRepository.save(question);
+        auditLogService.registrar("APRENDIZAJE", "PREGUNTA", saved.getId(),
+            saved.isActive() ? "ACTIVATED" : "DEACTIVATED",
+            saved.isActive() ? "Se activó una pregunta" : "Se desactivó una pregunta",
+            String.valueOf(previousActive), String.valueOf(saved.isActive()));
+        return toResponse(saved);
     }
 
     public void delete(Long id) {
         Question question = findQuestion(id);
+        String previous = toResponse(question).toString();
         questionRepository.delete(question);
+        auditLogService.registrar("APRENDIZAJE", "PREGUNTA", id, "DELETED",
+            "Se eliminó una pregunta del banco", previous, null);
     }
 
     private void validateCorrectOption(List<QuestionOptionRequest> options) {

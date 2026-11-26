@@ -2,6 +2,7 @@ package com.lmoving.intranet.user.dto;
 
 import com.lmoving.intranet.user.DocumentType;
 import com.lmoving.intranet.user.Role;
+import java.util.List;
 
 public record UserResponse(
         String username,
@@ -12,6 +13,6 @@ public record UserResponse(
         String documentNumber,
         String phone,
         Role role,
-        boolean active
-) {
-}
+        boolean active,
+        List<UserRoleResponse> roles
+) {}

@@ -6,7 +6,7 @@
       <p>Consulta y restaura operaciones archivadas sin eliminarlas del sistema.</p>
     </div>
     <div class="header-actions">
-      <button type="button" class="filter-button" (click)="exportCsv()" [disabled]="rows.length === 0">Exportar CSV para Excel</button>
+      @if (canExport) { <button type="button" class="filter-button" (click)="exportCsv()" [disabled]="rows.length === 0">Exportar CSV para Excel</button> }
       <button type="button" class="refresh-button" (click)="load()" [disabled]="loading">↻ Actualizar</button>
     </div>
   </header>
@@ -69,10 +69,12 @@
               <td>{{ reasonLabel(row.reason) }}</td>
               <td class="actions">
                 <button type="button" class="text-button" (click)="view(row)">Ver detalle</button>
+                @if (canRestore) {
                 <button type="button" class="text-button restore"
                   (click)="restore(row)" [disabled]="restoringId !== null">
                   {{ restoringId === row.id ? 'Restaurando…' : 'Restaurar' }}
                 </button>
+                }
               </td>
             </tr>
           } @empty {

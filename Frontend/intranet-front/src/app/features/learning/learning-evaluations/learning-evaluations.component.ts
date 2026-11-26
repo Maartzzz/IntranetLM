@@ -12,6 +12,7 @@ import {
   EvaluationResumeResponse
 } from '../../../core/models/evaluation.models';
 import { CertificateService } from '../../../core/services/certificate.service';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-learning-evaluation',
@@ -29,6 +30,9 @@ export class LearningEvaluationComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly evaluationService = inject(EvaluationService);
   private readonly certificateService = inject(CertificateService);
+  private readonly authService = inject(AuthService);
+
+  get canDownloadOwnCertificate(): boolean { return this.authService.hasPermission('CERTIFICATES.DOWNLOAD_OWN'); }
 
   courseId!: number;
 
@@ -241,7 +245,7 @@ export class LearningEvaluationComponent implements OnInit {
   }
 
   downloadCertificate(): void {
-    if (!this.result?.passed) {
+    if (!this.canDownloadOwnCertificate || !this.result?.passed) {
       return;
     }
 

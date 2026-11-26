@@ -29,6 +29,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MaterialFormDialog } from './material-form-dialog/material-form-dialog.component';
 import { MaterialViewerDialog } from './material-viewer-dialog/material-viewer-dialog.component';
 import { Observable } from 'rxjs';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-materials',
@@ -48,6 +49,8 @@ export class MaterialsComponent implements OnInit {
   private readonly materialService =
     inject(CourseMaterialService);
 
+  private readonly authService = inject(AuthService);
+
   materials: CourseMaterial[] = [];
 
   loading = false;
@@ -60,6 +63,18 @@ export class MaterialsComponent implements OnInit {
   previewMaterial: CourseMaterial | null = null;
 
   @Input() courseId?: number;
+
+  get canCreate(): boolean {
+    return this.authService.hasPermission('TRAINING.MATERIALS.CREATE');
+  }
+
+  get canEdit(): boolean {
+    return this.authService.hasPermission('TRAINING.MATERIALS.EDIT');
+  }
+
+  get canDelete(): boolean {
+    return this.authService.hasPermission('TRAINING.MATERIALS.DELETE');
+  }
 
   ngOnInit(): void {
 
@@ -158,6 +173,8 @@ export class MaterialsComponent implements OnInit {
       file?: File | null;
     }
   ): void {
+
+    if (!this.canCreate) return;
 
     this.loading = true;
     this.errorMessage = '';
@@ -265,6 +282,8 @@ export class MaterialsComponent implements OnInit {
 
   openCreateDialog(): void {
 
+    if (!this.canCreate) return;
+
     const dialogRef = this.dialog.open(
       MaterialFormDialog,
       {
@@ -288,6 +307,8 @@ export class MaterialsComponent implements OnInit {
   }
 
   editMaterial(material: CourseMaterial): void {
+
+    if (!this.canEdit) return;
 
     const dialogRef = this.dialog.open(
       MaterialFormDialog,
@@ -315,6 +336,8 @@ export class MaterialsComponent implements OnInit {
   }
 
   deleteMaterial(material: CourseMaterial): void {
+
+    if (!this.canDelete) return;
 
     if (this.courseId === undefined) {
       this.errorMessage =
@@ -368,6 +391,8 @@ export class MaterialsComponent implements OnInit {
       file?: File | null;
     }
   ): void {
+
+    if (!this.canEdit) return;
 
     this.loading = true;
     this.errorMessage = '';

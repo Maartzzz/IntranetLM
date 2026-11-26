@@ -27,6 +27,9 @@ export class LocationsComponent implements OnInit {
   selectedClientId: number | null = null;
   selectedRelationId: number | null = null;
   canManage = false;
+  get canCreate(): boolean { return this.auth.hasPermission('LOCATIONS.CREATE'); }
+  get canEdit(): boolean { return this.auth.hasPermission('LOCATIONS.EDIT'); }
+  get canChangeStatus(): boolean { return this.auth.hasPermission('LOCATIONS.DELETE'); }
   loading = false;
   saving = false;
   error = '';
@@ -49,7 +52,7 @@ export class LocationsComponent implements OnInit {
   ngOnInit(): void {
     this.auth.getCurrentUser().subscribe({
       next: user => {
-        this.canManage = user.role === 'ADMIN' || user.role === 'SUPERVISOR';
+        this.canManage = this.auth.hasAnyPermission('LOCATIONS.CREATE', 'LOCATIONS.EDIT', 'LOCATIONS.DELETE');
         this.loadInitial();
       },
       error: () => this.error = 'No se pudo validar el usuario actual.'
@@ -86,6 +89,7 @@ export class LocationsComponent implements OnInit {
   }
 
   createLocation(): void {
+    if (!this.canCreate) return;
     if (!this.locationForm.name.trim() || !this.locationForm.address.trim()) return;
     this.saving = true; this.error = ''; this.success = '';
     this.api.create(this.locationForm).subscribe({
@@ -104,6 +108,7 @@ export class LocationsComponent implements OnInit {
   }
 
   addAssociation(): void {
+    if (!this.canEdit) return;
     if (!this.selectedRelationId || !this.association.locationId) return;
     this.saving = true; this.error = ''; this.success = '';
     this.api.addRelationLocation(this.selectedRelationId, {
@@ -117,6 +122,7 @@ export class LocationsComponent implements OnInit {
   }
 
   toggleAssociation(row: ClientSubclientLocation): void {
+    if (!this.canChangeStatus) return;
     this.api.changeRelationLocationStatus(row.id, !row.active).subscribe({
       next: updated => { this.relationLocations = this.relationLocations.map(x => x.id === updated.id ? updated : x); },
       error: () => this.error = 'No se pudo cambiar el estado de la asociación.'
@@ -124,6 +130,7 @@ export class LocationsComponent implements OnInit {
   }
 
   toggleLocation(row: Location): void {
+    if (!this.canChangeStatus) return;
     this.api.changeStatus(row.id, !row.active).subscribe({
       next: updated => this.locations = this.locations.map(x => x.id === updated.id ? updated : x),
       error: () => this.error = 'No se pudo cambiar el estado de la ubicación.'

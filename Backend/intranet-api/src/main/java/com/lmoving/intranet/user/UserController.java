@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -25,11 +24,13 @@ public class UserController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('USERS.VIEW')")
     public List<UserResponse> getUsers() {  
         return userService.getAllUsers();
     }
 
     @GetMapping("/{username}")
+    @PreAuthorize("hasAuthority('USERS.VIEW')")
     public UserResponse getUser(
             @PathVariable String username
     ) {
@@ -37,6 +38,7 @@ public class UserController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('USERS.CREATE')")
     public ResponseEntity<UserResponse> createUser(
             @Valid @RequestBody CreateUserRequest request
     ) {
@@ -50,6 +52,7 @@ public class UserController {
     }
 
     @PutMapping("/{username}")
+    @PreAuthorize("hasAuthority('USERS.EDIT')")
     public UserResponse updateUser(
             @PathVariable String username,
             @Valid @RequestBody UpdateUserRequest request
@@ -62,6 +65,7 @@ public class UserController {
     }
 
     @PatchMapping("/{username}/active")
+    @PreAuthorize("hasAuthority('USERS.DELETE')")
     public ResponseEntity<Void> setActive(
             @PathVariable String username,
             @RequestParam boolean active

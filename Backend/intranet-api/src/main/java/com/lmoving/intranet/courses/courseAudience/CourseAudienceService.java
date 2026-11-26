@@ -2,6 +2,8 @@ package com.lmoving.intranet.courses.courseAudience;
 
 import java.util.List;
 
+import com.lmoving.intranet.audit.AuditLogService;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +21,16 @@ public class CourseAudienceService {
 
 	private final CourseAudienceRepository audienceRepository;
 	private final CoursesRepository courseRepository;
+	private final AuditLogService auditLogService;
 
 	public CourseAudienceService(
 			CourseAudienceRepository audienceRepository,
-			CoursesRepository courseRepository
+			CoursesRepository courseRepository,
+			AuditLogService auditLogService
 	) {
 		this.audienceRepository = audienceRepository;
 		this.courseRepository = courseRepository;
+		this.auditLogService = auditLogService;
 	}
 
 	@Transactional(readOnly = true)
@@ -73,8 +78,10 @@ public class CourseAudienceService {
 
 		audience =
 				audienceRepository.save(audience);
-
-		return toResponse(audience);
+		CourseAudienceResponse response = toResponse(audience);
+		auditLogService.registrar("APRENDIZAJE", "AUDIENCIA_CURSO", audience.getId(), "ASSIGNED",
+				"Se asignó el curso " + course.getTitle() + " al rol " + role.name(), null, response.toString());
+		return response;
 	}
 
 	@Transactional
@@ -102,7 +109,12 @@ public class CourseAudienceService {
 			);
 		}
 
+		CourseAudienceResponse previous = toResponse(audience);
+		String courseTitle = audience.getCourse().getTitle();
 		audienceRepository.delete(audience);
+		auditLogService.registrar("APRENDIZAJE", "AUDIENCIA_CURSO", audienceId, "REMOVED",
+				"Se retiró la asignación del curso " + courseTitle + " para el rol " + audience.getRole().name(),
+				previous.toString(), null);
 	}
 
 	private void ensureCourseExists(

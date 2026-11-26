@@ -34,6 +34,7 @@ public class CicCategoriaController {
 
     // Categorías activas visibles para usuarios autenticados
 
+    @PreAuthorize("hasAuthority('CIC.CATEGORIES.VIEW')")
     @GetMapping("/categorias")
     public ResponseEntity<List<CicCategoria>> listarActivas() {
         return ResponseEntity.ok(categoriaService.listarActivas());
@@ -41,13 +42,13 @@ public class CicCategoriaController {
 
     // Administración exclusiva para ADMIN
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CIC.CATEGORIES.VIEW')")
     @GetMapping("/admin/categorias")
     public ResponseEntity<List<CicCategoria>> listarTodas() {
         return ResponseEntity.ok(categoriaService.listarTodas());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CIC.CATEGORIES.CREATE')")
     @PostMapping("/admin/categorias")
     public ResponseEntity<CicCategoria> crear(
             @Valid @RequestBody CategoriaRequest request) {
@@ -59,7 +60,7 @@ public class CicCategoriaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CIC.CATEGORIES.EDIT')")
     @PutMapping("/admin/categorias/{id}")
     public ResponseEntity<CicCategoria> actualizar(
             @PathVariable Long id,
@@ -73,7 +74,7 @@ public class CicCategoriaController {
         return ResponseEntity.ok(actualizada);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CIC.CATEGORIES.DELETE')")
     @PatchMapping("/admin/categorias/{id}/estado")
     public ResponseEntity<CicCategoria> cambiarEstado(
             @PathVariable Long id,

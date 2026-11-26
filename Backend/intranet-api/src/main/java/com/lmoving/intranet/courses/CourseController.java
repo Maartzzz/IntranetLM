@@ -1,5 +1,6 @@
 package com.lmoving.intranet.courses;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 
 import jakarta.validation.Valid;
@@ -7,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.lmoving.intranet.courses.courseAudience.CourseAudienceService;
 import com.lmoving.intranet.courses.dto.CourseRequest;
@@ -32,11 +34,13 @@ public class CourseController {
 		this.userRepository = userRepository;
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.COURSES.VIEW')")
 	@GetMapping
 	public List<CourseResponse> getAll() {
 		return courseService.getAll();
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.MY_COURSES.VIEW')")
 	@GetMapping("/assigned")
 	public List<CourseResponse> getAssignedCourses(
 			Authentication authentication
@@ -50,13 +54,38 @@ public class CourseController {
 				.getCoursesForRole(user.getRole());
 	}
 
+    @PreAuthorize("hasAnyAuthority('TRAINING.COURSES.VIEW', 'TRAINING.MY_COURSES.VIEW')")
 	@GetMapping("/{id}")
 	public CourseResponse getById(
-			@PathVariable Long id) {
+			@PathVariable Long id,
+			Authentication authentication) {
+
+		boolean canViewCatalog = authentication.getAuthorities().stream()
+				.anyMatch(authority -> authority.getAuthority()
+						.equals("TRAINING.COURSES.VIEW"));
+
+		if (!canViewCatalog) {
+			User user = userRepository
+					.findByUsername(authentication.getName())
+					.orElseThrow();
+
+			boolean assignedToUserRole = audienceService
+					.getCoursesForRole(user.getRole())
+					.stream()
+					.anyMatch(course -> course.id().equals(id));
+
+			if (!assignedToUserRole) {
+				throw new ResponseStatusException(
+						HttpStatus.NOT_FOUND,
+						"Curso no encontrado"
+				);
+			}
+		}
 
 		return courseService.getById(id);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.COURSES.CREATE')")
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public CourseResponse create(
@@ -65,6 +94,7 @@ public class CourseController {
 		return courseService.create(request);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.COURSES.EDIT')")
 	@PutMapping("/{id}")
 	public CourseResponse update(
 			@PathVariable Long id,
@@ -73,6 +103,7 @@ public class CourseController {
 		return courseService.update(id, request);
 	}
 
+    @PreAuthorize("hasAuthority('TRAINING.COURSES.DELETE')")
 	@PatchMapping("/{id}/active")
 	public CourseResponse toggleActive(
 			@PathVariable Long id) {

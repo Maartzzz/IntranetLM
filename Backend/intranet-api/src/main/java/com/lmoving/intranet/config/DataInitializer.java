@@ -8,6 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class DataInitializer {
@@ -15,12 +16,20 @@ public class DataInitializer {
     @Bean
     CommandLineRunner initDatabase(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            @Value("${app.bootstrap-admin.password:}") String initialAdminPassword
     ) {
         return args -> {
 
             if (userRepository.existsByUsername("admin")) {
                 return;
+            }
+
+            if (initialAdminPassword == null || initialAdminPassword.length() < 12) {
+                throw new IllegalStateException(
+                        "Debe configurar APP_BOOTSTRAP_ADMIN_PASSWORD con al menos 12 caracteres " +
+                        "para crear el usuario administrador inicial."
+                );
             }
 
             User admin = new User();
@@ -29,7 +38,7 @@ public class DataInitializer {
             admin.setEmail("admin@empresa.com");
 
             admin.setPasswordHash(
-                    passwordEncoder.encode("Admin123!")
+                    passwordEncoder.encode(initialAdminPassword)
             );
 
             admin.setFirstName("Administrador");

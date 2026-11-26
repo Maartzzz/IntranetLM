@@ -78,7 +78,7 @@ export class ClientsComponent implements OnInit {
   ngOnInit(): void {
     this.auth.getCurrentUser().subscribe({
       next: user => {
-        this.canManage = user.role === 'ADMIN' || user.role === 'SUPERVISOR';
+        this.canManage = this.auth.hasAnyPermission('CLIENTS.CREATE', 'CLIENTS.EDIT', 'CLIENTS.DELETE');
         const request = this.canManage
           ? this.clientsApi.getAllClients()
           : this.clientsApi.getActiveClients();

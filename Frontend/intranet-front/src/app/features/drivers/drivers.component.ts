@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { AuthService } from '../../core/auth/auth.service';
 
 import { FormsModule } from '@angular/forms';
 
@@ -22,6 +23,11 @@ import { DriverDetailDialog } from './driver-detail-dialog/driver-detail-dialog.
 export class DriversComponent implements OnInit {
 
   private readonly dialog = inject(MatDialog);
+  private readonly authService = inject(AuthService);
+
+  get canCreate(): boolean { return this.authService.hasPermission('DRIVERS.CREATE') && this.authService.hasPermission('USERS.VIEW'); }
+  get canEdit(): boolean { return this.authService.hasPermission('DRIVERS.EDIT'); }
+  get canChangeStatus(): boolean { return this.authService.hasPermission('DRIVERS.DELETE'); }
 
   private readonly driverService =
     inject(DriverService);
@@ -41,7 +47,7 @@ export class DriversComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDrivers();
-    this.loadUsers();
+    if (this.canCreate) this.loadUsers();
   }
 
   loadDrivers(): void {
@@ -126,6 +132,7 @@ export class DriversComponent implements OnInit {
   }
 
   createDriver(request: CreateDriverRequest): void {
+    if (!this.canCreate) return;
 
     this.loading = true;
     this.errorMessage = '';
@@ -173,6 +180,7 @@ export class DriversComponent implements OnInit {
   }
 
   updateDriver(username: string, request: Omit<CreateDriverRequest, 'username'>): void {
+    if (!this.canEdit) return;
     this.loading = true;
     this.errorMessage = '';
     this.driverService.updateDriver(username, request).subscribe({
@@ -190,6 +198,7 @@ export class DriversComponent implements OnInit {
   }
 
   toggleDriverActive(driver: Driver): void {
+    if (!this.canChangeStatus) return;
     const nextActive = !driver.active;
     const action = nextActive ? 'activar' : 'desactivar';
 
@@ -213,6 +222,7 @@ export class DriversComponent implements OnInit {
   }
 
   openEditDialog(driver: Driver): void {
+    if (!this.canEdit) return;
     const dialogRef = this.dialog.open(DriverFormDialog, {
       width: '500px',
       maxWidth: 'calc(100vw - 32px)',
@@ -226,6 +236,7 @@ export class DriversComponent implements OnInit {
   }
 
   openCreateDialog(): void {
+    if (!this.canCreate) return;
 
     const availableDrivers =
       this.getAvailableDrivers();

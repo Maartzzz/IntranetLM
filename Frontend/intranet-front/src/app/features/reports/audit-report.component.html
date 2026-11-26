@@ -5,10 +5,10 @@
       <h1>Reporte de auditoría</h1>
       <p>Consulta los cambios y acciones registrados en los módulos de IntranetLM.</p>
     </div>
-    <button class="export-button" type="button" (click)="exportCsv()" [disabled]="filteredRecords.length === 0">
+    @if (canExport) { <button class="export-button" type="button" (click)="exportCsv()" [disabled]="filteredRecords.length === 0">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></svg>
       Exportar CSV
-    </button>
+    </button> }
   </header>
 
   <section class="filters-panel" aria-label="Filtros del reporte">
@@ -35,6 +35,15 @@
           <option value="USUARIO">Usuario</option>
           <option value="CONDUCTOR">Conductor</option>
           <option value="PROGRAMACION">Programación</option>
+          <option value="CURSO">Curso</option>
+          <option value="AUDIENCIA_CURSO">Asignación de curso</option>
+          <option value="MATERIAL">Material</option>
+          <option value="PREGUNTA">Pregunta</option>
+          <option value="PREGUNTA_CURSO">Pregunta de curso</option>
+          <option value="PREGUNTAS_IMPORTACION">Importación de preguntas</option>
+          <option value="EVALUACION">Evaluación</option>
+          <option value="EVALUACION_RONDA">Ronda de evaluación</option>
+          <option value="AUTENTICACION">Autenticación</option>
         </select>
       </label>
       <label class="filter-field">
@@ -46,6 +55,15 @@
           <option value="STATUS_CHANGED">Cambio de estado</option>
           <option value="ACTIVATED">Activación</option>
           <option value="DEACTIVATED">Desactivación</option>
+          <option value="DELETED">Eliminación</option>
+          <option value="ASSIGNED">Asignación</option>
+          <option value="REMOVED">Retiro</option>
+          <option value="IMPORTED">Importación</option>
+          <option value="STARTED">Inicio de evaluación</option>
+          <option value="PASSED">Evaluación aprobada</option>
+          <option value="FAILED">Evaluación no aprobada</option>
+          <option value="REHABILITATED">Rehabilitación</option>
+          <option value="CANCELLED">Cancelación</option>
         </select>
       </label>
       <label class="filter-field">

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { CommunicationService } from '../../core/services/communication.service';
+import { AuthService } from '../../core/auth/auth.service';
 import {
   CommunicationRequest,
   CommunicationResponse,
@@ -20,6 +21,9 @@ import {
 export class CommunicationComponent {
 
   private readonly communicationService = inject(CommunicationService);
+  private readonly authService = inject(AuthService);
+
+  get canSend(): boolean { return this.authService.hasPermission('COMMUNICATIONS.SEND'); }
 
   type: CommunicationType = 'SUGERENCIA';
   subject = '';
@@ -31,6 +35,7 @@ export class CommunicationComponent {
   communicationId: number | null = null;
 
   submit(): void {
+    if (!this.canSend) return;
     this.successMessage = '';
     this.errorMessage = '';
     this.communicationId = null;
