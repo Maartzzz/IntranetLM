@@ -14,6 +14,7 @@ import { Status } from '../../../../core/models/operations.models';
 import { LocationsService } from '../../../../core/services/locations.service';
 import { CargoTypeService } from '../../../../core/services/cargo-types.service';
 import { OperationsService } from '../../../../core/services/operations.service';
+import { VehiclesService, FleetVehicle } from '../../../../core/services/vehicles.service';
 
   interface FclRowValue {
     cargoTypeId: number;
@@ -42,6 +43,7 @@ export class InternalServiceOrderDialogComponent {
   private readonly api = inject(OperationsService);
   private readonly locationsApi = inject(LocationsService);
   private readonly cargoApi = inject(CargoTypeService);
+  private readonly vehiclesApi = inject(VehiclesService);
   readonly data = inject<{ clientOrder: ClientServiceOrder; distribution: import('../../../../core/models/internal-service-orders.models').ClientServiceOrderDistribution; clientSubclientId?: number | null; order?: InternalServiceOrder }>(MAT_DIALOG_DATA);
   readonly editing = !!this.data.order;
   private readonly ref = inject(MatDialogRef<InternalServiceOrderDialogComponent>);
@@ -52,6 +54,7 @@ export class InternalServiceOrderDialogComponent {
   usesSubclientLocations = false;
   cargoTypes: CargoType[] = [];
   statuses: Status[] = [];
+  vehicles: FleetVehicle[] = [];
   loading = true;
   saving = false;
   errorMessage = '';
@@ -62,6 +65,7 @@ export class InternalServiceOrderDialogComponent {
     statusId: [0],
     scheduledDate: [''],
     observations: [''],
+    vehicleId: [0],
     fclRows: this.fb.array<FormGroup>([]),
     lclRows: this.fb.array<FormGroup>([])
   });
@@ -77,7 +81,8 @@ export class InternalServiceOrderDialogComponent {
     forkJoin({
       locations: locationsRequest,
       cargoTypes: this.cargoApi.getActiveCargoTypes(),
-      statuses: this.api.getStatuses('OS_INTERNA')
+      statuses: this.api.getStatuses('OS_INTERNA'),
+      vehicles: this.vehiclesApi.listActive()
     }).subscribe({
       next: result => {
         this.usesSubclientLocations = !!this.data.clientSubclientId;
@@ -92,9 +97,10 @@ export class InternalServiceOrderDialogComponent {
         }
         this.cargoTypes = result.cargoTypes.filter(x => x.active && x.container);
         this.statuses = result.statuses;
+        this.vehicles = result.vehicles.filter(v => v.type !== 'CARRETA');
         if (this.editing && this.data.order) {
           const order = this.data.order;
-          this.common.patchValue({ originLocationId: order.originLocationId, destinationLocationId: order.destinationLocationId, statusId: order.statusId ?? 0, scheduledDate: order.scheduledDate ?? '', observations: order.observations ?? '' });
+          this.common.patchValue({ originLocationId: order.originLocationId, destinationLocationId: order.destinationLocationId, statusId: order.statusId ?? 0, scheduledDate: order.scheduledDate ?? '', observations: order.observations ?? '', vehicleId: order.vehicleId ?? 0 });
           const detail = (order.detail ?? {}) as any;
           if (this.isFcl) this.addFclRow(detail.cargoTypeId ?? 0, detail);
           else this.addLclRow(detail.packages ?? 0, detail);
@@ -193,7 +199,7 @@ export class InternalServiceOrderDialogComponent {
       destinationLocationId: c.destinationLocationId, providerId: this.data.order?.providerId ?? null,
       scheduledDate: c.scheduledDate || null, statusId: c.statusId || null,
       billingStatus: this.data.order?.billingStatus ?? 'PENDIENTE', observations: c.observations.trim() || order.observation,
-      fclDetail: null, lclDetail: null, scheduleReason: this.editing ? 'Edición de O/S interna' : (c.scheduledDate ? 'Programación inicial al crear O/S interna' : null)
+      vehicleId: c.vehicleId || null, fclDetail: null, lclDetail: null, scheduleReason: this.editing ? 'Edición de O/S interna' : (c.scheduledDate ? 'Programación inicial al crear O/S interna' : null)
     };
   }
 

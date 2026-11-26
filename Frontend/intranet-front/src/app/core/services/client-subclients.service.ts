@@ -13,6 +13,10 @@ export class ClientSubclientsService {
     return this.http.get<ClientSubclient[]>(`${this.clientsUrl}/${clientId}/subclients`);
   }
 
+  getAllByClient(clientId: number): Observable<ClientSubclient[]> {
+    return this.http.get<ClientSubclient[]>(`${this.clientsUrl}/${clientId}/subclients/admin`);
+  }
+
   create(clientId: number, request: ClientSubclientRequest): Observable<ClientSubclient> {
     return this.http.post<ClientSubclient>(`${this.clientsUrl}/${clientId}/subclients`, request);
   }

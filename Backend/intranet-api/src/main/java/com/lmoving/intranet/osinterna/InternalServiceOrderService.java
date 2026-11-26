@@ -17,6 +17,7 @@ import com.lmoving.intranet.client.LocationUsageType;
 import com.lmoving.intranet.client.repository.ClientRepository;
 import com.lmoving.intranet.client.repository.LocationRepository;
 import com.lmoving.intranet.client.repository.ClientSubclientLocationRepository;
+import com.lmoving.intranet.client.repository.ClientSubclientRepository;
 import com.lmoving.intranet.oscliente.ClientServiceOrder;
 import com.lmoving.intranet.oscliente.ClientServiceOrderRepository;
 import com.lmoving.intranet.oscliente.ClientServiceOrderFclQuantityRepository;
@@ -28,6 +29,10 @@ import com.lmoving.intranet.provider.repository.ProviderRepository;
 import com.lmoving.intranet.operation.Operation;
 import com.lmoving.intranet.operation.OperationRepository;
 import com.lmoving.intranet.activity.OperationActivityService;
+import com.lmoving.intranet.vehicle.Vehicle;
+import com.lmoving.intranet.vehicle.VehicleRepository;
+import com.lmoving.intranet.vehicle.VehicleCouplingRepository;
+import com.lmoving.intranet.vehicle.VehicleType;
 
 import jakarta.persistence.EntityManager;
 
@@ -44,6 +49,7 @@ public class InternalServiceOrderService {
  private final ClientServiceOrderLclQuantityRepository clientLclQuantityRepository;
  private final LocationRepository locationRepository;
  private final ClientSubclientLocationRepository clientSubclientLocationRepository;
+ private final ClientSubclientRepository clientSubclientRepository;
  private final CargoTypeRepository cargoTypeRepository;
  private final StatusRepository statusRepository;
  private final ProviderRepository providerRepository;
@@ -54,23 +60,25 @@ public class InternalServiceOrderService {
  private final com.lmoving.intranet.requirement.OperationRequirementRepository requirementRepository;
  private final OperationRepository operationRepository;
  private final OperationActivityService operationActivityService;
+ private final VehicleRepository vehicleRepository;
+ private final VehicleCouplingRepository vehicleCouplingRepository;
  public InternalServiceOrderService(InternalServiceOrderRepository repository, InternalServiceOrderFclRepository fclRepository,
   InternalServiceOrderLclRepository lclRepository, ClientRepository clientRepository,
   ClientServiceOrderRepository clientOrderRepository, ClientServiceOrderFclQuantityRepository clientFclQuantityRepository,
   ClientServiceOrderLclQuantityRepository clientLclQuantityRepository, LocationRepository locationRepository,
-  ClientSubclientLocationRepository clientSubclientLocationRepository,
+  ClientSubclientLocationRepository clientSubclientLocationRepository, ClientSubclientRepository clientSubclientRepository,
   CargoTypeRepository cargoTypeRepository, StatusRepository statusRepository, ProviderRepository providerRepository, EntityManager entityManager,
   com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleHistoryService scheduleHistoryService,
   com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleHistoryRepository historyRepository,
   com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleExclusionRepository exclusionRepository,
   com.lmoving.intranet.requirement.OperationRequirementRepository requirementRepository,
-  OperationRepository operationRepository, OperationActivityService operationActivityService){
+  OperationRepository operationRepository, OperationActivityService operationActivityService, VehicleRepository vehicleRepository, VehicleCouplingRepository vehicleCouplingRepository){
   this.repository=repository; this.fclRepository=fclRepository; this.lclRepository=lclRepository;
   this.clientRepository=clientRepository; this.clientOrderRepository=clientOrderRepository;
   this.clientFclQuantityRepository=clientFclQuantityRepository; this.clientLclQuantityRepository=clientLclQuantityRepository;
-  this.locationRepository=locationRepository; this.clientSubclientLocationRepository=clientSubclientLocationRepository;
+  this.locationRepository=locationRepository; this.clientSubclientLocationRepository=clientSubclientLocationRepository; this.clientSubclientRepository=clientSubclientRepository;
   this.cargoTypeRepository=cargoTypeRepository; this.statusRepository=statusRepository;
-  this.providerRepository=providerRepository; this.entityManager = entityManager; this.scheduleHistoryService = scheduleHistoryService; this.historyRepository = historyRepository; this.exclusionRepository = exclusionRepository; this.requirementRepository = requirementRepository; this.operationRepository = operationRepository; this.operationActivityService = operationActivityService;
+  this.providerRepository=providerRepository; this.entityManager = entityManager; this.scheduleHistoryService = scheduleHistoryService; this.historyRepository = historyRepository; this.exclusionRepository = exclusionRepository; this.requirementRepository = requirementRepository; this.operationRepository = operationRepository; this.operationActivityService = operationActivityService; this.vehicleRepository = vehicleRepository; this.vehicleCouplingRepository = vehicleCouplingRepository;
  }
  @Transactional(readOnly=true) public List<InternalServiceOrderResponse> listar(Long clientId){
   List<InternalServiceOrder> rows=clientId==null?repository.findAllByOrderByCreatedAtDesc():repository.findAllByClient_IdOrderByCreatedAtDesc(clientId);
@@ -86,6 +94,7 @@ public class InternalServiceOrderService {
  public InternalServiceOrderResponse crear(InternalServiceOrderRequest request){
   Client client=clienteActivo(request.clientId());
   ClientServiceOrder clientOrder=validarOrdenCliente(request, client);
+  ClientSubclient clientSubclient=resolverSubcliente(request.clientSubclientId(), client);
   boolean firstForOperation = clientOrder != null && clientOrder.getOperation() != null
       && !repository.existsByClientServiceOrder_Id(clientOrder.getId());
   validarTipoYDetalles(request);
@@ -94,11 +103,15 @@ public class InternalServiceOrderService {
   Location destination=locationActiva(request.destinationLocationId(),"Destino");
   validarUbicaciones(origin,destination);
   validarUbicacionesDeSubcliente(clientOrder, client, origin, destination);
-  Status status=validarEstado(request.statusId());
+  Status status = request.statusId() == null
+      ? statusRepository.findFirstByProcessType_CodeAndNameAndActiveTrue(PROCESS,
+          request.scheduledDate() == null ? "Pendiente de programación" : "Programada").orElse(null)
+      : validarEstado(request.statusId());
   Provider provider=resolverProveedor(request.providerId(),null);
   String clientOrderNumber=resolverNumeroOrdenCliente(request.clientOrderNumber(),clientOrder);
   InternalServiceOrder order=new InternalServiceOrder();
-  aplicarDatosPrincipales(order,request,client,clientOrder,origin,destination,status,provider,clientOrderNumber);
+  aplicarDatosPrincipales(order,request,client,clientOrder,origin,destination,status,provider,clientOrderNumber,clientSubclient);
+  aplicarVehiculo(order, request.vehicleId());
   InternalServiceOrder saved=repository.saveAndFlush(order);
   entityManager.refresh(saved);
   if (saved.getScheduledDate() != null) scheduleHistoryService.registrar(saved, "PROGRAMACION_INICIAL", null, saved.getScheduledDate(),
@@ -137,6 +150,7 @@ public class InternalServiceOrderService {
    clientOrderRepository.findByIdForUpdate(order.getClientServiceOrder().getId()).orElseThrow(()->notFound("O/S del cliente anterior no encontrada"));
   Client client=clienteActivo(request.clientId());
   ClientServiceOrder clientOrder=validarOrdenCliente(request,client);
+  ClientSubclient clientSubclient=resolverSubcliente(request.clientSubclientId(), client);
   validarTipoYDetalles(request);
   validarDistribucion(request, clientOrder, id);
   Location origin=locationActiva(request.originLocationId(),"Origen");
@@ -146,7 +160,8 @@ public class InternalServiceOrderService {
   Status status=validarEstado(request.statusId());
   Provider provider=resolverProveedor(request.providerId(),order.getProvider());
   String clientOrderNumber=resolverNumeroOrdenCliente(request.clientOrderNumber(),clientOrder);
-  aplicarDatosPrincipales(order,request,client,clientOrder,origin,destination,status,provider,clientOrderNumber);
+  aplicarDatosPrincipales(order,request,client,clientOrder,origin,destination,status,provider,clientOrderNumber,clientSubclient);
+  aplicarVehiculo(order, request.vehicleId());
   repository.saveAndFlush(order);
   boolean dateChanged = !java.util.Objects.equals(
 	  previousScheduledDate,
@@ -255,6 +270,46 @@ public class InternalServiceOrderService {
 	throw new IllegalArgumentException("La distribución supera la cantidad de bultos solicitada. Saldo disponible: "+(requested.getTotalPackages()-distributed));
   }
  }
+
+ public InternalServiceOrderResponse asignarVehiculo(Long id, Long vehicleId) {
+  InternalServiceOrder order = buscar(id);
+  String previous = order.getAssignedVehicleTypeSnapshot() == null
+      ? null
+      : order.getAssignedVehicleTypeSnapshot() + " " + order.getAssignedVehiclePlateSnapshot()
+          + (order.getAssignedTrailerPlateSnapshot() == null ? "" : " / Carreta " + order.getAssignedTrailerPlateSnapshot());
+
+  aplicarVehiculo(order, vehicleId);
+  InternalServiceOrder saved = repository.saveAndFlush(order);
+
+  String current = saved.getAssignedVehicleTypeSnapshot() == null
+      ? null
+      : saved.getAssignedVehicleTypeSnapshot() + " " + saved.getAssignedVehiclePlateSnapshot()
+          + (saved.getAssignedTrailerPlateSnapshot() == null ? "" : " / Carreta " + saved.getAssignedTrailerPlateSnapshot());
+  auditLogService.registrar("PROGRAMACION", "OS_INTERNA", saved.getId(), "VEHICLE_ASSIGNED",
+      vehicleId == null ? "Se retiró el vehículo de la O/S interna" : "Se asignó o cambió el vehículo de la O/S interna",
+      previous, current);
+  return toResponse(saved);
+ }
+
+ public InternalServiceOrderResponse cambiarEstado(Long id, Long statusId, String reason) {
+  InternalServiceOrder order = buscar(id);
+  Status target = statusRepository.findByIdAndProcessType_CodeAndActiveTrue(statusId, PROCESS)
+   .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "El estado seleccionado no existe, está inactivo o no corresponde a O/S interna"));
+  if (target.isAutoTransition())
+   throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este estado se asigna automáticamente y no puede seleccionarse manualmente");
+  if ("Programada".equalsIgnoreCase(target.getName()) && order.getScheduledDate() == null)
+   throw new ResponseStatusException(HttpStatus.CONFLICT, "Para pasar a Programada primero debe asignar una fecha en el planificador");
+  String previous = order.getStatus() == null ? null : order.getStatus().getName();
+  if (target.getId().equals(order.getStatus() == null ? null : order.getStatus().getId()))
+   return toResponse(order);
+  order.setStatus(target);
+  InternalServiceOrder saved = repository.saveAndFlush(order);
+  String normalizedReason = reason == null || reason.isBlank() ? "Cambio de estado desde el planificador" : reason.trim();
+  auditLogService.registrar("PROGRAMACION", "OS_INTERNA", saved.getId(), "STATUS_CHANGED",
+   normalizedReason, previous, target.getName());
+  return toResponse(saved);
+ }
+
  public InternalServiceOrderResponse cambiarActivo(Long id, boolean active) {
   InternalServiceOrder order = buscar(id);
   boolean previous = order.isActive();
@@ -322,10 +377,11 @@ public class InternalServiceOrderService {
 
   ClientSubclient relation = clientOrder.getOperation().getClientSubclient();
   if (!relation.isActive()) {
-   throw new IllegalArgumentException("La relación cliente-subcliente está inactiva");
+   throw new IllegalArgumentException("La relación entre clientes está inactiva");
   }
-  if (!relation.getClient().getId().equals(client.getId())) {
-   throw new IllegalArgumentException("La relación cliente-subcliente no corresponde al cliente de la O/S interna");
+  if (!relation.getClient().getId().equals(client.getId())
+       && !relation.getSubclient().getId().equals(client.getId())) {
+   throw new IllegalArgumentException("La relación entre clientes no corresponde al cliente de la O/S interna");
   }
 
   validarUsoUbicacion(relation.getId(), origin, "Origen",
@@ -347,13 +403,23 @@ public class InternalServiceOrderService {
    throw new IllegalArgumentException(label + " no tiene un uso permitido para esta operación");
   }
  }
+ private ClientSubclient resolverSubcliente(Long relationId, Client client){
+  if(relationId==null) return null;
+  ClientSubclient relation=clientSubclientRepository.findById(relationId)
+    .orElseThrow(()->notFound("Relación cliente-subcliente no encontrada"));
+  if(!relation.isActive()) throw new IllegalArgumentException("La relación entre clientes está inactiva");
+  if(!relation.getClient().getId().equals(client.getId())
+    && !relation.getSubclient().getId().equals(client.getId()))
+   throw new IllegalArgumentException("La relación no corresponde al cliente seleccionado");
+  return relation;
+ }
  private Status validarEstado(Long statusId){
   return statusId==null?null:statusRepository.findByIdAndProcessType_CodeAndActiveTrue(statusId,PROCESS)
    .orElseThrow(()->new IllegalArgumentException("El estado no existe, está inactivo o no pertenece a OS_INTERNA"));
  }
  private void aplicarDatosPrincipales(InternalServiceOrder order,InternalServiceOrderRequest request,Client client,
-  ClientServiceOrder clientOrder,Location origin,Location destination,Status status,Provider provider,String clientOrderNumber){
-  order.setClient(client); order.setClientServiceOrder(clientOrder); order.setClientOrderNumber(clientOrderNumber);
+  ClientServiceOrder clientOrder,Location origin,Location destination,Status status,Provider provider,String clientOrderNumber,ClientSubclient clientSubclient){
+  order.setClient(client); order.setClientServiceOrder(clientOrder); order.setClientSubclient(clientSubclient); order.setClientOrderNumber(clientOrderNumber);
   order.setServiceType(request.serviceType()); order.setReference(normalizar(request.reference()));
   order.setOrigin(origin); order.setDestination(destination); order.setProvider(provider); order.setScheduledDate(request.scheduledDate());
   order.setStatus(status); order.setBillingStatus(request.billingStatus()==null?"PENDIENTE":request.billingStatus());
@@ -383,6 +449,25 @@ public class InternalServiceOrderService {
  private ResponseStatusException notFound(String message){return new ResponseStatusException(HttpStatus.NOT_FOUND,message);}
  private String normalizar(String s){return s==null||s.isBlank()?null:s.trim();}
  private String razon(String supplied, String fallback){return supplied==null||supplied.isBlank()?fallback:supplied.trim();}
+
+ private void aplicarVehiculo(InternalServiceOrder order, Long vehicleId) {
+  if (vehicleId == null) {
+   order.setVehicle(null); order.setAssignedVehiclePlateSnapshot(null);
+   order.setAssignedVehicleTypeSnapshot(null); order.setAssignedTrailerPlateSnapshot(null); return;
+  }
+  Vehicle vehicle = vehicleRepository.findById(vehicleId).orElseThrow(() -> notFound("Vehículo no encontrado"));
+  if (!vehicle.isActive()) throw new IllegalArgumentException("No se puede asignar un vehículo inactivo");
+  if (vehicle.getType() == VehicleType.CARRETA) throw new IllegalArgumentException("Una carreta no se asigna directamente; debe asignarse el tracto correspondiente");
+  String trailerPlate = null;
+  if (vehicle.getType() == VehicleType.TRACTO) {
+   var coupling = vehicleCouplingRepository.findFirstByTractor_IdAndEndAtIsNullOrderByStartAtDesc(vehicle.getId())
+      .orElseThrow(() -> new IllegalArgumentException("El tracto no tiene una carreta acoplada actualmente"));
+   trailerPlate = coupling.getTrailer().getPlate();
+  }
+  order.setVehicle(vehicle); order.setAssignedVehiclePlateSnapshot(vehicle.getPlate());
+  order.setAssignedVehicleTypeSnapshot(vehicle.getType().name()); order.setAssignedTrailerPlateSnapshot(trailerPlate);
+ }
+
  private InternalServiceOrderResponse toResponse(InternalServiceOrder o){
   Object detail=null;
   if("FCL".equals(o.getServiceType())) detail=fclRepository.findById(o.getId()).map(d->new FclResponse(d.getContainerNumber(),d.getCargoType()==null?null:d.getCargoType().getId(),d.getCargoType()==null?null:d.getCargoType().getName(),d.getCubicMeters(),d.getEmptyWarehouseLocation()==null?null:d.getEmptyWarehouseLocation().getId(),d.getReturnDueDate(),d.getMemo())).orElse(null);
@@ -391,7 +476,9 @@ public class InternalServiceOrderService {
    o.getClientServiceOrder()==null?null:o.getClientServiceOrder().getId(),o.getClientOrderNumber(),
    o.getServiceType(),o.getReference(),o.getOrigin().getId(),o.getOrigin().getName(),o.getDestination().getId(),o.getDestination().getName(),
    o.getProvider()==null?null:o.getProvider().getId(),o.getProvider()==null?null:o.getProvider().getBusinessName(),o.getScheduledDate(),o.getStatus()==null?null:o.getStatus().getId(),o.getStatus()==null?null:o.getStatus().getName(),
-   o.getBillingStatus(),o.getObservations(),detail,o.getCreatedAt(),o.getUpdatedAt(),o.isActive());
+   o.getBillingStatus(),o.getObservations(),detail,o.getCreatedAt(),o.getUpdatedAt(),o.isActive(),
+   o.getVehicle()==null?null:o.getVehicle().getId(),o.getAssignedVehiclePlateSnapshot(),o.getAssignedVehicleTypeSnapshot(),o.getAssignedTrailerPlateSnapshot(),
+   o.getClientSubclient()==null?null:o.getClientSubclient().getId(),o.getClientSubclient()==null?null:o.getClientSubclient().getSubclient().getBusinessName());
  }
  public record FclResponse(String containerNumber,Long cargoTypeId,String cargoTypeName,java.math.BigDecimal cubicMeters,Long emptyWarehouseLocationId,java.time.LocalDate returnDueDate,String memo){}
  public record LclResponse(Integer packages,java.math.BigDecimal weightKg,java.math.BigDecimal cubicMeters){}

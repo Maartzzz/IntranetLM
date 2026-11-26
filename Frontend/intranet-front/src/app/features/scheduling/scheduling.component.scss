@@ -12,8 +12,13 @@ h1 { margin: 0; font-size: 28px; font-weight: 700; }
 .secondary-button:hover, .icon-button:hover { background: #f5f7fa; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 .period-label { margin: 14px 0 20px; color: #475467; font-size: 14px; font-weight: 600; }
-.summary-grid { display: grid; grid-template-columns: repeat(2, minmax(180px, 240px)); gap: 14px; margin-bottom: 22px; }
-.summary-card { display: grid; gap: 5px; padding: 16px; border: 1px solid #e3e8ef; border-radius: 11px; background: #fff; }
+.summary-section { margin-bottom: 20px; }
+.summary-section-title { margin: 0 0 10px; color: #344054; font-size: 13px; font-weight: 700; }
+.summary-section-title span { color: #98a2b3; font-weight: 400; }
+.summary-grid { display: grid; gap: 12px; }
+.weekly-summary-grid { grid-template-columns: repeat(2, minmax(180px, 240px)); }
+.global-summary-grid { grid-template-columns: repeat(5, minmax(150px, 1fr)); }
+.summary-card { display: grid; align-content: start; gap: 5px; min-width: 0; padding: 16px; border: 1px solid #e3e8ef; border-radius: 11px; background: #fff; }
 .summary-label { color: #667085; font-size: 12px; }
 .summary-card strong { font-size: 27px; line-height: 1.1; }
 .summary-hint { color: #98a2b3; font-size: 11px; }
@@ -39,6 +44,11 @@ h2 { margin: 0; font-size: 16px; font-weight: 700; }
 .order-card.lcl { border-left-color: #0f9d78; }
 .order-card-top strong { color: #263445; font-size: 11px; }
 .service-tag { padding: 3px 6px; border-radius: 5px; background: #eef2f7; color: #475467; font-size: 9px; font-weight: 700; }
+.completed-status-tag { background: #dcfce7; color: #166534; }
+.overdue-summary-card { border-color: #f2d6a5; }
+.overdue-summary-card strong { color: #b54708; }
+.completed-summary-card { border-color: #b7e4c7; }
+.completed-summary-card strong { color: #15803d; }
 .client-name { margin-top: 7px; color: #344054; font-size: 11px; font-weight: 600; }
 .order-reference, .order-detail, .route-text { margin-top: 5px; color: #667085; font-size: 10px; overflow-wrap: anywhere; }
 .route-text { line-height: 1.4; }
@@ -61,7 +71,9 @@ h2 { margin: 0; font-size: 16px; font-weight: 700; }
 .cdk-drag-animating { transition: transform 180ms cubic-bezier(0, 0, .2, 1); }
 @media (max-width: 1250px) { .planning-layout { grid-template-columns: 1fr; } .available-list { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); max-height: none; } }
 @media (max-width: 900px) { .scheduling-page { padding: 18px; } .page-header { align-items: flex-start; flex-direction: column; } .week-grid { grid-template-columns: repeat(7, minmax(165px, 1fr)); } }
-@media (max-width: 560px) { .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .header-actions { width: 100%; } .header-actions .secondary-button { margin-right: auto; } .error-feedback { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 1050px) { .global-summary-grid { grid-template-columns: repeat(3, minmax(150px, 1fr)); } }
+@media (max-width: 700px) { .global-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .weekly-summary-grid, .global-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .header-actions { width: 100%; } .header-actions .secondary-button { margin-right: auto; } .error-feedback { align-items: flex-start; flex-direction: column; } }
 
 .primary-button { padding: 9px 13px; border: 1px solid #2457ce; border-radius: 8px; background: #2457ce; color: #fff; font-size: 13px; font-weight: 650; cursor: pointer; }
 .primary-button:hover { background: #1d49b3; }
@@ -121,3 +133,11 @@ h2 { margin: 0; font-size: 16px; font-weight: 700; }
 .cdk-drag-placeholder {
   visibility: visible;
 }
+
+.overdue-group .available-group-heading h3 { color: #b91c1c; }
+.overdue-group .service-tag { background: #fee2e2; color: #991b1b; }
+
+.status-control { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; color: #667085; font-size: 10px; font-weight: 600; }
+.status-control select { min-width: 0; max-width: 145px; padding: 5px 7px; border: 1px solid #d0d5dd; border-radius: 6px; background: #fff; color: #344054; font: inherit; font-weight: 600; cursor: pointer; }
+.status-control select:focus { outline: 2px solid #b2ccff; outline-offset: 1px; }
+.status-control select:disabled { cursor: wait; opacity: .65; }

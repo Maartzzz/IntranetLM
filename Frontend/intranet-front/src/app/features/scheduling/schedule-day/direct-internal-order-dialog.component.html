@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>Nueva O/S interna</h2>
+<mat-dialog-content>
+  @if (loading) { <p>Cargando catálogos…</p> }
+  @if (errorMessage) { <div class="error-message" role="alert">{{errorMessage}}</div> }
+  <form [formGroup]="form" class="direct-order-form">
+    <section><h3>Cliente y orden externa</h3>
+      <mat-form-field appearance="outline"><mat-label>Cliente</mat-label><mat-select formControlName="clientId" (selectionChange)="clientChanged($event.value)"><mat-option [value]="0">Seleccionar cliente</mat-option>@for(c of clients;track c.id){<mat-option [value]="c.id">{{c.businessName}}</mat-option>}</mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Empresa relacionada</mat-label><mat-select formControlName="clientSubclientId" (selectionChange)="relationChanged($event.value)"><mat-option [value]="0">Sin relación específica</mat-option>@for(sc of subclients;track sc.id){<mat-option [value]="sc.id">{{sc.subclientName}}</mat-option>}</mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>O/S del cliente</mat-label><mat-select formControlName="clientOrderMode"><mat-option value="MANUAL">Ingresar manualmente</mat-option><mat-option value="EXISTING" [disabled]="!clientOrders.length">Seleccionar O/S registrada</mat-option></mat-select></mat-form-field>
+      @if(manualOrder){<mat-form-field appearance="outline"><mat-label>Número de O/S del cliente</mat-label><input matInput formControlName="manualClientOrderNumber" maxlength="80"></mat-form-field>}
+      @else {<mat-form-field appearance="outline"><mat-label>O/S registrada</mat-label><mat-select formControlName="clientServiceOrderId" (selectionChange)="existingOrderChanged($event.value)"><mat-option [value]="0">Seleccionar O/S</mat-option>@for(o of clientOrders;track o.id){<mat-option [value]="o.id">{{o.clientOrderNumber}} · {{o.serviceType}}</mat-option>}</mat-select></mat-form-field>}
+    </section>
+    <section><h3>Servicio y programación</h3>
+      <mat-form-field appearance="outline"><mat-label>Tipo de servicio</mat-label><mat-select formControlName="serviceType"><mat-option value="FCL">FCL · Contenedor</mat-option><mat-option value="LCL">LCL · Carga suelta</mat-option></mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Referencia</mat-label><input matInput formControlName="reference" maxlength="120"></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Origen</mat-label><mat-select formControlName="originLocationId"><mat-option [value]="0">Seleccionar</mat-option>@for(l of originLocations;track locationId(l)){<mat-option [value]="locationId(l)">{{locationLabel(l)}}</mat-option>}</mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Destino</mat-label><mat-select formControlName="destinationLocationId"><mat-option [value]="0">Seleccionar</mat-option>@for(l of destinationLocations;track locationId(l)){<mat-option [value]="locationId(l)">{{locationLabel(l)}}</mat-option>}</mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Fecha programada</mat-label><input matInput type="date" formControlName="scheduledDate"></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Estado inicial</mat-label><mat-select formControlName="statusId"><mat-option [value]="0">Automático</mat-option>@for(s of statuses;track s.id){<mat-option [value]="s.id">{{s.name}}</mat-option>}</mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Vehículo</mat-label><mat-select formControlName="vehicleId"><mat-option [value]="0">Sin asignar</mat-option>@for(v of vehicles;track v.id){<mat-option [value]="v.id">{{v.type}} · {{v.plate}}</mat-option>}</mat-select></mat-form-field>
+      @if(selectedVehicle?.type === 'TRACTO'){<p class="trailer-note">Carreta acoplada: <strong>{{selectedVehicle?.currentTrailerPlate || 'Sin carreta acoplada'}}</strong></p>}
+    </section>
+    <section><h3>Detalle de carga</h3>
+      @if(isFcl){<mat-form-field appearance="outline"><mat-label>Tipo de contenedor</mat-label><mat-select formControlName="cargoTypeId"><mat-option [value]="0">Seleccionar</mat-option>@for(t of cargoTypes;track t.id){<mat-option [value]="t.id">{{t.name}}</mat-option>}</mat-select></mat-form-field><mat-form-field appearance="outline"><mat-label>Número de contenedor</mat-label><input matInput formControlName="containerNumber"></mat-form-field>}
+      @else {<mat-form-field appearance="outline"><mat-label>Bultos</mat-label><input matInput type="number" min="1" formControlName="packages"></mat-form-field><mat-form-field appearance="outline"><mat-label>Peso (kg)</mat-label><input matInput type="number" min="0" formControlName="weightKg"></mat-form-field>}
+      <mat-form-field appearance="outline"><mat-label>Volumen (m³)</mat-label><input matInput type="number" min="0" formControlName="cubicMeters"></mat-form-field>
+      <mat-form-field appearance="outline" class="full"><mat-label>Observaciones</mat-label><textarea matInput rows="2" formControlName="observations"></textarea></mat-form-field>
+    </section>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end"><button mat-button type="button" (click)="cancel()" [disabled]="saving">Cancelar</button><button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="saving||loading">{{saving?'Guardando…':'Crear O/S interna'}}</button></mat-dialog-actions>

@@ -48,7 +48,11 @@
         </div>
       }
     </section>
-    <section class="form-section last-section"><div class="section-heading"><span class="section-index">03</span><div><h3>Observaciones</h3><p>Indicaciones comunes para las órdenes que se generarán.</p></div></div>
+    <section class="form-section">
+      <div class="section-heading"><span class="section-index">03</span><div><h3>Asignación de vehículo</h3><p>Selecciona una unidad activa. En tractos se toma la carreta acoplada vigente.</p></div></div>
+      <mat-form-field appearance="outline" class="full-width"><mat-label>Vehículo</mat-label><mat-select formControlName="vehicleId"><mat-option [value]="0">Sin asignar</mat-option>@for (vehicle of vehicles; track vehicle.id) { <mat-option [value]="vehicle.id">{{ vehicle.type }} · {{ vehicle.plate }}</mat-option> }</mat-select></mat-form-field>
+    </section>
+    <section class="form-section last-section"><div class="section-heading"><span class="section-index">04</span><div><h3>Observaciones</h3><p>Indicaciones comunes para las órdenes que se generarán.</p></div></div>
       <mat-form-field appearance="outline" class="full-width"><mat-label>Observaciones generales</mat-label><textarea matInput rows="2" formControlName="observations"></textarea></mat-form-field>
     </section>
   </form>

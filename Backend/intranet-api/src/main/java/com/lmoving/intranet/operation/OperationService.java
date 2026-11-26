@@ -41,14 +41,14 @@ public class OperationService {
 
     @Transactional(readOnly = true)
     public List<OperationResponse> listarTodas() {
-        return operationRepository.findAllByOrderByCreatedAtDesc().stream().map(this::toResponse).toList();
+        return operationRepository.findAllByArchivedFalseOrderByCreatedAtDesc().stream().map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
     public List<OperationResponse> listarPorCliente(Long clientId) {
         if (!clientRepository.existsById(clientId))
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado");
-        return operationRepository.findAllByClient_IdOrderByCreatedAtDesc(clientId)
+        return operationRepository.findAllByClient_IdAndArchivedFalseOrderByCreatedAtDesc(clientId)
                 .stream().map(this::toResponse).toList();
     }
 
@@ -76,9 +76,13 @@ public class OperationService {
 
     public OperationResponse actualizar(Long id, OperationRequest request) {
         Operation operation = buscar(id);
+        if (operation.isArchived()) throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede editar una operación archivada; primero debe restaurarla");
         String oldValue = snapshot(operation);
         String oldStatus = operation.getStatus() != null ? operation.getStatus().getName() : null;
         aplicarDatos(operation, request);
+        if (!java.util.Objects.equals(oldStatus, operation.getStatus() != null ? operation.getStatus().getName() : null)) {
+            operation.setStatusChangedAt(java.time.LocalDateTime.now());
+        }
         Operation saved = operationRepository.saveAndFlush(operation);
         String newStatus = saved.getStatus() != null ? saved.getStatus().getName() : null;
         String newValue = snapshot(saved);
@@ -114,12 +118,13 @@ public class OperationService {
         ClientSubclient clientSubclient = null;
         if (request.clientSubclientId() != null) {
             clientSubclient = clientSubclientRepository.findById(request.clientSubclientId())
-                .orElseThrow(() -> new IllegalArgumentException("La relación cliente-subcliente indicada no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("La relación entre clientes indicada no existe"));
             if (!clientSubclient.isActive()) {
-                throw new IllegalArgumentException("La relación cliente-subcliente está inactiva");
+                throw new IllegalArgumentException("La relación entre clientes está inactiva");
             }
-            if (!clientSubclient.getClient().getId().equals(client.getId())) {
-                throw new IllegalArgumentException("La relación cliente-subcliente no corresponde al cliente seleccionado");
+            if (!clientSubclient.getClient().getId().equals(client.getId())
+                    && !clientSubclient.getSubclient().getId().equals(client.getId())) {
+                throw new IllegalArgumentException("La relación entre clientes no corresponde al cliente seleccionado");
             }
         }
         operation.setClientSubclient(clientSubclient);

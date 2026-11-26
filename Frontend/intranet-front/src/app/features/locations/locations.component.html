@@ -1,6 +1,6 @@
 <section class="locations-page">
   <header class="page-heading">
-    <div><p class="eyebrow">Configuración</p><h1>Ubicaciones</h1><p class="subtitle">Administra ubicaciones físicas y asígnalas a cada relación cliente-subcliente.</p></div>
+    <div><p class="eyebrow">Configuración</p><h1>Ubicaciones</h1><p class="subtitle">Administra ubicaciones físicas y reutilízalas en las relaciones entre empresas.</p></div>
     @if (canManage) { <button class="primary-button" type="button" (click)="showLocationForm = !showLocationForm">＋ Nueva ubicación</button> }
   </header>
 
@@ -8,17 +8,17 @@
   @if (success) { <div class="alert success">{{ success }}</div> }
 
   <section class="panel selector-panel">
-    <div class="panel-title"><div><h2>Relación comercial</h2><p>Selecciona el cliente emisor y el subcliente para consultar sus direcciones.</p></div></div>
+    <div class="panel-title"><div><h2>Relación comercial</h2><p>Selecciona una empresa y su relación comercial para consultar las ubicaciones habilitadas.</p></div></div>
     <div class="selector-grid">
-      <label>Cliente emisor
+      <label>Empresa
         <select [(ngModel)]="selectedClientId" (ngModelChange)="onClientChange()">
-          <option [ngValue]="null">Seleccionar cliente</option>
+          <option [ngValue]="null">Seleccionar empresa</option>
           @for (client of clients; track client.id) { <option [ngValue]="client.id">{{ client.businessName }} · {{ client.documentNumber }}</option> }
         </select>
       </label>
-      <label>Subcliente
+      <label>Empresa relacionada
         <select [(ngModel)]="selectedRelationId" (ngModelChange)="onRelationChange()" [disabled]="!selectedClientId">
-          <option [ngValue]="null">Seleccionar subcliente</option>
+          <option [ngValue]="null">Seleccionar relación</option>
           @for (relation of relations; track relation.id) { <option [ngValue]="relation.id">{{ relation.subclientName }}</option> }
         </select>
       </label>
@@ -50,7 +50,7 @@
         <div class="association-form">
           <div class="form-grid">
             <label class="wide">Ubicación física *
-              <select [(ngModel)]="association.locationId"><option [ngValue]="0">Seleccionar ubicación</option>@for (location of locations; track location.id) { @if (location.active) { <option [ngValue]="location.id">{{ location.name }} — {{ location.address }}</option> } }</select>
+              <select [(ngModel)]="association.locationId"><option [ngValue]="0">Seleccionar ubicación</option>@for (location of availableLocations; track location.id) { <option [ngValue]="location.id">{{ location.name }} — {{ location.address }}</option> }</select>
             </label>
             <label>Uso *<select [(ngModel)]="association.usageType">@for (usage of usageTypes; track usage.value) { <option [value]="usage.value">{{ usage.label }}</option> }</select></label>
             <label>Contacto<input [(ngModel)]="association.contactName" maxlength="150" /></label>
@@ -75,7 +75,7 @@
       } @else { <div class="empty-state">Esta relación todavía no tiene ubicaciones asociadas.</div> }
     </section>
   } @else {
-    <div class="empty-state">Selecciona un cliente y un subcliente para administrar sus ubicaciones.</div>
+    <div class="empty-state">Selecciona una empresa y una relación para administrar sus ubicaciones.</div>
   }
 
   <section class="panel catalog-panel">

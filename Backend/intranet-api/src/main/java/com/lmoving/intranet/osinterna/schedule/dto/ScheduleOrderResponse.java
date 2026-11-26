@@ -23,5 +23,7 @@ public record ScheduleOrderResponse(
     String billingStatus,
     String observations,
     ScheduleFclDetailResponse fclDetail,
-    ScheduleLclDetailResponse lclDetail
+    ScheduleLclDetailResponse lclDetail,
+    Long vehicleId, String assignedVehiclePlate, String assignedVehicleType, String assignedTrailerPlate,
+    Long clientSubclientId, String subclientName
 ) {}

@@ -1,0 +1,173 @@
+<section class="import-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">OPERACIONES</p>
+      <h1>Importación de Excel</h1>
+      <p class="subtitle">Carga operaciones desde archivos de agencias aduaneras, revisa los datos y confirma antes de crear registros.</p>
+    </div>
+    <span class="scope-pill">Solo crea Operaciones</span>
+  </header>
+
+  @if (errorMessage) { <div class="notice error" role="alert">{{ errorMessage }}</div> }
+  @if (successMessage) { <div class="notice success" role="status">{{ successMessage }}</div> }
+
+  <section class="panel upload-panel">
+    <div class="section-heading">
+      <div><h2>1. Seleccionar archivo</h2><p>Se admiten archivos Excel .xls y .xlsx de hasta 20 MB.</p></div>
+      @if (preview) { <button type="button" class="button button-ghost" (click)="reset()">Nueva importación</button> }
+    </div>
+    <label class="file-drop">
+      <input type="file" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="onFileChange($event)" />
+      <span class="file-icon">↑</span>
+      <strong>{{ selectedFile?.name || 'Seleccionar archivo Excel' }}</strong>
+      <span>El archivo original se conservará en el historial de importaciones.</span>
+    </label>
+    @if (loading) { <div class="loading-line">Procesando archivo…</div> }
+  </section>
+
+  @if (preview) {
+    <section class="panel">
+      <div class="section-heading">
+        <div><h2>2. Revisar encabezados y mapeo</h2><p>El sistema propone equivalencias automáticamente. Puedes corregirlas antes de validar.</p></div>
+      </div>
+      <div class="source-meta">
+        <span><b>Archivo:</b> {{ preview.fileName }}</span>
+        <span><b>Hoja:</b> {{ preview.sheets[sheetIndex] }}</span>
+        <span><b>Fila de encabezados:</b> {{ headerRowInput }}</span>
+      </div>
+      <div class="settings-grid">
+        <label class="field"><span>Hoja de Excel</span>
+          <select name="sheetIndex" [(ngModel)]="sheetIndex" (change)="changeSheet()">
+            @for (sheet of preview.sheets; track $index) { <option [ngValue]="$index">{{ sheet }}</option> }
+          </select>
+        </label>
+        <label class="field"><span>Fila de encabezados</span>
+          <input type="number" min="1" [max]="100" name="headerRow" [(ngModel)]="headerRowInput" (change)="changeHeaderRow()" />
+        </label>
+        <label class="field profile-field"><span>Perfil guardado</span>
+          <div class="inline-control">
+            <select name="profile" [(ngModel)]="selectedProfileId">
+              <option [ngValue]="null">Seleccionar perfil…</option>
+              @for (profile of profiles; track profile.id) { <option [ngValue]="profile.id">{{ profile.name }}</option> }
+            </select>
+            <button type="button" class="button button-secondary" [disabled]="!selectedProfileId" (click)="applyProfile()">Aplicar</button>
+          </div>
+        </label>
+      </div>
+
+      <div class="mapping-grid">
+        @for (field of fields; track field.key) {
+          <label class="field">
+            <span>{{ field.label }} @if (field.required) { <em>Obligatorio</em> }</span>
+            <select [name]="'map-' + field.key" [(ngModel)]="mapping[field.key]" (ngModelChange)="analysis = null">
+              <option [ngValue]="null">No asignar columna</option>
+              @for (header of preview.headers; track $index) { <option [ngValue]="$index">{{ header }} ({{ $index + 1 }})</option> }
+            </select>
+          </label>
+        }
+      </div>
+
+      <div class="profile-save">
+        <label class="field profile-name"><span>Guardar este mapeo como perfil</span><input type="text" maxlength="100" placeholder="Ej. Agencia Aduanas ABC" name="profileName" [(ngModel)]="profileName" /></label>
+        <button type="button" class="button button-secondary" [disabled]="!profileName.trim() || !mappingReady" (click)="saveProfile()">Guardar perfil</button>
+      </div>
+
+      <div class="section-subheading"><h3>Previsualización del archivo</h3><span>Primeras filas de datos</span></div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>@for (header of preview.headers; track $index) { <th>{{ header }}</th> }</tr></thead>
+          <tbody>
+            @for (row of preview.sampleRows; track $index) {
+              <tr>@for (cell of row; track $index) { <td>{{ cell || '—' }}</td> }</tr>
+            }
+            @if (!preview.sampleRows.length) { <tr><td class="empty-cell" [attr.colspan]="preview.headers.length">No se encontraron filas de datos debajo del encabezado.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+      <div class="actions-row">
+        <span class="helper-text">Cliente y Tipo de carga son obligatorios. FCL puede indicar cantidad y tamaño en el mismo dato (ej. 2x40); LCL utiliza la cantidad de bultos.</span>
+        <button type="button" class="button button-primary" [disabled]="!mappingReady || loading" (click)="analyze()">Validar mapeo y detectar duplicados</button>
+      </div>
+    </section>
+  }
+
+  @if (analysis) {
+    <section class="panel">
+      <div class="section-heading">
+        <div><h2>3. Revisar registros</h2><p>Las filas inválidas no se pueden importar. Se marcan posibles duplicados cuando coincide el cliente y la referencia o el pedido; quedan desmarcados inicialmente. FCL 2x20 se interpreta como CONTENEDOR 20' con cantidad 2; LCL utiliza la cantidad de bultos.</p></div>
+        <div class="summary-stats">
+          <span><b>{{ analysis.totalRows }}</b> filas</span>
+          <span class="stat-good"><b>{{ analysis.validRows }}</b> válidas</span>
+          <span class="stat-warn"><b>{{ analysis.duplicateRows }}</b> posibles duplicados</span>
+          <span class="stat-bad"><b>{{ analysis.invalidRows }}</b> con errores</span>
+        </div>
+      </div>
+      <div class="actions-row review-actions">
+        <span class="helper-text">Seleccionadas: <b>{{ selectedRows.size }}</b></span>
+        <div class="button-group">
+          <button type="button" class="button button-ghost" (click)="selectRecommended()">Seleccionar válidas sin duplicados</button>
+          <button type="button" class="button button-ghost" (click)="selectAllValid()">Seleccionar todas las válidas</button>
+        </div>
+      </div>
+      <div class="table-wrap review-table-wrap">
+        <table class="data-table review-table">
+          <thead><tr><th>Importar</th><th>Fila</th><th>Referencia</th><th>Cliente</th><th>Tipo de carga</th><th>Pedido</th><th>Cantidad (contenedores / bultos)</th><th>Fecha</th><th>Resultado</th></tr></thead>
+          <tbody>
+            @for (row of analysis.rows; track row.rowNumber) {
+              <tr [class.row-invalid]="!row.valid" [class.row-duplicate]="row.possibleDuplicate">
+                <td><input type="checkbox" [checked]="isSelected(row.rowNumber)" [disabled]="!row.valid" (change)="toggleRow(row.rowNumber, $any($event.target).checked)" [attr.aria-label]="'Importar fila ' + row.rowNumber" /></td>
+                <td>{{ row.rowNumber }}</td>
+                <td>{{ row.values['reference'] || '—' }}</td>
+                <td>{{ row.values['client'] || '—' }}</td>
+                <td>{{ row.values['cargoType'] || '—' }}</td>
+                <td>{{ row.values['customerOrderNumber'] || '—' }}</td>
+                <td>{{ row.values['quantity'] || '—' }}</td>
+                <td>{{ row.values['estimatedDate'] || '—' }}</td>
+                <td>
+                  @if (!row.valid) { <span class="status-tag invalid">Con errores</span> }
+                  @else if (row.possibleDuplicate) { <span class="status-tag duplicate">Posible duplicado</span> }
+                  @else { <span class="status-tag valid">Lista</span> }
+                  @if (row.issues.length) { <small class="row-issues">{{ row.issues.join(' ') }}</small> }
+                </td>
+              </tr>
+            }
+            @if (!analysis.rows.length) { <tr><td colspan="9" class="empty-cell">No se encontraron filas para importar.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+      <div class="actions-row">
+        <span class="helper-text">La importación creará únicamente Operaciones; no creará O/S del cliente ni O/S internas.</span>
+        <button type="button" class="button button-primary" [disabled]="selectedRows.size === 0 || executing" (click)="execute()">
+          {{ executing ? 'Importando…' : 'Importar ' + selectedRows.size + ' operaciones' }}
+        </button>
+      </div>
+    </section>
+  }
+
+  <section class="panel history-panel">
+    <div class="section-heading"><div><h2>Historial de importaciones</h2><p>Se conserva el archivo original de cada proceso para consulta posterior.</p></div></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Fecha</th><th>Archivo</th><th>Estado</th><th>Filas</th><th>Operaciones creadas</th><th>Omitidas</th><th>Original</th></tr></thead>
+        <tbody>
+          @for (item of history; track item.id) {
+            <tr>
+              <td>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</td><td>{{ item.fileName }}</td>
+              <td><span class="status-tag" [class.valid]="item.status === 'COMPLETED' || item.status === 'ANALYZED'">{{ item.status === 'COMPLETED' ? 'Completada' : item.status === 'ANALYZED' ? 'Validada' : 'En revisión' }}</span></td>
+              <td>{{ item.totalRows }}</td><td>{{ item.createdRows }}</td><td>{{ item.skippedRows }}</td>
+              <td><button type="button" class="text-button" (click)="downloadOriginal(item)">Descargar Excel</button></td>
+            </tr>
+          }
+          @if (!history.length) { <tr><td colspan="7" class="empty-cell">Todavía no hay importaciones registradas.</td></tr> }
+        </tbody>
+      </table>
+    </div>
+    @if (profiles.length) {
+      <div class="saved-profiles"><h3>Perfiles guardados</h3>
+        @for (profile of profiles; track profile.id) {
+          <div class="profile-chip"><span>{{ profile.name }}</span><button type="button" (click)="deleteProfile(profile)" aria-label="Eliminar perfil">×</button></div>
+        }
+      </div>
+    }
+  </section>
+</section>

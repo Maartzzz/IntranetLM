@@ -5,5 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.lmoving.intranet.client.ClientSubclientLocation;
 public interface ClientSubclientLocationRepository extends JpaRepository<ClientSubclientLocation, Long> {
  List<ClientSubclientLocation> findAllByClientSubclient_IdAndActiveTrueOrderByLocation_NameAsc(Long relationId);
+ List<ClientSubclientLocation> findAllByClientSubclient_IdOrderByLocation_NameAsc(Long relationId);
  Optional<ClientSubclientLocation> findByClientSubclient_IdAndLocation_Id(Long relationId, Long locationId);
 }

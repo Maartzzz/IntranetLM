@@ -1,0 +1,2 @@
+package com.lmoving.intranet.vehicle; import java.util.*; import org.springframework.data.jpa.repository.JpaRepository;
+public interface VehicleRepository extends JpaRepository<Vehicle,Long>{ Optional<Vehicle> findByPlateIgnoreCase(String plate); List<Vehicle> findAllByOrderByTypeAscPlateAsc(); List<Vehicle> findByActiveTrueOrderByTypeAscPlateAsc(); }

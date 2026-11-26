@@ -4,12 +4,21 @@ import { Observable } from 'rxjs';
 import {
   ScheduleBoardResponse,
   ScheduleVersionDetail,
-  ScheduleVersionSummary
+  ScheduleVersionSummary,
+  ScheduleStatusOption
 } from '../models/schedule.models';
 
 export interface ScheduleIncludeRequest {
   scheduledDate: string;
   reason: string;
+}
+
+export interface ScheduleGlobalSummary {
+  pending: number;
+  programmed: number;
+  inExecution: number;
+  overdue: number;
+  completed: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -33,6 +42,24 @@ export class ScheduleService {
 
   excludeOrder(orderId: number): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/${orderId}/schedule/exclude`, {});
+  }
+
+  getCompletedCount(): Observable<number> {
+    return this.http.get<number>(`${this.scheduleUrl}/completed-count`);
+  }
+
+  getGlobalSummary(): Observable<ScheduleGlobalSummary> {
+    return this.http.get<ScheduleGlobalSummary>(`${this.scheduleUrl}/global-summary`);
+  }
+
+  getStatuses(): Observable<ScheduleStatusOption[]> {
+    return this.http.get<ScheduleStatusOption[]>('/api/statuses', { params: { processCode: 'OS_INTERNA' } });
+  }
+
+  changeOrderStatus(orderId: number, statusId: number): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${orderId}/status`, {
+      statusId, reason: 'Cambio de estado desde el planificador'
+    });
   }
 
   saveVersion(startDate: string, endDate: string): Observable<ScheduleVersionSummary> {

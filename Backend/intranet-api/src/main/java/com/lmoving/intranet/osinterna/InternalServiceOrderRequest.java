@@ -11,7 +11,7 @@ public record InternalServiceOrderRequest(
  Long providerId, LocalDate scheduledDate, Long statusId,
  @Pattern(regexp="PENDIENTE|FACTURADO") String billingStatus, String observations,
  @Valid FclDetail fclDetail, @Valid LclDetail lclDetail,
- @jakarta.validation.constraints.Size(max=1000) String scheduleReason
+ @jakarta.validation.constraints.Size(max=1000) String scheduleReason, Long vehicleId, Long clientSubclientId
 ){
  public record FclDetail(@Size(max=40) String containerNumber, Long cargoTypeId,
   @DecimalMin("0.0") BigDecimal cubicMeters, Long emptyWarehouseLocationId, LocalDate returnDueDate, String memo){}

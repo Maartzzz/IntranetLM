@@ -8,10 +8,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { forkJoin } from 'rxjs';
 import { ClientService } from '../../../core/services/clients.service';
 import { ClientSubclientsService } from '../../../core/services/client-subclients.service';
+import { LocationsService } from '../../../core/services/locations.service';
 import { CargoTypeService } from '../../../core/services/cargo-types.service';
 import { OperationsService } from '../../../core/services/operations.service';
 import { Client } from '../../../core/models/clients.models';
 import { ClientSubclient } from '../../../core/models/client-subclients.models';
+import { ClientLocation, ClientSubclientLocation } from '../../../core/models/locations.models';
 import { CargoType } from '../../../core/models/cargo-types.models';
 import { Operation, OperationRequest } from '../../../core/models/operations.models';
 
@@ -27,6 +29,7 @@ export class OperationFormDialogComponent {
   private readonly clientsApi = inject(ClientService);
   private readonly cargoApi = inject(CargoTypeService);
   private readonly clientSubclientsApi = inject(ClientSubclientsService);
+  private readonly locationsApi = inject(LocationsService);
   private readonly operationsApi = inject(OperationsService);
   private readonly data = inject<OperationFormDialogData>(MAT_DIALOG_DATA);
   private readonly dialogRef = inject(MatDialogRef<OperationFormDialogComponent>);
@@ -35,7 +38,10 @@ export class OperationFormDialogComponent {
   clients: Client[] = [];
   cargoTypes: CargoType[] = [];
   subclients: ClientSubclient[] = [];
+  clientLocations: ClientLocation[] = [];
+  relationLocations: ClientSubclientLocation[] = [];
   loadingSubclients = false;
+  loadingLocations = false;
   loadingOptions = true;
   isSaving = false;
   errorMessage = '';
@@ -44,6 +50,8 @@ export class OperationFormDialogComponent {
     reference: ['', Validators.maxLength(150)],
     clientId: [0, [Validators.required, Validators.min(1)]],
     clientSubclientId: [null as number | null],
+    originLocationId: [null as number | null],
+    destinationLocationId: [null as number | null],
     cargoTypeId: [0, [Validators.required, Validators.min(1)]],
     customerOrderNumber: ['', Validators.maxLength(100)],
     origin: ['', Validators.maxLength(200)],
@@ -68,16 +76,42 @@ export class OperationFormDialogComponent {
           quantity: this.data.operation.quantity, estimatedDate: this.data.operation.estimatedDate ?? '',
           observation: this.data.operation.observation ?? ''
         });
-        if (this.data.operation) this.loadSubclients(this.data.operation.clientId);
+        const clientId = this.form.controls.clientId.value;
+        if (clientId > 0) this.loadClientLocations(clientId);
+        if (this.data.operation) this.loadSubclients(clientId);
       },
       error: error => { console.error(error); this.loadingOptions = false; this.errorMessage = 'No se pudieron cargar clientes y tipos de carga.'; }
     });
   }
 
   onClientChange(clientId: number): void {
-    this.form.controls.clientSubclientId.setValue(null);
+    this.form.patchValue({ clientSubclientId: null, originLocationId: null, destinationLocationId: null });
     this.subclients = [];
-    if (clientId > 0) this.loadSubclients(clientId);
+    this.relationLocations = [];
+    this.clientLocations = [];
+    if (clientId > 0) {
+      this.loadClientLocations(clientId);
+      this.loadSubclients(clientId);
+    }
+  }
+
+  onRelationChange(relationId: number | null): void {
+    this.form.patchValue({ originLocationId: null, destinationLocationId: null });
+    this.relationLocations = [];
+    if (relationId === null) return;
+    this.loadingLocations = true;
+    this.locationsApi.listRelationLocations(relationId).subscribe({
+      next: locations => { this.relationLocations = locations.filter(item => item.active); this.loadingLocations = false; },
+      error: error => { console.error('Ubicaciones de la relación:', error); this.loadingLocations = false; this.errorMessage = 'No se pudieron cargar las ubicaciones de la relación.'; }
+    });
+  }
+
+  private loadClientLocations(clientId: number): void {
+    this.loadingLocations = true;
+    this.locationsApi.listClientLocations(clientId).subscribe({
+      next: locations => { this.clientLocations = locations.filter(item => item.active); this.loadingLocations = false; },
+      error: error => { console.error('Ubicaciones del cliente:', error); this.clientLocations = []; this.loadingLocations = false; this.errorMessage = 'No se pudieron cargar las ubicaciones del cliente.'; }
+    });
   }
 
   private loadSubclients(clientId: number): void {
@@ -90,17 +124,51 @@ export class OperationFormDialogComponent {
         if (selectedId && !this.subclients.some(item => item.id === selectedId)) {
           this.form.controls.clientSubclientId.setValue(null);
         }
+        if (selectedId && this.subclients.some(item => item.id === selectedId)) this.onRelationChange(selectedId);
       },
       error: error => {
-        console.error('Subclientes:', error);
+        console.error('Relaciones comerciales:', error);
         this.subclients = [];
         this.loadingSubclients = false;
-        this.errorMessage = 'No se pudieron cargar los subclientes del cliente.';
+        this.errorMessage = 'No se pudieron cargar las relaciones comerciales del cliente.';
       }
     });
   }
 
   get selectedCargoType(): CargoType | undefined { return this.cargoTypes.find(x => x.id === this.form.controls.cargoTypeId.value); }
+
+  get originLocations(): Array<{id:number; name:string; address:string}> {
+    if (this.form.controls.clientSubclientId.value !== null) {
+      return this.relationLocations.filter(item => item.usageType === 'RECOJO' || item.usageType === 'AMBOS')
+        .map(item => ({ id: item.locationId, name: item.locationName, address: item.address }));
+    }
+    return this.clientLocations.map(item => ({ id: item.id, name: item.name, address: item.address }));
+  }
+
+  get destinationLocations(): Array<{id:number; name:string; address:string}> {
+    if (this.form.controls.clientSubclientId.value !== null) {
+      return this.relationLocations.filter(item => item.usageType === 'ENTREGA' || item.usageType === 'AMBOS')
+        .map(item => ({ id: item.locationId, name: item.locationName, address: item.address }));
+    }
+    return this.clientLocations.map(item => ({ id: item.id, name: item.name, address: item.address }));
+  }
+
+  selectOriginLocation(locationId: number | null): void {
+    const location = this.originLocations.find(item => item.id === locationId);
+    if (location) this.form.controls.origin.setValue(this.formatAddress(location.name, location.address));
+  }
+
+  selectDestinationLocation(locationId: number | null): void {
+    const location = this.destinationLocations.find(item => item.id === locationId);
+    if (location) this.form.controls.destination.setValue(this.formatAddress(location.name, location.address));
+  }
+
+  private formatAddress(name: string, address: string): string {
+    return `${name}: ${address}`.slice(0, 200);
+  }
+
+  clearOriginLocation(): void { this.form.controls.originLocationId.setValue(null); }
+  clearDestinationLocation(): void { this.form.controls.destinationLocationId.setValue(null); }
 
   save(): void {
     if (this.loadingOptions || this.form.invalid || this.isSaving) { this.form.markAllAsTouched(); return; }

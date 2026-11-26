@@ -32,3 +32,11 @@ h1 { margin: 0; font-size: 28px; font-weight: 700; }
 .error-message { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border: 1px solid #f3c5c5; border-radius: 9px; background: #fff7f7; color: #a12b2b; font-size: 12px; }.error-message button { padding: 7px 10px; border: 1px solid #e7aaaa; border-radius: 7px; background: #fff; color: #a12b2b; cursor: pointer; }
 @media (max-width: 760px) { .day-page { padding: 18px; }.day-page-header, .filters-panel { align-items: stretch; flex-direction: column; }.day-total { max-width: 180px; }.search-field { max-width: none; }.detail-grid { gap: 12px; } }
 @media (max-width: 420px) { .detail-grid { grid-template-columns: 1fr; } }
+
+.vehicle-assignment{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0;padding:10px;background:#f8fafc;border-radius:8px;font-size:13px;color:#475569}.vehicle-assignment select{min-width:190px;padding:7px 9px;border:1px solid #cbd5e1;border-radius:6px;background:white}.vehicle-assignment small{color:#64748b}
+
+.day-actions{display:flex;align-items:center}.create-order-button{border:0;border-radius:8px;padding:10px 14px;background:var(--primary,#2457a7);color:#fff;font-weight:600;cursor:pointer}.create-order-button:hover{filter:brightness(.94)}
+
+.create-order-button { align-self: flex-end; white-space: nowrap; padding: 10px 14px; border: 0; border-radius: 8px; background: #2457ce; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; }
+.create-order-button:hover { background: #1d4fb4; }
+@media (max-width: 760px) { .create-order-button { align-self: flex-start; } }

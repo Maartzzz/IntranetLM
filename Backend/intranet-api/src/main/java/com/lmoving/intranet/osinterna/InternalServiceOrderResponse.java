@@ -5,4 +5,4 @@ public record InternalServiceOrderResponse(Long id, Long internalOrderNumber, Lo
  Long clientServiceOrderId, String clientOrderNumber, String serviceType, String reference,
  Long originLocationId, String originName, Long destinationLocationId, String destinationName,
  Long providerId, String providerName, LocalDate scheduledDate, Long statusId, String statusName, String billingStatus,
- String observations, Object detail, LocalDateTime createdAt, LocalDateTime updatedAt, boolean active) {}
+ String observations, Object detail, LocalDateTime createdAt, LocalDateTime updatedAt, boolean active, Long vehicleId, String assignedVehiclePlate, String assignedVehicleType, String assignedTrailerPlate, Long clientSubclientId, String subclientName) {}

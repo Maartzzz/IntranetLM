@@ -51,6 +51,13 @@
     @if (configuracionExpanded) {
         <div class="nav-submenu">
 
+        @if (canAccessOperations()) {
+            <a routerLink="/vehicles" routerLinkActive="active">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14l2-6h14l2 6v5h-3v-2H6v2H3z M7 14h10 M7 17h.01 M17 17h.01"/></svg>
+            <span>Vehículos</span>
+            </a>
+        }
+
         @if (isAdmin()) {
             <a routerLink="/users" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -75,10 +82,7 @@
         @if (canAccessOperations()) {
             <a routerLink="/locations" routerLinkActive="active">
             <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M13.41,11.41Q14,10.83 14,10q0-0.83-0.59-1.41T12,8T10.59,8.59T10,10t0.59,
-                        1.41T12,12t1.41-0.59ZM12,19.35q3.05-2.8 4.53-5.09Q18,11.98 18,10.2q0-2.73-1.74-4.46Q14.53,
-                        4 12,4T7.74,5.74Q6,7.47 6,10.2q0,1.78 1.48,4.06T12,19.35ZM12,22q-4.02-3.43-6.01-6.36T4,10.2Q4,
-                        6.45 6.41,4.22T12,2t5.59,2.22T20,10.2q0,2.5-1.99,5.44Q16.03,18.58 12,22Zm0-12Z"/>
+                <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z M12 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
             </svg>
             <span>Ubicaciones</span>
             </a>
@@ -235,37 +239,33 @@
               </svg>
               <span>Operaciones</span>
             </a>
+            <a routerLink="/operations/import" routerLinkActive="active">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4" />
+              </svg>
+              <span>Importar desde Excel</span>
+            </a>
+            @if (isAdmin()) {
+              <a routerLink="/status-catalog" routerLinkActive="active">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 5h16v14H4z M8 9h8 M8 13h5 M8 17h3"/>
+                </svg>
+                <span>Catálogo de estados</span>
+              </a>
+            }
+            @if (isAdmin() || isSupervisor()) {
+              <a routerLink="/operations/history" routerLinkActive="active">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 3-6.7L3 8 M3 3v5h5 M12 7v5l3 2"/>
+                </svg>
+                <span>Histórico de operaciones</span>
+              </a>
+            }
             <a routerLink="/scheduling" routerLinkActive="active">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 5h16v16H4z M8 3v4 M16 3v4 M4 10h16 M8 14h3 M8 18h6"/>
               </svg>
               <span>Programación</span>
-            </a>
-          </div>
-        }
-      </div>
-    }
-
-    @if (isAdmin() || isSupervisor()) {
-      <div class="nav-section">
-        <button
-          type="button"
-          class="nav-section-button"
-          (click)="toggleReportes()"
-          [attr.aria-expanded]="reportesExpanded">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h5 M17 3v4" />
-          </svg>
-          <span>Reportes</span>
-          <span class="nav-arrow">{{ reportesExpanded ? '−' : '+' }}</span>
-        </button>
-        @if (reportesExpanded) {
-          <div class="nav-submenu">
-            <a routerLink="/reports/audit" routerLinkActive="active">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M5 3h14v18H5z M8 7h8 M8 11h8 M8 15h5" />
-              </svg>
-              <span>Reporte de auditoría</span>
             </a>
           </div>
         }

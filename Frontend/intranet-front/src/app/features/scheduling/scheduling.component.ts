@@ -9,9 +9,10 @@ import {
 import {
   ScheduleOrder,
   ScheduleVersionDetail,
-  ScheduleVersionSummary
+  ScheduleVersionSummary,
+  ScheduleStatusOption
 } from '../../core/models/schedule.models';
-import { ScheduleService } from '../../core/services/schedule.service';
+import { ScheduleGlobalSummary, ScheduleService } from '../../core/services/schedule.service';
 
 interface ScheduleDay {
   date: Date;
@@ -38,6 +39,7 @@ export class SchedulingComponent implements OnInit {
   endDate = this.addDays(this.startDate, 6);
   scheduled: ScheduleOrder[] = [];
   available: ScheduleOrder[] = [];
+  globalSummary: ScheduleGlobalSummary = { pending: 0, programmed: 0, inExecution: 0, overdue: 0, completed: 0 };
   days: ScheduleDay[] = [];
   loading = false;
   saving = false;
@@ -51,15 +53,19 @@ export class SchedulingComponent implements OnInit {
   versionError = '';
   versions: ScheduleVersionSummary[] = [];
   selectedVersion: ScheduleVersionDetail | null = null;
+  statusOptions: ScheduleStatusOption[] = [];
+  statusSavingOrderId: number | null = null;
 
   readonly unscheduledListId = 'schedule-unscheduled';
   readonly otherPeriodListId = 'schedule-other-period';
   readonly excludedListId = 'schedule-excluded';
+  readonly overdueListId = 'schedule-overdue';
 
   // Mantener referencias estables: CDK usa estos arrays como datos de cada DropList.
   // No deben reconstruirse en getters durante cada ciclo de detección de cambios.
   unscheduledOrders: ScheduleOrder[] = [];
   otherPeriodOrders: ScheduleOrder[] = [];
+  overdueOrders: ScheduleOrder[] = [];
   excludedOrders: ScheduleOrder[] = [];
   connectedDropListIds: string[] = [];
 
@@ -69,12 +75,15 @@ export class SchedulingComponent implements OnInit {
 
     this.unscheduledOrders = [];
     this.otherPeriodOrders = [];
+    this.overdueOrders = [];
     this.excludedOrders = [];
 
     for (const order of this.available) {
       if (!order.scheduledDate) {
         this.unscheduledOrders.push(order);
-      } else if (order.scheduledDate < start || order.scheduledDate > end) {
+      } else if (order.scheduledDate < start) {
+        this.overdueOrders.push(order);
+      } else if (order.scheduledDate > end) {
         this.otherPeriodOrders.push(order);
       } else {
         this.excludedOrders.push(order);
@@ -90,6 +99,7 @@ export class SchedulingComponent implements OnInit {
       if (!Number.isNaN(candidate.getTime())) this.startDate = candidate;
       this.endDate = this.addDays(this.startDate, 6);
     }
+    this.loadStatuses();
     this.loadSchedule();
   }
 
@@ -99,7 +109,41 @@ export class SchedulingComponent implements OnInit {
     });
   }
 
+  private loadStatuses(): void {
+    this.scheduleService.getStatuses().subscribe({
+      next: rows => this.statusOptions = (rows ?? []).filter(status => status.active && !status.autoTransition),
+      error: error => this.errorMessage = error?.error?.message || 'No se pudo cargar el catálogo de estados de O/S internas.'
+    });
+  }
+
+  changeOrderStatus(order: ScheduleOrder, rawStatusId: string): void {
+    const statusId = Number(rawStatusId);
+    if (!order || !Number.isInteger(statusId) || statusId <= 0 || this.saving || this.statusSavingOrderId !== null) return;
+    const target = this.statusOptions.find(status => status.id === statusId);
+    if (!target || target.id === order.statusId) return;
+    if (target.finalStatus && !window.confirm(`¿Confirmas cambiar la O/S ${order.internalOrderNumber} al estado ${target.name}?`)) {
+      this.loadSchedule();
+      return;
+    }
+    this.statusSavingOrderId = order.id;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.scheduleService.changeOrderStatus(order.id, statusId).subscribe({
+      next: () => {
+        this.statusSavingOrderId = null;
+        this.successMessage = `O/S ${order.internalOrderNumber}: estado actualizado a ${target.name}.`;
+        this.loadSchedule();
+      },
+      error: error => {
+        this.statusSavingOrderId = null;
+        this.errorMessage = error?.error?.message || error?.error?.error || 'No se pudo cambiar el estado de la O/S.';
+        this.loadSchedule();
+      }
+    });
+  }
+
   loadSchedule(): void {
+    this.loadGlobalSummary();
     this.loading = true;
     this.errorMessage = '';
     this.successMessage = '';
@@ -122,6 +166,13 @@ export class SchedulingComponent implements OnInit {
       });
   }
 
+  private loadGlobalSummary(): void {
+    this.scheduleService.getGlobalSummary().subscribe({
+      next: summary => this.globalSummary = summary ?? { pending: 0, programmed: 0, inExecution: 0, overdue: 0, completed: 0 },
+      error: () => this.globalSummary = { pending: 0, programmed: 0, inExecution: 0, overdue: 0, completed: 0 }
+    });
+  }
+
   onDrop(event: CdkDragDrop<ScheduleOrder[]>, targetDate?: string): void {
     if (this.saving || this.loading) return;
 
@@ -136,6 +187,7 @@ export class SchedulingComponent implements OnInit {
     const availableListIds = [
       this.unscheduledListId,
       this.otherPeriodListId,
+      this.overdueListId,
       this.excludedListId
     ];
     const destinationIsAvailable = availableListIds.includes(destinationId);
@@ -275,6 +327,7 @@ export class SchedulingComponent implements OnInit {
   }
 
   private loadAfterMutation(): void {
+    this.loadGlobalSummary();
     this.scheduleService.getSchedule(this.toDateKey(this.startDate), this.toDateKey(this.endDate))
       .subscribe({
         next: response => {
@@ -339,6 +392,7 @@ export class SchedulingComponent implements OnInit {
     this.connectedDropListIds = [
       this.unscheduledListId,
       this.otherPeriodListId,
+      this.overdueListId,
       this.excludedListId,
       ...this.days.map(day => this.getDayListId(day.dateKey))
     ];

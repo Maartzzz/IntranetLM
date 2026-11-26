@@ -22,6 +22,10 @@ export interface InternalServiceOrder {
   createdAt: string;
   updatedAt: string;
   active: boolean;
+  vehicleId: number | null;
+  assignedVehiclePlate: string | null;
+  assignedVehicleType: string | null;
+  assignedTrailerPlate: string | null;
 }
 
 export interface ClientServiceOrderDistribution {
@@ -42,7 +46,7 @@ export interface ClientServiceOrderDistribution {
 
 export interface InternalServiceOrderRequest {
   clientId: number;
-  clientServiceOrderId: number;
+  clientServiceOrderId: number | null;
   clientOrderNumber: string;
   serviceType: 'FCL' | 'LCL';
   reference: string | null;
@@ -67,4 +71,6 @@ export interface InternalServiceOrderRequest {
     cubicMeters: number | null;
   } | null;
   scheduleReason: string | null;
+  vehicleId?: number | null;
+  clientSubclientId?: number | null;
 }

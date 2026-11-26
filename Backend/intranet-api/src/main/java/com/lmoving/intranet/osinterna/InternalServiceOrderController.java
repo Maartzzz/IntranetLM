@@ -58,6 +58,16 @@ public class InternalServiceOrderController {
     public InternalServiceOrderResponse crear(@Valid @RequestBody InternalServiceOrderRequest request){return service.crear(request);}
 
 
+    @GetMapping("/schedule/completed-count")
+    public long contarOrdenesCompletadas() {
+        return scheduleService.contarOrdenesCompletadas();
+    }
+
+    @GetMapping("/schedule/global-summary")
+    public InternalServiceOrderScheduleService.ScheduleGlobalSummaryResponse obtenerResumenGlobal() {
+        return scheduleService.obtenerResumenGlobal();
+    }
+
     @GetMapping("/schedule")
     public InternalServiceOrderScheduleService.ScheduleBoardResponse obtenerTablero(
             @RequestParam LocalDate startDate,
@@ -82,6 +92,23 @@ public class InternalServiceOrderController {
 
     @GetMapping("/{id}/schedule-history")
     public List<com.lmoving.intranet.osinterna.schedule.InternalServiceOrderScheduleHistoryResponse> historialProgramacion(@PathVariable Long id){return scheduleHistoryService.listar(id);}
+
+    @PatchMapping("/{id}/vehicle")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    public InternalServiceOrderResponse asignarVehiculo(@PathVariable Long id, @RequestBody VehicleAssignmentRequest request) {
+        return service.asignarVehiculo(id, request.vehicleId());
+    }
+    public record VehicleAssignmentRequest(Long vehicleId) {}
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")
+    public InternalServiceOrderResponse cambiarEstado(@PathVariable Long id, @RequestBody StatusChangeRequest request) {
+        if (request.statusId() == null) throw new org.springframework.web.server.ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "statusId es obligatorio");
+        return service.cambiarEstado(id, request.statusId(), request.reason());
+    }
+
+    public record StatusChangeRequest(Long statusId, String reason) {}
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'OPERACIONES')")

@@ -85,9 +85,9 @@
             @for (relation of relations; track relation.id) {
               <div class="relation" [class.chosen]="selectedRelation?.id === relation.id" [class.inactive]="!relation.active">
                 <button class="relation-name" type="button" (click)="selectRelation(relation)">
-                  <span class="company-avatar">{{ relation.subclientName.charAt(0) }}</span>
+                  <span class="company-avatar">{{ relatedClientName(relation).charAt(0) }}</span>
                   <span class="relation-copy">
-                    <b>{{ relation.subclientName }}</b>
+                    <b>{{ relatedClientName(relation) }}</b>
                     <small>{{ relation.active ? 'Relación activa' : 'Relación inactiva' }}</small>
                   </span>
                 </button>
@@ -106,7 +106,7 @@
             <div class="section-head">
               <div>
                 <h3>Direcciones de atención</h3>
-                <p>{{ selectedRelation.subclientName }} · Lugares de recojo y entrega.</p>
+                <p>{{ relatedClientName(selectedRelation) }} · Lugares de recojo y entrega.</p>
               </div>
               @if (canManage) {
                 <button class="primary" type="button" (click)="addAddressOpen = !addAddressOpen">＋ Añadir dirección</button>
@@ -117,49 +117,25 @@
               <div class="address-form">
                 <div class="form-title">
                   <div>
-                    <h4>Nueva dirección</h4>
-                    <p>Completa los datos del lugar. Se guardará y quedará vinculada a {{ selectedRelation.subclientName }}.</p>
+                    <h4>Asignar ubicación a la relación</h4>
+                    <p>Selecciona una ubicación registrada en cualquiera de las dos empresas. La dirección física no se duplicará.</p>
                   </div>
                 </div>
-
                 <div class="form-grid">
-                  <label>
-                    Nombre o referencia del lugar
-                    <input [(ngModel)]="address.name" placeholder="Ej. Almacén Callao" />
-                  </label>
-                  <label>
-                    Tipo de lugar
-                    <select [(ngModel)]="address.locationType">
-                      <option value="ALMACEN">Almacén</option>
-                      <option value="DEPOSITO">Depósito</option>
-                      <option value="PUERTO">Puerto</option>
-                      <option value="PLANTA">Planta</option>
-                      <option value="CENTRO_DISTRIBUCION">Centro de distribución</option>
-                      <option value="OTRO">Otro</option>
+                  <label class="wide">
+                    Ubicación de la empresa
+                    <select [(ngModel)]="selectedLocationId">
+                      <option [ngValue]="null">Selecciona una ubicación</option>
+                      @for (location of availableLocations; track location.id) {
+                        <option [ngValue]="location.id">{{ location.name }} · {{ location.address }} · {{ location.locationType }}</option>
+                      }
                     </select>
                   </label>
-                  <label class="wide">
-                    Dirección
-                    <input [(ngModel)]="address.streetAddress" placeholder="Av., calle, número, zona…" />
-                  </label>
+                  @if (availableLocations.length === 0) {
+                    <p class="empty-addresses wide">Las empresas todavía no tienen ubicaciones activas registradas. Agrégalas desde la ficha de cada cliente.</p>
+                  }
                   <label>
-                    Distrito
-                    <input [(ngModel)]="address.district" placeholder="Ej. Callao" />
-                  </label>
-                  <label>
-                    Provincia
-                    <input [(ngModel)]="address.province" placeholder="Ej. Callao" />
-                  </label>
-                  <label>
-                    Departamento
-                    <input [(ngModel)]="address.department" placeholder="Ej. Lima" />
-                  </label>
-                  <label>
-                    Referencia adicional
-                    <input [(ngModel)]="address.reference" placeholder="Referencia para llegar" />
-                  </label>
-                  <label>
-                    Uso de la dirección
+                    Uso en esta relación
                     <select [(ngModel)]="address.usageType">
                       <option value="RECOJO">Recojo</option>
                       <option value="ENTREGA">Entrega</option>
@@ -183,14 +159,10 @@
                     <textarea [(ngModel)]="address.instructions" rows="2" placeholder="Indicaciones para el conductor…"></textarea>
                   </label>
                 </div>
-
-                @if (pendingLocationId !== null) {
-                  <p class="pending-note">La dirección ya fue creada. Falta completar su asociación; puedes reintentar sin duplicarla.</p>
-                }
                 <div class="form-actions">
                   <button class="plain" type="button" [disabled]="busy" (click)="cancelAddress()">Cancelar</button>
-                  <button class="primary" type="button" [disabled]="busy || !address.name.trim() || !address.streetAddress.trim()" (click)="saveAddress()">
-                    {{ busy ? 'Guardando…' : (pendingLocationId !== null ? 'Reintentar guardado' : 'Guardar dirección') }}
+                  <button class="primary" type="button" [disabled]="busy || selectedLocationId === null" (click)="saveAddress()">
+                    {{ busy ? 'Guardando…' : 'Asignar ubicación' }}
                   </button>
                 </div>
               </div>
@@ -206,6 +178,7 @@
                       <span class="usage" [class.delivery]="item.usageType === 'ENTREGA'">{{ item.usageType === 'AMBOS' ? 'Recojo y entrega' : (item.usageType === 'RECOJO' ? 'Recojo' : 'Entrega') }}</span>
                     </div>
                     <p>{{ item.address }}</p>
+                    <small>Ubicación física compartida desde el catálogo de las empresas relacionadas</small>
                     <small>Contacto: {{ item.contactName || 'No indicado' }} · {{ item.contactPhone || 'Sin teléfono' }}</small>
                     @if (item.operatingHours) { <small>Horario: {{ item.operatingHours }}</small> }
                     @if (item.instructions) { <small>Indicaciones: {{ item.instructions }}</small> }

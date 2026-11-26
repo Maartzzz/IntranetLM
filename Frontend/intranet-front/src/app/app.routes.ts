@@ -20,6 +20,7 @@ import { adminGuard } from './core/guards/admin.guard';
 import { CicAdminComponent } from './features/cic/cic-admin/cic-admin.component';
 import { EvaluationsComponent } from './features/evaluations/evaluations.component';
 import { OperationsHomeComponent } from './features/operations/operations-home.component';
+import { OperationHistoryComponent } from './features/operations/operation-history/operation-history.component';
 import { ClientsComponent } from './features/clients/clients.component';
 import { WarehousesComponent } from './features/warehouses/warehouses.component';
 import { CargoTypesComponent } from './features/cargo-types/cargo-types.component';
@@ -29,8 +30,9 @@ import { LocationsComponent } from './features/locations/locations.component';
 import { SubclientsComponent } from './features/subclients/subclients.component';
 import { SchedulingComponent } from './features/scheduling/scheduling.component';
 import { ScheduleDayComponent } from './features/scheduling/schedule-day/schedule-day.component';
-import { AuditReportComponent } from './features/reports/audit-report.component';
-import { reportAccessGuard } from './core/guards/report-access.guard';
+import { OperationImportComponent } from './features/operations/operation-import/operation-import.component';
+import { StatusCatalogComponent } from './features/status-catalog/status-catalog.component';
+import { VehiclesComponent } from './features/vehicles/vehicles.component';
 
 export const routes: Routes = [
     {
@@ -45,11 +47,6 @@ export const routes: Routes = [
         {
             path: 'dashboard',
             component: DashboardComponent
-        },
-        {
-            path: 'reports/audit',
-            component: AuditReportComponent,
-            canActivate: [reportAccessGuard]
         },
         {
             path: 'users',
@@ -82,7 +79,7 @@ export const routes: Routes = [
             component: LearningCourseComponent
         },
         {   
-            
+
             path: 'learning/courses/:courseId/material/:materialId',
             component: LearningMaterialViewerComponent
 
@@ -108,12 +105,27 @@ export const routes: Routes = [
             component: OperationsHomeComponent
         },
         {
+            path: 'operations/import',
+            component: OperationImportComponent
+        },
+        {
+            path: 'operations/history',
+            component: OperationHistoryComponent,
+            canActivate: [adminGuard]
+        },
+        {
             path: 'scheduling/day/:date',
             component: ScheduleDayComponent
         },
         {
             path: 'scheduling',
             component: SchedulingComponent
+        },
+        { path: 'vehicles', component: VehiclesComponent },
+        {
+            path: 'status-catalog',
+            component: StatusCatalogComponent,
+            canActivate: [adminGuard]
         },
         {
             path: 'operations/:id',

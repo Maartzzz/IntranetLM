@@ -39,6 +39,17 @@ public class AuditLogService {
         event.setOldValue(oldValue); event.setNewValue(newValue);
         repository.save(event);
     }
+    public void registrarSistema(String module, String entityType, Long entityId, String action,
+            String description, String oldValue, String newValue) {
+        AuditLog event = new AuditLog();
+        event.setActorUsername("SYSTEM");
+        event.setActorName("Sistema automático");
+        event.setModule(module); event.setEntityType(entityType); event.setEntityId(entityId);
+        event.setAction(action); event.setDescription(description);
+        event.setOldValue(oldValue); event.setNewValue(newValue);
+        repository.save(event);
+    }
+
     @Transactional(readOnly=true)
     public List<AuditLogResponse> listar(String module, String entityType, Long entityId, String entityKey) {
         List<AuditLog> rows;

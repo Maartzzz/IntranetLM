@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -10,7 +11,8 @@ import {
   ClientSubclient,
   ClientSubclientLocation,
   LocationType,
-  LocationUsageType
+  LocationUsageType,
+  Location
 } from '../../core/models/locations.models';
 import { ClientFormDialogComponent } from './client-form-dialog/client-form-dialog.component';
 
@@ -30,6 +32,8 @@ export class ClientsComponent implements OnInit {
   clients: Client[] = [];
   relations: ClientSubclient[] = [];
   addresses: ClientSubclientLocation[] = [];
+  availableLocations: Location[] = [];
+  selectedLocationId: number | null = null;
   selected: Client | null = null;
   selectedRelation: ClientSubclient | null = null;
 
@@ -105,17 +109,43 @@ export class ClientsComponent implements OnInit {
     this.selectedRelation = relation;
     this.addAddressOpen = false;
     this.addresses = [];
+    this.availableLocations = [];
+    this.selectedLocationId = null;
     this.error = '';
-    this.api.listRelationLocations(relation.id).subscribe({
-      next: addresses => this.addresses = addresses,
-      error: () => this.error = 'No se pudieron cargar las direcciones.'
+    const otherClientId = this.relatedClientId(relation);
+    const currentId = this.selected?.id;
+    if (!currentId || !otherClientId) return;
+    forkJoin({ current: this.clientsApi.getClientLocations(currentId), other: this.clientsApi.getClientLocations(otherClientId), addresses: this.canManage ? this.api.listAllRelationLocations(relation.id) : this.api.listRelationLocations(relation.id) }).subscribe({
+      next: result => {
+        this.availableLocations = [...result.current, ...result.other].filter((location, index, all) => location.active && all.findIndex(x => x.id === location.id) === index);
+        this.addresses = result.addresses;
+      },
+      error: () => this.error = 'No se pudieron cargar las ubicaciones de las empresas relacionadas.'
     });
+  }
+
+  relatedClientId(relation: ClientSubclient): number {
+    if (!this.selected) return relation.subclientId;
+    return relation.clientId === this.selected.id ? relation.subclientId : relation.clientId;
+  }
+
+  relatedClientName(relation: ClientSubclient): string {
+    if (!this.selected) return relation.subclientName;
+    return relation.clientId === this.selected.id ? relation.subclientName : relation.clientName;
+  }
+
+  locationOwnerName(locationId: number): string {
+    const owner = this.availableLocations.find(location => location.id === locationId);
+    if (!owner || !this.selected || !this.selectedRelation) return 'Empresa relacionada';
+    // El selector carga únicamente ubicaciones de los dos extremos de la relación.
+    return owner ? (this.selected.businessName + ' / ' + this.relatedClientName(this.selectedRelation)) : 'Empresa relacionada';
   }
 
   createClient(): void {
     this.dialog.open(ClientFormDialogComponent, {
-      width: '560px',
-      maxWidth: 'calc(100vw - 32px)',
+      width: '1100px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
       data: { mode: 'create' }
     }).afterClosed().subscribe((client?: Client) => {
       if (!client) return;
@@ -129,8 +159,9 @@ export class ClientsComponent implements OnInit {
     if (!this.selected || this.busy) return;
 
     this.dialog.open(ClientFormDialogComponent, {
-      width: '560px',
-      maxWidth: 'calc(100vw - 32px)',
+      width: '1100px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
       data: { mode: 'create' }
     }).afterClosed().subscribe((client?: Client) => {
       if (!client || !this.selected) return;
@@ -158,8 +189,9 @@ export class ClientsComponent implements OnInit {
   editClient(): void {
     if (!this.selected) return;
     this.dialog.open(ClientFormDialogComponent, {
-      width: '560px',
-      maxWidth: 'calc(100vw - 32px)',
+      width: '1100px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
       data: { mode: 'edit', client: this.selected }
     }).afterClosed().subscribe((client?: Client) => {
       if (!client) return;
@@ -196,40 +228,11 @@ export class ClientsComponent implements OnInit {
     });
   }
 
-  /** Crea la dirección física y la asocia en una sola acción para el usuario. */
+  /** Asocia una ubicación ya registrada en cualquiera de las dos empresas. */
   saveAddress(): void {
-    if (!this.selectedRelation || this.busy) return;
-    if (!this.address.name.trim() || !this.address.streetAddress.trim()) return;
-
-    this.busy = true;
-    this.error = '';
-    this.success = '';
-
-    if (this.pendingLocationId !== null) {
-      this.linkAddress(this.pendingLocationId);
-      return;
-    }
-
-    this.api.create({
-      name: this.address.name.trim(),
-      locationType: this.address.locationType,
-      address: this.address.streetAddress.trim(),
-      reference: this.address.reference.trim() || null,
-      district: this.address.district.trim() || null,
-      province: this.address.province.trim() || null,
-      department: this.address.department.trim() || null,
-      latitude: null,
-      longitude: null
-    }).subscribe({
-      next: location => {
-        this.pendingLocationId = location.id;
-        this.linkAddress(location.id);
-      },
-      error: error => {
-        this.error = error?.error?.message || 'No se pudo guardar la dirección.';
-        this.busy = false;
-      }
-    });
+    if (!this.selectedRelation || this.busy || this.selectedLocationId === null) return;
+    this.busy = true; this.error = ''; this.success = '';
+    this.linkAddress(this.selectedLocationId);
   }
 
   private linkAddress(locationId: number): void {
@@ -247,8 +250,9 @@ export class ClientsComponent implements OnInit {
       instructions: this.address.instructions.trim() || null
     }).subscribe({
       next: relationAddress => {
-        this.addresses = [...this.addresses, relationAddress];
+        this.addresses = [...this.addresses.filter(item => item.id !== relationAddress.id), relationAddress];
         this.pendingLocationId = null;
+        this.selectedLocationId = null;
         this.addAddressOpen = false;
         this.resetAddressForm();
         this.success = 'Dirección registrada y asociada correctamente.';
@@ -257,7 +261,7 @@ export class ClientsComponent implements OnInit {
       },
       error: error => {
         this.error = error?.error?.message ||
-          'La dirección se guardó, pero no se pudo asociar. Pulsa “Reintentar guardado” para completar el registro sin duplicarla.';
+          'No se pudo asociar la ubicación seleccionada. Verifica que pertenezca a una de las dos empresas de esta relación.';
         this.busy = false;
       }
     });
@@ -273,6 +277,7 @@ export class ClientsComponent implements OnInit {
   cancelAddress(): void {
     this.addAddressOpen = false;
     this.pendingLocationId = null;
+    this.selectedLocationId = null;
     this.resetAddressForm();
   }
 

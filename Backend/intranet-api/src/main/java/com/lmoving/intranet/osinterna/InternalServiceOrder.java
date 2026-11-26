@@ -3,10 +3,12 @@ package com.lmoving.intranet.osinterna;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.lmoving.intranet.client.Client;
+import com.lmoving.intranet.client.ClientSubclient;
 import com.lmoving.intranet.client.Location;
 import com.lmoving.intranet.oscliente.ClientServiceOrder;
 import com.lmoving.intranet.status.Status;
 import com.lmoving.intranet.provider.Provider;
+import com.lmoving.intranet.vehicle.Vehicle;
 import jakarta.persistence.*;
 
 @Entity
@@ -19,6 +21,7 @@ public class InternalServiceOrder {
     private Client client;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "client_service_order_id")
     private ClientServiceOrder clientServiceOrder;
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "client_subclient_id") private ClientSubclient clientSubclient;
     @Column(name = "client_order_number", length = 80) private String clientOrderNumber;
     @Column(name = "service_type", nullable = false, length = 3) private String serviceType;
     @Column(length = 120) private String reference;
@@ -29,6 +32,10 @@ public class InternalServiceOrder {
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "provider_id") private Provider provider;
     @Column(name = "scheduled_date") private LocalDate scheduledDate;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "status_id") private Status status;
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "vehicle_id") private Vehicle vehicle;
+    @Column(name = "assigned_vehicle_plate_snapshot", length = 20) private String assignedVehiclePlateSnapshot;
+    @Column(name = "assigned_vehicle_type_snapshot", length = 20) private String assignedVehicleTypeSnapshot;
+    @Column(name = "assigned_trailer_plate_snapshot", length = 20) private String assignedTrailerPlateSnapshot;
     @Column(name = "billing_status", nullable = false, length = 20) private String billingStatus = "PENDIENTE";
     @Column(nullable = false) private boolean active = true;
     @Column(columnDefinition = "TEXT") private String observations;
@@ -41,6 +48,7 @@ public class InternalServiceOrder {
     public Long getInternalOrderNumber() { return internalOrderNumber; }
     public Client getClient() { return client; } public void setClient(Client v) { client = v; }
     public ClientServiceOrder getClientServiceOrder() { return clientServiceOrder; } public void setClientServiceOrder(ClientServiceOrder v) { clientServiceOrder = v; }
+    public ClientSubclient getClientSubclient() { return clientSubclient; } public void setClientSubclient(ClientSubclient v) { clientSubclient = v; }
     public String getClientOrderNumber() { return clientOrderNumber; } public void setClientOrderNumber(String v) { clientOrderNumber = v; }
     public String getServiceType() { return serviceType; } public void setServiceType(String v) { serviceType = v; }
     public String getReference() { return reference; } public void setReference(String v) { reference = v; }
@@ -49,6 +57,10 @@ public class InternalServiceOrder {
     public Provider getProvider() { return provider; } public void setProvider(Provider v) { provider = v; }
     public LocalDate getScheduledDate() { return scheduledDate; } public void setScheduledDate(LocalDate v) { scheduledDate = v; }
     public Status getStatus() { return status; } public void setStatus(Status v) { status = v; }
+    public Vehicle getVehicle() { return vehicle; } public void setVehicle(Vehicle v) { vehicle = v; }
+    public String getAssignedVehiclePlateSnapshot() { return assignedVehiclePlateSnapshot; } public void setAssignedVehiclePlateSnapshot(String v) { assignedVehiclePlateSnapshot = v; }
+    public String getAssignedVehicleTypeSnapshot() { return assignedVehicleTypeSnapshot; } public void setAssignedVehicleTypeSnapshot(String v) { assignedVehicleTypeSnapshot = v; }
+    public String getAssignedTrailerPlateSnapshot() { return assignedTrailerPlateSnapshot; } public void setAssignedTrailerPlateSnapshot(String v) { assignedTrailerPlateSnapshot = v; }
     public boolean isActive() { return active; } public void setActive(boolean v) { active = v; }
     public String getBillingStatus() { return billingStatus; } public void setBillingStatus(String v) { billingStatus = v; }
     public String getObservations() { return observations; } public void setObservations(String v) { observations = v; }

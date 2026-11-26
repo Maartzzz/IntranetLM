@@ -1,0 +1,110 @@
+<section class="history-page">
+  <header class="page-header">
+    <div>
+      <div class="eyebrow">GESTIÓN LOGÍSTICA</div>
+      <h1>Histórico de operaciones</h1>
+      <p>Consulta y restaura operaciones archivadas sin eliminarlas del sistema.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="filter-button" (click)="exportCsv()" [disabled]="rows.length === 0">Exportar CSV para Excel</button>
+      <button type="button" class="refresh-button" (click)="load()" [disabled]="loading">↻ Actualizar</button>
+    </div>
+  </header>
+
+  <section class="history-toolbar">
+    <label class="search-field">
+      <span>Buscar</span>
+      <input type="search" [(ngModel)]="search"
+        placeholder="N.º operación, referencia, cliente u O/S del cliente"
+        (keyup.enter)="load()">
+    </label>
+    <label class="filter-field">
+      <span>Estado final</span>
+      <select [(ngModel)]="status" (change)="load()">
+        <option value="TODOS">Todos</option>
+        <option value="Finalizada">Completadas</option>
+        <option value="Cancelada">Canceladas</option>
+      </select>
+    </label>
+    <button type="button" class="filter-button" (click)="load()" [disabled]="loading">Buscar</button>
+    <span class="result-count">{{ rows.length }} operaciones</span>
+  </section>
+
+  @if (error) { <div class="feedback error" role="alert">{{ error }}</div> }
+  @if (loading) { <div class="feedback">Cargando histórico...</div> }
+  @if (!loading && !error) {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>N.º Operación</th>
+            <th>Referencia</th>
+            <th>Cliente</th>
+            <th>O/S del cliente</th>
+            <th>O/S internas</th>
+            <th>Tipo de carga</th>
+            <th>Fecha estimada</th>
+            <th>Estado final</th>
+            <th>Fecha de archivo</th>
+            <th>Motivo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows; track trackById($index, row)) {
+            <tr>
+              <td class="operation-number">{{ row.operationNumber }}</td>
+              <td>{{ row.reference || '—' }}</td>
+              <td>{{ row.clientName }}</td>
+              <td>{{ row.clientOrderNumber || '—' }}</td>
+              <td>
+                <span [title]="row.internalOrderNumbers.join(', ')">
+                  {{ row.internalOrderCount ? row.internalOrderCount + ' órdenes' : '—' }}
+                </span>
+              </td>
+              <td>{{ row.container ? 'FCL' : 'LCL' }} · {{ row.cargoType }}</td>
+              <td>{{ row.estimatedDate || '—' }}</td>
+              <td><span class="status-pill" [class.cancelled]="row.finalStatus === 'Cancelada'">{{ row.finalStatus }}</span></td>
+              <td>{{ row.archivedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ reasonLabel(row.reason) }}</td>
+              <td class="actions">
+                <button type="button" class="text-button" (click)="view(row)">Ver detalle</button>
+                <button type="button" class="text-button restore"
+                  (click)="restore(row)" [disabled]="restoringId !== null">
+                  {{ restoringId === row.id ? 'Restaurando…' : 'Restaurar' }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="11" class="empty">No hay operaciones archivadas que coincidan con los filtros.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+@if (selectedOperation && selectedOrders) {
+  <div class="detail-backdrop" role="presentation" (click)="closeDetail()">
+    <section class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="history-detail-title" (click)="$event.stopPropagation()">
+      <header class="detail-header">
+        <div><span class="eyebrow">CONSULTA HISTÓRICA</span><h2 id="history-detail-title">{{ selectedOperation.operationNumber }}</h2></div>
+        <button type="button" class="close-button" (click)="closeDetail()">Cerrar</button>
+      </header>
+      <div class="detail-grid">
+        <div><span>Referencia</span><strong>{{ selectedOperation.reference || '—' }}</strong></div>
+        <div><span>Cliente</span><strong>{{ selectedOperation.clientName }}</strong></div>
+        <div><span>Pedido del cliente</span><strong>{{ selectedOperation.customerOrderNumber || '—' }}</strong></div>
+        <div><span>Tipo de carga</span><strong>{{ selectedOperation.cargoTypeName }}</strong></div>
+        <div><span>Cantidad</span><strong>{{ selectedOperation.quantity ?? '—' }}</strong></div>
+        <div><span>Fecha estimada</span><strong>{{ selectedOperation.estimatedDate || '—' }}</strong></div>
+        <div><span>Origen</span><strong>{{ selectedOperation.origin || '—' }}</strong></div>
+        <div><span>Destino</span><strong>{{ selectedOperation.destination || '—' }}</strong></div>
+        <div><span>Estado final</span><strong>{{ selectedOrders.finalStatus }}</strong></div>
+        <div><span>O/S del cliente</span><strong>{{ selectedOrders.clientOrderNumber || '—' }}</strong></div>
+        <div class="wide"><span>O/S internas ({{ selectedOrders.internalOrderCount }})</span><strong>{{ selectedOrders.internalOrderNumbers.join(', ') || '—' }}</strong></div>
+        <div class="wide"><span>Observación</span><strong>{{ selectedOperation.observation || '—' }}</strong></div>
+      </div>
+    </section>
+  </div>
+}

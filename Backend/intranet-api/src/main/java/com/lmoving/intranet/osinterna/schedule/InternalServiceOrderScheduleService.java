@@ -1,6 +1,7 @@
 package com.lmoving.intranet.osinterna.schedule;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -20,6 +21,7 @@ import com.lmoving.intranet.osinterna.InternalServiceOrderFclRepository;
 import com.lmoving.intranet.osinterna.InternalServiceOrderLcl;
 import com.lmoving.intranet.osinterna.InternalServiceOrderLclRepository;
 import com.lmoving.intranet.osinterna.InternalServiceOrderRepository;
+import com.lmoving.intranet.status.StatusRepository;
 import com.lmoving.intranet.osinterna.schedule.dto.ScheduleFclDetailResponse;
 import com.lmoving.intranet.osinterna.schedule.dto.ScheduleLclDetailResponse;
 import com.lmoving.intranet.osinterna.schedule.dto.ScheduleOrderResponse;
@@ -33,18 +35,36 @@ public class InternalServiceOrderScheduleService {
     private final InternalServiceOrderLclRepository lclRepository;
     private final InternalServiceOrderScheduleExclusionRepository exclusionRepository;
     private final InternalServiceOrderScheduleHistoryService historyService;
+    private final StatusRepository statusRepository;
 
     public InternalServiceOrderScheduleService(
             InternalServiceOrderRepository orderRepository,
             InternalServiceOrderFclRepository fclRepository,
             InternalServiceOrderLclRepository lclRepository,
             InternalServiceOrderScheduleExclusionRepository exclusionRepository,
-            InternalServiceOrderScheduleHistoryService historyService) {
+            InternalServiceOrderScheduleHistoryService historyService,
+            StatusRepository statusRepository) {
         this.orderRepository = orderRepository;
         this.fclRepository = fclRepository;
         this.lclRepository = lclRepository;
         this.exclusionRepository = exclusionRepository;
         this.historyService = historyService;
+        this.statusRepository = statusRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public long contarOrdenesCompletadas() {
+        return orderRepository.countActiveCompletedOrders();
+    }
+
+    @Transactional(readOnly = true)
+    public ScheduleGlobalSummaryResponse obtenerResumenGlobal() {
+        return new ScheduleGlobalSummaryResponse(
+                orderRepository.countByActiveTrueAndStatus_NameIgnoreCase("Pendiente de programación"),
+                orderRepository.countByActiveTrueAndStatus_NameIgnoreCase("Programada"),
+                orderRepository.countByActiveTrueAndStatus_NameIgnoreCase("En ejecución"),
+                orderRepository.countOverdueOrders(LocalDate.now(ZoneId.of("America/Lima"))),
+                orderRepository.countByActiveTrueAndStatus_NameIgnoreCase("Completada"));
     }
 
     @Transactional(readOnly = true)
@@ -63,9 +83,11 @@ public class InternalServiceOrderScheduleService {
 
         List<InternalServiceOrder> visibleScheduled = new ArrayList<>();
         for (InternalServiceOrder order : scheduled) {
-            if (excludedKeys.contains(key(order.getId(), order.getScheduledDate()))) {
+            boolean finalStatus = order.getStatus() != null && order.getStatus().isFinalStatus();
+            if (excludedKeys.contains(key(order.getId(), order.getScheduledDate())) && !finalStatus) {
                 available.add(order);
             } else {
+                // Las O/S completadas permanecen visibles en su semana aunque hayan sido retiradas.
                 visibleScheduled.add(order);
             }
         }
@@ -107,6 +129,11 @@ public class InternalServiceOrderScheduleService {
         }
         LocalDate previousDate = order.getScheduledDate();
         order.setScheduledDate(scheduledDate);
+        if (order.getStatus() == null || "Pendiente de programación".equalsIgnoreCase(order.getStatus().getName())
+                || "Vencida".equalsIgnoreCase(order.getStatus().getName())) {
+            statusRepository.findFirstByProcessType_CodeAndNameAndActiveTrue("OS_INTERNA", "Programada")
+                .ifPresent(order::setStatus);
+        }
         orderRepository.saveAndFlush(order);
         exclusionRepository.deleteAllByInternalServiceOrder_Id(orderId);
         if (!scheduledDate.equals(previousDate)) {
@@ -162,7 +189,11 @@ public class InternalServiceOrderScheduleService {
                     provider == null ? null : provider.getId(), provider == null ? null : provider.getBusinessName(),
                     order.getScheduledDate(), status == null ? null : status.getId(),
                     status == null ? null : status.getName(), order.getBillingStatus(), order.getObservations(),
-                    fclResponse, lclResponse);
+                    fclResponse, lclResponse,
+                    order.getVehicle()==null?null:order.getVehicle().getId(), order.getAssignedVehiclePlateSnapshot(),
+                    order.getAssignedVehicleTypeSnapshot(), order.getAssignedTrailerPlateSnapshot(),
+                    order.getClientSubclient()==null?null:order.getClientSubclient().getId(),
+                    order.getClientSubclient()==null?null:order.getClientSubclient().getSubclient().getBusinessName());
         }).toList();
     }
 
@@ -188,4 +219,7 @@ public class InternalServiceOrderScheduleService {
 
     public record ScheduleBoardResponse(LocalDate startDate, LocalDate endDate,
             List<ScheduleOrderResponse> scheduled, List<ScheduleOrderResponse> available) {}
+
+    public record ScheduleGlobalSummaryResponse(long pending, long programmed,
+            long inExecution, long overdue, long completed) {}
 }

@@ -79,7 +79,7 @@ export class LocationsComponent implements OnInit {
   onRelationChange(): void {
     this.relationLocations = [];
     if (!this.selectedRelationId) return;
-    this.api.listRelationLocations(this.selectedRelationId).subscribe({
+    (this.canManage ? this.api.listAllRelationLocations(this.selectedRelationId) : this.api.listRelationLocations(this.selectedRelationId)).subscribe({
       next: rows => this.relationLocations = rows,
       error: () => this.error = 'No se pudieron cargar las ubicaciones de esta relación.'
     });
@@ -89,11 +89,14 @@ export class LocationsComponent implements OnInit {
     if (!this.locationForm.name.trim() || !this.locationForm.address.trim()) return;
     this.saving = true; this.error = ''; this.success = '';
     this.api.create(this.locationForm).subscribe({
-      next: created => {
-        this.locations = [created, ...this.locations];
+      next: result => {
+        const location = result.location;
+        this.locations = [location, ...this.locations.filter(item => item.id !== location.id)];
         this.locationForm = this.emptyLocation(); this.showLocationForm = false;
-        this.association.locationId = created.id;
-        this.success = 'Ubicación registrada. Ahora puedes asociarla a la relación seleccionada.';
+        this.association.locationId = location.id;
+        this.success = result.reused
+          ? 'La ubicación ya existía en el catálogo. Se reutilizará el registro existente.'
+          : 'Ubicación registrada. Ahora puedes asociarla a la relación seleccionada.';
         this.saving = false; this.showAssociationForm = !!this.selectedRelationId;
       },
       error: err => { this.error = err?.error?.message || 'No se pudo registrar la ubicación.'; this.saving = false; }
@@ -125,6 +128,11 @@ export class LocationsComponent implements OnInit {
       next: updated => this.locations = this.locations.map(x => x.id === updated.id ? updated : x),
       error: () => this.error = 'No se pudo cambiar el estado de la ubicación.'
     });
+  }
+
+  get availableLocations(): Location[] {
+    const alreadyActive = new Set(this.relationLocations.filter(row => row.active).map(row => row.locationId));
+    return this.locations.filter(location => location.active && !alreadyActive.has(location.id));
   }
 
   private nullable(value: string): string | null { const v = value.trim(); return v || null; }

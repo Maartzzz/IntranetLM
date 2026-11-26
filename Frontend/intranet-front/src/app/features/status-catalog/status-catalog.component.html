@@ -1,0 +1,43 @@
+<section class="status-page">
+  <header>
+    <div><p class="eyebrow">CONFIGURACIÓN · OPERACIONES</p><h1>Catálogo de estados</h1>
+      <p>Estados del proceso de órdenes de servicio internas.</p></div>
+  </header>
+  @if (error) { <div class="feedback error">{{ error }}</div> }
+  @if (success) { <div class="feedback success">{{ success }}</div> }
+  <div class="status-layout">
+    <section class="status-list">
+      <div class="section-title"><h2>Estados registrados</h2><button type="button" (click)="reset()">Nuevo estado</button></div>
+      @if (loading) { <p>Cargando catálogo…</p> }
+      @for (item of statuses; track item.id) {
+        <article class="status-item">
+          <span class="color-dot" [style.background]="item.color || '#64748B'"></span>
+          <div class="status-info"><strong>{{ item.name }}</strong>
+            <small>{{ item.description || 'Sin descripción' }}</small>
+            <div class="flags">
+              @if (item.initial) { <span>Inicial</span> }
+              @if (item.finalStatus) { <span>Final</span> }
+              @if (item.autoTransition) { <span>Automático</span> }
+              @if (item.allowsScheduling) { <span>Permite programación</span> }
+              @if (!item.active) { <span>Inactivo</span> }
+            </div>
+          </div>
+          <button type="button" class="secondary" (click)="edit(item)">Editar</button>
+        </article>
+      } @empty { @if (!loading) { <p>No hay estados registrados.</p> } }
+    </section>
+    <section class="status-editor">
+      <h2>{{ editingId ? 'Editar estado' : 'Nuevo estado' }}</h2>
+      <label>Nombre<input [(ngModel)]="form.name" maxlength="80"></label>
+      <label>Descripción<textarea [(ngModel)]="form.description" rows="3"></textarea></label>
+      <label>Color<input type="color" [(ngModel)]="form.color"></label>
+      <label class="check"><input type="checkbox" [(ngModel)]="form.active"> Activo</label>
+      <label class="check"><input type="checkbox" [(ngModel)]="form.initial"> Estado inicial</label>
+      <label class="check"><input type="checkbox" [(ngModel)]="form.finalStatus"> Estado final</label>
+      <label class="check"><input type="checkbox" [(ngModel)]="form.autoTransition"> Permite transición automática</label>
+      <label class="check"><input type="checkbox" [(ngModel)]="form.allowsScheduling"> Permite programación</label>
+      <div class="actions"><button type="button" class="secondary" (click)="reset()">Limpiar</button>
+        <button type="button" (click)="save()" [disabled]="saving || !form.name.trim()">{{ saving ? 'Guardando…' : 'Guardar estado' }}</button></div>
+    </section>
+  </div>
+</section>

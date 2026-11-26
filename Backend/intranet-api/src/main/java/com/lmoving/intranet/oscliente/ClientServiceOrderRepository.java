@@ -14,6 +14,7 @@ public interface ClientServiceOrderRepository extends JpaRepository<ClientServic
     boolean existsByClient_IdAndClientOrderNumberIgnoreCase(Long clientId, String clientOrderNumber);
     boolean existsByClient_IdAndClientOrderNumberIgnoreCaseAndIdNot(Long clientId, String clientOrderNumber, Long id);
     boolean existsByIdAndActiveTrue(Long id);
+    java.util.Optional<ClientServiceOrder> findByOperation_Id(Long operationId);
     boolean existsByOperation_Id(Long operationId);
     boolean existsByOperation_IdAndIdNot(Long operationId, Long id);
 

@@ -1,0 +1,1 @@
+package com.lmoving.intranet.vehicle; public enum VehicleType { FURGON, PICKUP, TRACTO, CARRETA }

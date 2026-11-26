@@ -25,6 +25,7 @@
       <button type="button" [class.active]="serviceFilter === 'FCL'" (click)="setFilter('FCL')">Contenedores</button>
       <button type="button" [class.active]="serviceFilter === 'LCL'" (click)="setFilter('LCL')">Carga suelta</button>
     </div>
+    <button type="button" class="create-order-button" (click)="openCreateInternalOrder()">+ Nueva O/S interna</button>
   </section>
 
   @if (loading) {
@@ -53,6 +54,15 @@
                   <span class="type-badge fcl-badge">FCL</span>
                 </div>
                 <div class="reference-line">{{ order.clientOrderNumber || order.reference || 'Sin O/S cliente' }}</div>
+                <label class="vehicle-assignment">Vehículo
+                  <select [value]="order.vehicleId || ''" (change)="assignVehicle(order, $any($event.target).value)">
+                    <option value="">Sin asignar</option>
+                    @if (hasVehicleOption(order)) { <option [value]="order.vehicleId">{{ order.assignedVehicleType }} · {{ order.assignedVehiclePlate }} (asignado)</option> }
+                    @for (vehicle of vehicles; track vehicle.id) { <option [value]="vehicle.id">{{ vehicle.type }} · {{ vehicle.plate }}</option> }
+                  </select>
+                  @if (order.assignedVehiclePlate) { <small>Asignado: {{ order.assignedVehicleType }} · {{ order.assignedVehiclePlate }}</small> }
+                  @if (order.assignedTrailerPlate) { <small>Carreta: {{ order.assignedTrailerPlate }}</small> }
+                </label>
                 <div class="detail-grid">
                   <div class="detail-item"><span>Contenedor</span><strong>{{ order.fclDetail?.containerNumber || 'Pendiente' }}</strong></div>
                   <div class="detail-item"><span>Tipo</span><strong>{{ order.fclDetail?.cargoTypeName || 'Pendiente' }}</strong></div>
@@ -93,6 +103,15 @@
                   <span class="type-badge lcl-badge">LCL</span>
                 </div>
                 <div class="reference-line">{{ order.clientOrderNumber || order.reference || 'Sin O/S cliente' }}</div>
+                <label class="vehicle-assignment">Vehículo
+                  <select [value]="order.vehicleId || ''" (change)="assignVehicle(order, $any($event.target).value)">
+                    <option value="">Sin asignar</option>
+                    @if (hasVehicleOption(order)) { <option [value]="order.vehicleId">{{ order.assignedVehicleType }} · {{ order.assignedVehiclePlate }} (asignado)</option> }
+                    @for (vehicle of vehicles; track vehicle.id) { <option [value]="vehicle.id">{{ vehicle.type }} · {{ vehicle.plate }}</option> }
+                  </select>
+                  @if (order.assignedVehiclePlate) { <small>Asignado: {{ order.assignedVehicleType }} · {{ order.assignedVehiclePlate }}</small> }
+                  @if (order.assignedTrailerPlate) { <small>Carreta: {{ order.assignedTrailerPlate }}</small> }
+                </label>
                 <div class="detail-grid">
                   <div class="detail-item"><span>Bultos</span><strong>{{ order.lclDetail?.packages ?? '—' }}</strong></div>
                   <div class="detail-item"><span>Peso</span><strong>{{ order.lclDetail?.weightKg ?? '—' }}{{ order.lclDetail?.weightKg != null ? ' kg' : '' }}</strong></div>
@@ -118,7 +137,12 @@
         <header class="section-title"><div><span class="section-kicker other-kicker">OTROS</span><h2>Otros servicios</h2></div><span class="section-count">{{ otherOrders.length }} órdenes</span></header>
         <div class="orders-grid">
           @for (order of otherOrders; track order.id) {
-            <article class="detail-card"><div class="card-heading"><div><span class="order-number">O/S {{ order.internalOrderNumber }}</span><span class="client-name">{{ order.clientName }}</span></div><span class="type-badge">{{ order.serviceType }}</span></div><div class="reference-line">{{ order.clientOrderNumber || order.reference || 'Sin referencia' }}</div><p class="other-description">{{ order.observations || 'Sin observaciones' }}</p></article>
+            <article class="detail-card"><div class="card-heading"><div><span class="order-number">O/S {{ order.internalOrderNumber }}</span><span class="client-name">{{ order.clientName }}</span></div><span class="type-badge">{{ order.serviceType }}</span></div><div class="reference-line">{{ order.clientOrderNumber || order.reference || 'Sin referencia' }}</div>
+            <label class="vehicle-assignment">Vehículo
+              <select [value]="order.vehicleId || ''" (change)="assignVehicle(order, $any($event.target).value)"><option value="">Sin asignar</option>@if (hasVehicleOption(order)) { <option [value]="order.vehicleId">{{ order.assignedVehicleType }} · {{ order.assignedVehiclePlate }} (asignado)</option> }@for (vehicle of vehicles; track vehicle.id) { <option [value]="vehicle.id">{{ vehicle.type }} · {{ vehicle.plate }}</option> }</select>
+              @if (order.assignedVehiclePlate) { <small>Asignado: {{ order.assignedVehicleType }} · {{ order.assignedVehiclePlate }}</small> }
+                  @if (order.assignedTrailerPlate) { <small>Carreta: {{ order.assignedTrailerPlate }}</small> }
+            </label><p class="other-description">{{ order.observations || 'Sin observaciones' }}</p></article>
           }
         </div>
       </section>

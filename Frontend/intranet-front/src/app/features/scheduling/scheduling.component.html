@@ -22,18 +22,52 @@
     {{ startDate | date:'dd MMM yyyy' }} — {{ endDate | date:'dd MMM yyyy' }}
   </div>
 
-  <div class="summary-grid">
-    <article class="summary-card">
-      <span class="summary-label">O/S programadas</span>
-      <strong>{{ scheduled.length }}</strong>
-      <span class="summary-hint">Dentro del periodo seleccionado</span>
-    </article>
-    <article class="summary-card">
-      <span class="summary-label">O/S disponibles</span>
-      <strong>{{ available.length }}</strong>
-      <span class="summary-hint">Sin fecha, otros periodos o retiradas</span>
-    </article>
-  </div>
+  <section class="summary-section" aria-label="Resumen de la semana">
+    <h2 class="summary-section-title">Resumen de la semana</h2>
+    <div class="summary-grid weekly-summary-grid">
+      <article class="summary-card">
+        <span class="summary-label">O/S programadas</span>
+        <strong>{{ scheduled.length }}</strong>
+        <span class="summary-hint">Dentro del periodo seleccionado</span>
+      </article>
+      <article class="summary-card">
+        <span class="summary-label">O/S disponibles</span>
+        <strong>{{ available.length }}</strong>
+        <span class="summary-hint">Sin fecha, otros periodos o retiradas</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="summary-section global-summary-section" aria-label="Resumen general">
+    <h2 class="summary-section-title">Resumen general <span>· Todas las fechas</span></h2>
+    <div class="summary-grid global-summary-grid">
+      <article class="summary-card">
+        <span class="summary-label">O/S pendientes de programación</span>
+        <strong>{{ globalSummary.pending }}</strong>
+        <span class="summary-hint">Sin programación asignada</span>
+      </article>
+      <article class="summary-card">
+        <span class="summary-label">O/S programadas</span>
+        <strong>{{ globalSummary.programmed }}</strong>
+        <span class="summary-hint">Con estado Programada</span>
+      </article>
+      <article class="summary-card">
+        <span class="summary-label">O/S en ejecución</span>
+        <strong>{{ globalSummary.inExecution }}</strong>
+        <span class="summary-hint">Actualmente en atención</span>
+      </article>
+      <article class="summary-card overdue-summary-card">
+        <span class="summary-label">O/S vencidas</span>
+        <strong>{{ globalSummary.overdue }}</strong>
+        <span class="summary-hint">Requieren reprogramación</span>
+      </article>
+      <article class="summary-card completed-summary-card">
+        <span class="summary-label">O/S completadas</span>
+        <strong>{{ globalSummary.completed }}</strong>
+        <span class="summary-hint">Total general completado</span>
+      </article>
+    </div>
+  </section>
 
   @if (successMessage) {
     <div class="success-feedback" role="status">{{ successMessage }}</div>
@@ -188,11 +222,50 @@
           </div>
         </section>
 
+        <section class="available-group overdue-group">
+          <div class="available-group-heading">
+            <div>
+              <h3>Vencidas · requieren reprogramación</h3>
+              <p>Órdenes de semanas anteriores que siguen pendientes. Arrástralas a una fecha nueva.</p>
+            </div>
+            <span class="available-count">{{ overdueOrders.length }}</span>
+          </div>
+          <div class="available-list"
+            cdkDropList
+            [id]="overdueListId"
+            [cdkDropListData]="overdueOrders"
+            [cdkDropListConnectedTo]="connectedDropListIds"
+            [cdkDropListDisabled]="saving"
+            (cdkDropListDropped)="onDrop($event)">
+            @for (order of overdueOrders; track order.id) {
+              <article class="order-card available-card" cdkDrag cdkDragPreviewContainer="global"
+                [cdkDragData]="order" [cdkDragDisabled]="saving"
+                [class.fcl]="order.serviceType === 'FCL'" [class.lcl]="order.serviceType === 'LCL'">
+                <div class="drag-card-content">
+                  <div class="order-card-top">
+                    <strong>O/S {{ order.internalOrderNumber }}</strong>
+                    <span class="service-tag">Vencida</span>
+                  </div>
+                  <div class="client-name">{{ order.clientName }}</div>
+                  <div class="order-reference">{{ order.clientOrderNumber || order.reference || 'Sin referencia' }}</div>
+                  <div class="available-meta">
+                    <span>Fecha anterior: {{ order.scheduledDate | date:'dd/MM/yyyy' }}</span>
+                    <span>{{ order.providerName || 'Sin proveedor asignado' }}</span>
+                  </div>
+                </div>
+                <span class="drag-handle" aria-label="Arrastrar orden" cdkDragHandle>⠿</span>
+              </article>
+            } @empty {
+              <div class="empty-available">No hay O/S vencidas pendientes de reprogramación.</div>
+            }
+          </div>
+        </section>
+
         <section class="available-group">
           <div class="available-group-heading">
             <div>
               <h3>Programadas en otros periodos</h3>
-              <p>Órdenes con fecha anterior o posterior a esta semana.</p>
+              <p>Órdenes con fecha posterior a esta semana.</p>
             </div>
             <span class="available-count">{{ otherPeriodOrders.length }}</span>
           </div>
@@ -334,6 +407,9 @@
                     <div class="order-card-top">
                       <strong>O/S {{ order.internalOrderNumber }}</strong>
                       <span class="service-tag">{{ order.serviceType }}</span>
+                      @if (order.statusName === 'Completada') {
+                        <span class="service-tag completed-status-tag">Completada</span>
+                      }
                     </div>
                     <div class="client-name">{{ order.clientName }}</div>
                     <div class="order-reference">{{ order.clientOrderNumber || order.reference || 'Sin referencia' }}</div>
@@ -344,6 +420,17 @@
                       <div class="order-detail">{{ order.lclDetail?.packages }} bultos</div>
                     }
                     <div class="route-text">{{ order.originName || 'Origen pendiente' }} → {{ order.destinationName || 'Destino pendiente' }}</div>
+                    <label class="status-control">
+                      <span>Estado</span>
+                      <select [value]="order.statusId ?? ''" (change)="changeOrderStatus(order, $any($event.target).value)"
+                        [disabled]="statusOptions.length === 0 || saving || statusSavingOrderId !== null"
+                        (mousedown)="$event.stopPropagation()">
+                        @if (!order.statusId) { <option value="" disabled>Seleccionar</option> }
+                        @for (status of statusOptions; track status.id) {
+                          <option [value]="status.id" [selected]="status.id === order.statusId">{{ status.name }}</option>
+                        }
+                      </select>
+                    </label>
                     <button type="button" class="remove-order-button" (click)="removeFromBoard(order)" [disabled]="saving">Retirar del tablero</button>
                     <span class="drag-handle scheduled-handle" aria-label="Arrastrar orden" cdkDragHandle>⠿</span>
                   </article>

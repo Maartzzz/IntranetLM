@@ -7,11 +7,18 @@ export interface Location {
   department: string | null; latitude: number | null; longitude: number | null;
   active: boolean; createdAt: string; updatedAt: string;
 }
+export interface ClientLocation {
+  id: number; name: string; locationType: LocationType; address: string;
+  reference: string | null; district: string | null; province: string | null;
+  department: string | null; latitude: number | null; longitude: number | null;
+  active: boolean; createdAt: string; updatedAt: string;
+}
 export interface LocationRequest {
   name: string; locationType: LocationType; address: string;
   reference: string | null; district: string | null; province: string | null;
   department: string | null; latitude: number | null; longitude: number | null;
 }
+export interface LocationSaveResponse { location: Location; reused: boolean; }
 export interface ClientSubclient {
   id: number; clientId: number; clientName: string; subclientId: number;
   subclientName: string; active: boolean; createdAt: string; updatedAt: string;

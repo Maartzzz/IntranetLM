@@ -21,7 +21,14 @@ public class ClientSubclientService {
     @Transactional(readOnly = true)
     public List<ClientSubclientResponse> list(Long clientId) {
         findClient(clientId);
-        return relations.findAllByClient_IdAndActiveTrueOrderBySubclient_BusinessNameAsc(clientId).stream().map(ClientSubclientResponse::from).toList();
+        return relations.findAllByClient_IdOrSubclient_IdOrderByClient_BusinessNameAsc(clientId, clientId).stream()
+            .filter(ClientSubclient::isActive).map(ClientSubclientResponse::from).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClientSubclientResponse> listAll(Long clientId) {
+        findClient(clientId);
+        return relations.findAllByClient_IdOrSubclient_IdOrderByClient_BusinessNameAsc(clientId, clientId).stream().map(ClientSubclientResponse::from).toList();
     }
 
     @Transactional
@@ -29,14 +36,16 @@ public class ClientSubclientService {
         Client client = findClient(clientId);
         Client subclient = findClient(request.subclientId());
         if (!client.isActive() || !subclient.isActive()) throw new ResponseStatusException(HttpStatus.CONFLICT, "Solo se pueden relacionar clientes activos");
-        ClientSubclient relation = relations.findByClient_IdAndSubclient_Id(clientId, subclient.getId()).orElseGet(ClientSubclient::new);
+        ClientSubclient relation = relations.findByClient_IdAndSubclient_Id(clientId, subclient.getId())
+            .or(() -> relations.findByClient_IdAndSubclient_Id(subclient.getId(), clientId))
+            .orElseGet(ClientSubclient::new);
         relation.setClient(client); relation.setSubclient(subclient); relation.setActive(true);
         return ClientSubclientResponse.from(relations.save(relation));
     }
 
     @Transactional
     public ClientSubclientResponse changeStatus(Long id, boolean active) {
-        ClientSubclient relation = relations.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró la relación cliente-subcliente"));
+        ClientSubclient relation = relations.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró la relación entre clientes"));
         relation.setActive(active);
         return ClientSubclientResponse.from(relations.save(relation));
     }

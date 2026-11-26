@@ -55,6 +55,18 @@ public class Operation {
     @Column(length = 1000)
     private String observation;
 
+    @Column(nullable = false)
+    private boolean archived = false;
+
+    @Column(name = "archived_at")
+    private LocalDateTime archivedAt;
+
+    @Column(name = "archive_reason", length = 30)
+    private String archiveReason;
+
+    @Column(name = "status_changed_at", nullable = false)
+    private LocalDateTime statusChangedAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -64,7 +76,7 @@ public class Operation {
     public Operation() {}
     @PrePersist protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
-        createdAt = now; updatedAt = now;
+        createdAt = now; updatedAt = now; statusChangedAt = now;
     }
     @PreUpdate protected void onUpdate() { updatedAt = LocalDateTime.now(); }
 
@@ -93,6 +105,14 @@ public class Operation {
     public void setStatus(Status v) { status = v; }
     public String getObservation() { return observation; }
     public void setObservation(String v) { observation = v; }
+    public boolean isArchived() { return archived; }
+    public void setArchived(boolean v) { archived = v; }
+    public LocalDateTime getArchivedAt() { return archivedAt; }
+    public void setArchivedAt(LocalDateTime v) { archivedAt = v; }
+    public String getArchiveReason() { return archiveReason; }
+    public void setArchiveReason(String v) { archiveReason = v; }
+    public LocalDateTime getStatusChangedAt() { return statusChangedAt; }
+    public void setStatusChangedAt(LocalDateTime v) { statusChangedAt = v; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

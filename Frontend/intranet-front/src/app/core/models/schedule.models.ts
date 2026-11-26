@@ -32,10 +32,16 @@ export interface ScheduleOrder {
   scheduledDate: string | null;
   statusId: number | null;
   statusName: string | null;
+  vehicleId: number | null;
+  assignedVehiclePlate: string | null;
+  assignedVehicleType: string | null;
+  assignedTrailerPlate: string | null;
   billingStatus: string | null;
   observations: string | null;
   fclDetail: ScheduleFclDetail | null;
   lclDetail: ScheduleLclDetail | null;
+  clientSubclientId?: number | null;
+  subclientName?: string | null;
 }
 
 export interface ScheduleBoardResponse {
@@ -59,4 +65,18 @@ export interface ScheduleVersionSummary {
 
 export interface ScheduleVersionDetail extends ScheduleVersionSummary {
   snapshot: ScheduleOrder[];
+}
+
+
+export interface ScheduleStatusOption {
+  id: number;
+  processCode: string;
+  name: string;
+  description: string | null;
+  color: string | null;
+  active: boolean;
+  initial: boolean;
+  finalStatus: boolean;
+  autoTransition: boolean;
+  allowsScheduling: boolean;
 }

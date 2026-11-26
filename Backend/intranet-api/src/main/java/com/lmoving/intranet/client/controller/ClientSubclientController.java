@@ -17,6 +17,8 @@ public class ClientSubclientController {
     public ClientSubclientController(ClientSubclientService service) { this.service = service; }
     @GetMapping("/api/clients/{clientId}/subclients") public ResponseEntity<List<ClientSubclientResponse>> list(@PathVariable Long clientId) { return ResponseEntity.ok(service.list(clientId)); }
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
+    @GetMapping("/api/clients/{clientId}/subclients/admin") public ResponseEntity<List<ClientSubclientResponse>> listAll(@PathVariable Long clientId) { return ResponseEntity.ok(service.listAll(clientId)); }
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     @PostMapping("/api/clients/{clientId}/subclients") public ResponseEntity<ClientSubclientResponse> create(@PathVariable Long clientId, @Valid @RequestBody ClientSubclientRequest request) { return ResponseEntity.status(HttpStatus.CREATED).body(service.create(clientId, request)); }
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR')")
     @PatchMapping("/api/client-subclients/{id}/status") public ResponseEntity<ClientSubclientResponse> changeStatus(@PathVariable Long id, @Valid @RequestBody StatusRequest request) { return ResponseEntity.ok(service.changeStatus(id, request.active())); }

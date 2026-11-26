@@ -1,49 +1,23 @@
-<h2 mat-dialog-title>{{ isEditMode ? 'Editar cliente' : 'Nuevo cliente' }}</h2>
-
-<div class="dialog-content">
-  @if (errorMessage) {
-    <div class="error-message">{{ errorMessage }}</div>
-  }
-
-  <form [formGroup]="form" (ngSubmit)="save()">
-    <mat-form-field appearance="outline">
-      <mat-label>Tipo de documento</mat-label>
-      <mat-select formControlName="documentType">
-        <mat-option value="RUC">RUC</mat-option>
-        <mat-option value="DNI">DNI</mat-option>
-        <mat-option value="CE">Carné de extranjería</mat-option>
-      </mat-select>
-      @if (form.controls.documentType.touched && form.controls.documentType.hasError('required')) {
-        <mat-error>Selecciona un tipo de documento.</mat-error>
-      }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Número de documento</mat-label>
-      <input matInput formControlName="documentNumber" maxlength="20" autocomplete="off">
-      @if (form.controls.documentNumber.touched && form.controls.documentNumber.hasError('required')) {
-        <mat-error>El número de documento es obligatorio.</mat-error>
-      }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Razón social / Nombre</mat-label>
-      <input matInput formControlName="businessName" maxlength="200">
-      @if (form.controls.businessName.touched && form.controls.businessName.hasError('required')) {
-        <mat-error>La razón social o nombre es obligatorio.</mat-error>
-      }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Dirección</mat-label>
-      <textarea matInput formControlName="address" maxlength="300" rows="2"></textarea>
-    </mat-form-field>
-
-    <div class="actions">
-      <button mat-button type="button" (click)="cancel()" [disabled]="isSaving">Cancelar</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="isSaving">
-        {{ isSaving ? 'Guardando...' : (isEditMode ? 'Guardar cambios' : 'Crear cliente') }}
-      </button>
-    </div>
-  </form>
-</div>
+<div class="client-dialog-header"><span class="accent"></span><h2>{{ isEditMode ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2><button mat-icon-button type="button" aria-label="Cerrar" (click)="cancel()"><mat-icon>close</mat-icon></button></div>
+<mat-dialog-content class="client-dialog-content">
+  @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
+  <mat-tab-group [(selectedIndex)]="activeTab">
+    <mat-tab label="Datos del cliente">
+      <form [formGroup]="form" class="client-grid">
+        <mat-form-field appearance="outline"><mat-label>Documento</mat-label><mat-select formControlName="documentType"><mat-option value="RUC">RUC</mat-option><mat-option value="DNI">DNI</mat-option><mat-option value="CE">Carné de extranjería</mat-option></mat-select></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Número de documento *</mat-label><input matInput formControlName="documentNumber" maxlength="20"></mat-form-field>
+        <mat-form-field appearance="outline" class="span-2"><mat-label>Razón social *</mat-label><input matInput formControlName="businessName" maxlength="200"></mat-form-field>
+        <mat-form-field appearance="outline" class="span-2"><mat-label>Dirección fiscal</mat-label><textarea matInput formControlName="address" maxlength="300" rows="2"></textarea><mat-hint>Esta dirección no se considera automáticamente una ubicación operativa.</mat-hint></mat-form-field>
+      </form>
+      <div class="tab-actions"><button mat-stroked-button type="button" (click)="cancel()">Cerrar</button><button mat-flat-button color="primary" type="button" [disabled]="isSaving" (click)="saveAndContinue()">{{isSaving?'Guardando...':'Guardar y continuar'}}</button></div>
+    </mat-tab>
+    <mat-tab label="Ubicaciones" [disabled]="!clientId">
+      <div class="locations-toolbar"><div><h3>Ubicaciones del cliente</h3><p>Direcciones físicas independientes de la dirección fiscal.</p></div><button mat-flat-button color="primary" type="button" (click)="openNewLocation()"><mat-icon>add</mat-icon> Agregar ubicación</button></div>
+      @if(locationError){<div class="error-message">{{locationError}}</div>}
+      @if(locations.length===0){<div class="empty-locations">Aún no hay ubicaciones registradas para este cliente.</div>}
+      <div class="location-list">@for(location of locations;track location.id){<div class="location-card"><div class="location-main"><strong>{{location.name}}</strong><span>{{location.locationType.replace('_',' ')}}</span><small>{{location.address}}@if(location.district){ · {{location.district}}}@if(location.province){ · {{location.province}}}@if(location.department){ · {{location.department}}}</small></div><span class="status" [class.inactive]="!location.active">{{location.active?'Activa':'Inactiva'}}</span><button mat-icon-button type="button" aria-label="Editar ubicación" (click)="editLocation(location)"><mat-icon>edit</mat-icon></button><button mat-button type="button" (click)="toggleLocation(location)">{{location.active?'Desactivar':'Activar'}}</button></div>}</div>
+      @if(showLocationForm){<form [formGroup]="locationForm" class="location-form"><h3>{{editingLocationId?'Editar ubicación':'Nueva ubicación'}}</h3><div class="client-grid"><mat-form-field appearance="outline"><mat-label>Nombre identificador *</mat-label><input matInput formControlName="name" placeholder="Almacén principal"></mat-form-field><mat-form-field appearance="outline"><mat-label>Tipo *</mat-label><mat-select formControlName="locationType"><mat-option value="ALMACEN">Almacén</mat-option><mat-option value="DEPOSITO">Depósito</mat-option><mat-option value="PUERTO">Puerto</mat-option><mat-option value="PLANTA">Planta</mat-option><mat-option value="CENTRO_DISTRIBUCION">Centro de distribución</mat-option><mat-option value="OTRO">Oficina / Otro</mat-option></mat-select></mat-form-field><mat-form-field appearance="outline" class="span-2"><mat-label>Dirección *</mat-label><input matInput formControlName="address"></mat-form-field><mat-form-field appearance="outline" class="span-2"><mat-label>Referencia</mat-label><input matInput formControlName="reference"></mat-form-field><mat-form-field appearance="outline"><mat-label>Distrito</mat-label><input matInput formControlName="district"></mat-form-field><mat-form-field appearance="outline"><mat-label>Provincia</mat-label><input matInput formControlName="province"></mat-form-field><mat-form-field appearance="outline"><mat-label>Departamento</mat-label><input matInput formControlName="department"></mat-form-field></div><div class="tab-actions"><button mat-button type="button" (click)="showLocationForm=false">Cancelar</button><button mat-flat-button color="primary" type="button" [disabled]="isLocationSaving" (click)="saveLocation()">{{isLocationSaving?'Guardando...':'Guardar ubicación'}}</button></div></form>}
+      <div class="tab-actions"><button mat-stroked-button type="button" (click)="cancel()">Cerrar</button><button mat-flat-button color="primary" type="button" (click)="finish()">Finalizar</button></div>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>

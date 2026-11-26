@@ -104,9 +104,9 @@
               <tr>
                 <td><strong>{{ relation.subclientName }}</strong><small>ID relación: {{ relation.id }}</small></td>
                 <td>{{ getSubclientDocument(relation.subclientId) }}</td>
-                <td><span class="status active">Activa</span></td>
+                <td><span class="status" [class.active]="relation.active">{{ relation.active ? 'Activa' : 'Inactiva' }}</span></td>
                 @if (canManage) {
-                  <td><button class="text-button deactivate" type="button" (click)="deactivateRelation(relation)">Retirar relación</button></td>
+                  <td>@if (relation.active) { <button class="text-button deactivate" type="button" (click)="deactivateRelation(relation)">Desactivar</button> } @else { <button class="text-button" type="button" (click)="reactivateRelation(relation)">Reactivar</button> }</td>
                 }
               </tr>
             } @empty {

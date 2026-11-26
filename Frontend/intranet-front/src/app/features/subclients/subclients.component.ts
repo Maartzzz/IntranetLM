@@ -84,7 +84,7 @@ export class SubclientsComponent implements OnInit {
 
     this.loadingRelations = true;
     this.errorMessage = '';
-    this.relationService.getByClient(this.selectedClientId).subscribe({
+    (this.canManage ? this.relationService.getAllByClient(this.selectedClientId) : this.relationService.getByClient(this.selectedClientId)).subscribe({
       next: relations => {
         this.relations = relations;
         this.loadingRelations = false;
@@ -98,7 +98,7 @@ export class SubclientsComponent implements OnInit {
   }
 
   get availableSubclients(): Client[] {
-    const linkedIds = new Set(this.relations.map(relation => relation.subclientId));
+    const linkedIds = new Set(this.relations.filter(relation => relation.active).map(relation => relation.subclientId));
     const search = this.searchTerm.trim().toLocaleLowerCase();
 
     return this.clients.filter(client =>
@@ -161,6 +161,14 @@ export class SubclientsComponent implements OnInit {
     });
   }
 
+  reactivateRelation(relation: ClientSubclient): void {
+    if (!this.canManage) return;
+    this.relationService.changeStatus(relation.id, true).subscribe({
+      next: updated => { this.relations = this.relations.map(item => item.id === updated.id ? updated : item); this.successMessage = 'La relación fue reactivada.'; },
+      error: error => { this.errorMessage = error?.error?.detail || 'No se pudo reactivar la relación.'; }
+    });
+  }
+
   deactivateRelation(relation: ClientSubclient): void {
     if (!this.canManage || !window.confirm(`¿Deseas retirar a "${relation.subclientName}" de los subclientes de este cliente?`)) {
       return;
@@ -168,7 +176,7 @@ export class SubclientsComponent implements OnInit {
 
     this.relationService.changeStatus(relation.id, false).subscribe({
       next: () => {
-        this.relations = this.relations.filter(item => item.id !== relation.id);
+        this.relations = this.relations.map(item => item.id === relation.id ? { ...item, active: false } : item);
         this.successMessage = 'La relación fue desactivada. La empresa seguirá registrada como cliente.';
       },
       error: error => {
